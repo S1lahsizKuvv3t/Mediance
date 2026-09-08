@@ -16,7 +16,7 @@
   <a href="docs/FAQ.md">FAQ</a>
 </p>
 
-> Mediance is preparing for its first public beta. The source is usable today; signed installers and automatic updates are still on the release checklist.
+> The first public beta is available from [GitHub Releases](https://github.com/S1lahsizKuvv3t/Mediance/releases/tag/v0.9.0-beta.1). Signed installers and automatic updates are still on the release checklist.
 
 ## What it does
 

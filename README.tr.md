@@ -16,7 +16,7 @@
   <a href="docs/FAQ.md">SSS</a>
 </p>
 
-> Mediance ilk genel beta sürümüne hazırlanıyor. Uygulama ve kaynak kod bugün kullanılabilir durumda; imzalı kurulum paketi ve otomatik güncelleme henüz yayın kontrol listesindedir.
+> İlk genel beta sürümünü [GitHub Releases](https://github.com/S1lahsizKuvv3t/Mediance/releases/tag/v0.9.0-beta.1) sayfasından indirebilirsiniz. İmzalı kurulum paketi ve otomatik güncelleme henüz yayın kontrol listesindedir.
 
 ## Mediance ne yapar?
 
