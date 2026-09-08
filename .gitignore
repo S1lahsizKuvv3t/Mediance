@@ -1,0 +1,30 @@
+.tools/
+work/
+**/bin/
+**/obj/
+TestResults/
+.vs/
+*.user
+artifacts/
+Mediance.lnk
+
+# Local product notes and agent instructions
+AGENTS.md
+docs/MASTER_PLAN.md
+docs/IMPLEMENTATION_STATUS.md
+docs/V1_IMPROVEMENT_PLAN.md
+docs/PRODUCT_WALKTHROUGH_TR.md
+
+# Local application data, diagnostics, and release signing material
+*.log
+*.pfx
+*.snk
+*.cer
+*.invalid
+*.bak
+lyrics-timing.json
+widget-settings.json
+
+# Local release archives
+Mediance-Backups/
+*.zip

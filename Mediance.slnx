@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Mediance.Core/Mediance.Core.csproj" />
+    <Project Path="src/Mediance.Lyrics/Mediance.Lyrics.csproj" />
+    <Project Path="src/Mediance.Windows/Mediance.Windows.csproj" />
+  </Folder>
+  <Folder Name="/prototypes/">
+    <Project Path="prototypes/Mediance.AcrylicProbe/Mediance.AcrylicProbe.csproj" />
+    <Project Path="prototypes/Mediance.AudioProbe/Mediance.AudioProbe.csproj" />
+    <Project Path="prototypes/Mediance.LyricsProbe/Mediance.LyricsProbe.csproj" />
+    <Project Path="prototypes/Mediance.MediaProbe/Mediance.MediaProbe.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Mediance.Core.Tests/Mediance.Core.Tests.csproj" />
+  </Folder>
+</Solution>

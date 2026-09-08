@@ -1,0 +1,46 @@
+name: Feature request
+description: Suggest an improvement to Mediance
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the situation before describing a particular button or implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Suggested behavior
+      description: Explain how you would expect Mediance to behave.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Media controls
+        - Lyrics
+        - Audio routing
+        - Window and appearance
+        - Settings and shortcuts
+        - Installation and updates
+        - Accessibility
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Current workaround or alternative
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Product boundaries
+      options:
+        - label: This request does not require storing listening history or lyrics.
+        - label: This request does not require changing the system-wide default audio output.

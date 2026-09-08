@@ -1,0 +1,204 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <data name="AppName" xml:space="preserve">
+    <value>Mediance</value>
+  </data>
+  <data name="WindowTitle" xml:space="preserve">
+    <value>Mediance · Glass window</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="DragHint" xml:space="preserve">
+    <value>Drag here to move</value>
+  </data>
+  <data name="Topmost" xml:space="preserve">
+    <value>Keep on top</value>
+  </data>
+  <data name="Solid" xml:space="preserve">
+    <value>Solid background</value>
+  </data>
+  <data name="GlassStrength" xml:space="preserve">
+    <value>Glass strength</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>Previous track</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Next track</value>
+  </data>
+  <data name="Play" xml:space="preserve">
+    <value>Play</value>
+  </data>
+  <data name="Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="Playing" xml:space="preserve">
+    <value>Playing</value>
+  </data>
+  <data name="Paused" xml:space="preserve">
+    <value>Paused</value>
+  </data>
+  <data name="IdleTitle" xml:space="preserve">
+    <value>A little music?</value>
+  </data>
+  <data name="IdleArtist" xml:space="preserve">
+    <value>Play something in Spotify, YouTube or another app.</value>
+  </data>
+  <data name="IdleSource" xml:space="preserve">
+    <value>Waiting for media</value>
+  </data>
+  <data name="Untitled" xml:space="preserve">
+    <value>Untitled media</value>
+  </data>
+  <data name="MediaError" xml:space="preserve">
+    <value>Could not access the media source.</value>
+  </data>
+  <data name="CommandError" xml:space="preserve">
+    <value>The source could not complete that action.</value>
+  </data>
+  <data name="Prototype" xml:space="preserve">
+    <value>Window preview</value>
+  </data>
+  <data name="GlassHint" xml:space="preserve">
+    <value>Move this window over another app to see through the glass.</value>
+  </data>
+  <data name="Settings">
+    <value>settings</value>
+  </data>
+  <data name="Appearance">
+    <value>Appearance</value>
+  </data>
+  <data name="Elements">
+    <value>Elements</value>
+  </data>
+  <data name="Sizes">
+    <value>Sizes</value>
+  </data>
+  <data name="Reset">
+    <value>Reset defaults</value>
+  </data>
+  <data name="AutoSave">
+    <value>Saved automatically</value>
+  </data>
+  <data name="WindowWidth">
+    <value>Window width</value>
+  </data>
+  <data name="ArtworkSize">
+    <value>Artwork size</value>
+  </data>
+  <data name="TextSize">
+    <value>Text size</value>
+  </data>
+  <data name="ControlSize">
+    <value>Button size</value>
+  </data>
+  <data name="DensityHint">
+    <value>Lower density is clearer; higher density darkens the background. Text stays unchanged.</value>
+  </data>
+  <data name="ShowArtwork">
+    <value>Album artwork</value>
+  </data>
+  <data name="ShowTitle">
+    <value>Track title</value>
+  </data>
+  <data name="ShowArtist">
+    <value>Artist</value>
+  </data>
+  <data name="ShowSource">
+    <value>Source app</value>
+  </data>
+  <data name="ShowControls">
+    <value>Media controls</value>
+  </data>
+  <data name="ShowPrevious">
+    <value>Previous button</value>
+  </data>
+  <data name="ShowPlayPause">
+    <value>Play / pause button</value>
+  </data>
+  <data name="ShowNext">
+    <value>Next button</value>
+  </data>
+  <data name="ShowBrand">
+    <value>Mediance heading</value>
+  </data>
+  <data name="ShowCloseButton">
+    <value>Close button</value>
+  </data>
+  <data name="ShowBorder">
+    <value>Thin border</value>
+  </data>
+  <data name="ShowPlaybackStatus">
+    <value>Playback status</value>
+  </data>
+  <data name="SettingsSaveError">
+    <value>Settings could not be saved. Changes still apply for this session.</value>
+  </data>
+  <data name="Audio"><value>Audio</value></data>
+  <data name="AudioOutput"><value>Application output</value></data>
+  <data name="SystemDefault"><value>Default</value></data>
+  <data name="Refresh"><value>Refresh</value></data>
+  <data name="AudioScopeHint"><value>This changes only the output of the application above. For browsers, it applies to the whole app.</value></data>
+  <data name="AudioSessionUnavailable"><value>Start media in a supported application first.</value></data>
+  <data name="AudioRoutingError"><value>The audio output could not be changed. The Windows mixer state was preserved.</value></data>
+  <data name="UnavailableDevice"><value>Unavailable saved device</value></data>
+  <data name="Lyrics"><value>lyrics</value></data>
+  <data name="HideLyrics"><value>hide lyrics</value></data>
+  <data name="LyricsLoading"><value>Looking for lyrics…</value></data>
+  <data name="LyricsNeedTrack"><value>Start a song first.</value></data>
+  <data name="LyricsInstrumental"><value>This track is instrumental.</value></data>
+  <data name="LyricsUnavailable"><value>No lyrics were found for this song.</value></data>
+  <data name="LyricsError"><value>Lyrics could not be loaded right now.</value></data>
+  <data name="ShowLyricsButton"><value>Lyrics button</value></data>
+  <data name="ShowAudioOutput"><value>Audio output selector</value></data>
+  <data name="LyricsTiming"><value>Lyrics timing</value></data>
+  <data name="LyricsTimingEarly"><value>{0:0.0} sec early</value></data>
+  <data name="LyricsTimingLate"><value>{0:0.0} sec late</value></data>
+  <data name="LyricsTimingExact"><value>On time</value></data>
+  <data name="GlobalShortcut"><value>Global shortcut</value></data>
+  <data name="SelectShortcut"><value>Select shortcut</value></data>
+  <data name="PressShortcut"><value>Press a key combination…</value></data>
+  <data name="HotkeyCaptureHint"><value>Press the new combination. Esc cancels.</value></data>
+  <data name="HotkeyNeedsCombination"><value>Press another key together with Ctrl, Alt, Shift, or Win.</value></data>
+  <data name="HotkeySaved"><value>Shortcut saved.</value></data>
+  <data name="HotkeyConflict"><value>Another application is already using this combination.</value></data>
+  <data name="LockPosition"><value>Lock window position</value></data>
+  <data name="UnlockPosition"><value>Unlock window position</value></data>
+  <data name="PlaybackProgress"><value>Playback position</value></data>
+  <data name="AudioVolumeError"><value>The application volume could not be changed.</value></data>
+  <data name="ShowProgress"><value>Playback bar</value></data>
+  <data name="AmbientGlow"><value>Artwork color glow</value></data>
+  <data name="WheelVolume"><value>Mouse wheel application volume</value></data>
+  <data name="CloseToTray"><value>Minimize to tray when closed</value></data>
+  <data name="ShowWidget"><value>Show Mediance</value></data>
+  <data name="HideWidget"><value>Hide Mediance</value></data>
+  <data name="Exit"><value>Exit</value></data>
+  <data name="Theme"><value>Theme</value></data>
+  <data name="ThemeMidnight"><value>Midnight</value></data>
+  <data name="ThemePrism"><value>Prism</value></data>
+  <data name="ThemeClearGlass"><value>Clear Glass</value></data>
+  <data name="StartWithWindows"><value>Start quietly with Windows</value></data>
+  <data name="LyricsLayout"><value>Lyrics layout</value></data>
+  <data name="LyricsTwoLines"><value>2 lines · Current + next</value></data>
+  <data name="LyricsThreeLines"><value>3 lines · Previous + current + next</value></data>
+  <data name="LyricsSyncedUnavailable"><value>No synchronized lyrics were found for this song.</value></data>
+  <data name="LyricsManualAvailable"><value>No synchronized lyrics were found. You can time this song yourself.</value></data>
+  <data name="LyricsManualStart"><value>Start synchronization</value></data>
+  <data name="LyricsManualMark"><value>Mark this line  ·  Space</value></data>
+  <data name="LyricsManualReady"><value>The song was moved to the start. Mark each line as it begins.</value></data>
+  <data name="LyricsManualRecording"><value>Keep listening and mark the next line when it begins.</value></data>
+  <data name="LyricsManualProgress"><value>Line {0} / {1}</value></data>
+  <data name="LyricsManualLineCount"><value>{0} lines to time</value></data>
+  <data name="LyricsManualRestart"><value>Restart</value></data>
+  <data name="LyricsManualCancel"><value>Cancel</value></data>
+  <data name="LyricsManualRedo"><value>Synchronize again</value></data>
+  <data name="LyricsManualSeekRequired"><value>This media application cannot seek to the beginning, so timing cannot start.</value></data>
+  <data name="LyricsManualSaveError"><value>The timing could not be saved locally. You can try again.</value></data>
+</root>

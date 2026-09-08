@@ -1,0 +1,38 @@
+name: Windows build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore locked dependencies
+        run: dotnet restore Mediance.slnx --locked-mode
+
+      - name: Build release configuration
+        run: dotnet build Mediance.slnx --configuration Release --no-restore --nologo
+
+      - name: Run unit tests
+        run: dotnet test tests/Mediance.Core.Tests --configuration Release --no-build --nologo

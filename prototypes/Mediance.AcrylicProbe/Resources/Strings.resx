@@ -1,0 +1,204 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <data name="AppName" xml:space="preserve">
+    <value>Mediance</value>
+  </data>
+  <data name="WindowTitle" xml:space="preserve">
+    <value>Mediance · Cam pencere</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Kapat</value>
+  </data>
+  <data name="DragHint" xml:space="preserve">
+    <value>Taşımak için buradan sürükle</value>
+  </data>
+  <data name="Topmost" xml:space="preserve">
+    <value>Üstte tut</value>
+  </data>
+  <data name="Solid" xml:space="preserve">
+    <value>Mat görünüm</value>
+  </data>
+  <data name="GlassStrength" xml:space="preserve">
+    <value>Cam yoğunluğu</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>Önceki parça</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Sonraki parça</value>
+  </data>
+  <data name="Play" xml:space="preserve">
+    <value>Oynat</value>
+  </data>
+  <data name="Pause" xml:space="preserve">
+    <value>Duraklat</value>
+  </data>
+  <data name="Playing" xml:space="preserve">
+    <value>Çalıyor</value>
+  </data>
+  <data name="Paused" xml:space="preserve">
+    <value>Duraklatıldı</value>
+  </data>
+  <data name="IdleTitle" xml:space="preserve">
+    <value>Biraz müzik?</value>
+  </data>
+  <data name="IdleArtist" xml:space="preserve">
+    <value>Spotify, YouTube veya başka bir uygulamada oynat.</value>
+  </data>
+  <data name="IdleSource" xml:space="preserve">
+    <value>Medya bekleniyor</value>
+  </data>
+  <data name="Untitled" xml:space="preserve">
+    <value>Başlıksız medya</value>
+  </data>
+  <data name="MediaError" xml:space="preserve">
+    <value>Medya kaynağına erişilemedi.</value>
+  </data>
+  <data name="CommandError" xml:space="preserve">
+    <value>Kaynak bu işlemi tamamlayamadı.</value>
+  </data>
+  <data name="Prototype" xml:space="preserve">
+    <value>Pencere önizlemesi</value>
+  </data>
+  <data name="GlassHint" xml:space="preserve">
+    <value>Camın arkasını görmek için pencereyi başka bir uygulamanın üzerine taşı.</value>
+  </data>
+  <data name="Settings">
+    <value>settings</value>
+  </data>
+  <data name="Appearance">
+    <value>Görünüm</value>
+  </data>
+  <data name="Elements">
+    <value>Öğeler</value>
+  </data>
+  <data name="Sizes">
+    <value>Boyutlar</value>
+  </data>
+  <data name="Reset">
+    <value>Varsayılana dön</value>
+  </data>
+  <data name="AutoSave">
+    <value>Otomatik kaydedilir</value>
+  </data>
+  <data name="WindowWidth">
+    <value>Pencere genişliği</value>
+  </data>
+  <data name="ArtworkSize">
+    <value>Kapak boyutu</value>
+  </data>
+  <data name="TextSize">
+    <value>Yazı boyutu</value>
+  </data>
+  <data name="ControlSize">
+    <value>Düğme boyutu</value>
+  </data>
+  <data name="DensityHint">
+    <value>Az yoğunluk daha saydam, yüksek yoğunluk daha koyu bir arka plan verir. Yazılar değişmez.</value>
+  </data>
+  <data name="ShowArtwork">
+    <value>Albüm kapağı</value>
+  </data>
+  <data name="ShowTitle">
+    <value>Şarkı adı</value>
+  </data>
+  <data name="ShowArtist">
+    <value>Sanatçı</value>
+  </data>
+  <data name="ShowSource">
+    <value>Kaynak uygulama</value>
+  </data>
+  <data name="ShowControls">
+    <value>Medya kontrolleri</value>
+  </data>
+  <data name="ShowPrevious">
+    <value>Önceki parça düğmesi</value>
+  </data>
+  <data name="ShowPlayPause">
+    <value>Oynat / duraklat düğmesi</value>
+  </data>
+  <data name="ShowNext">
+    <value>Sonraki parça düğmesi</value>
+  </data>
+  <data name="ShowBrand">
+    <value>Mediance başlığı</value>
+  </data>
+  <data name="ShowCloseButton">
+    <value>Kapat düğmesi</value>
+  </data>
+  <data name="ShowBorder">
+    <value>İnce kenarlık</value>
+  </data>
+  <data name="ShowPlaybackStatus">
+    <value>Çalma durumu</value>
+  </data>
+  <data name="SettingsSaveError">
+    <value>Ayarlar kaydedilemedi. Bu oturumda değişiklikler uygulanmaya devam eder.</value>
+  </data>
+  <data name="Audio"><value>Ses</value></data>
+  <data name="AudioOutput"><value>Uygulama çıkışı</value></data>
+  <data name="SystemDefault"><value>Varsayılan</value></data>
+  <data name="Refresh"><value>Yenile</value></data>
+  <data name="AudioScopeHint"><value>Bu seçim yalnızca yukarıdaki uygulamanın ses çıkışını değiştirir. Tarayıcılarda tüm uygulamaya uygulanır.</value></data>
+  <data name="AudioSessionUnavailable"><value>Önce desteklenen bir uygulamada medya oynat.</value></data>
+  <data name="AudioRoutingError"><value>Ses çıkışı değiştirilemedi. Windows ses karıştırıcısındaki durum korundu.</value></data>
+  <data name="UnavailableDevice"><value>Kullanılamayan kayıtlı cihaz</value></data>
+  <data name="Lyrics"><value>lyrics</value></data>
+  <data name="HideLyrics"><value>sözleri kapat</value></data>
+  <data name="LyricsLoading"><value>Şarkı sözleri aranıyor…</value></data>
+  <data name="LyricsNeedTrack"><value>Önce bir şarkı oynat.</value></data>
+  <data name="LyricsInstrumental"><value>Bu parça enstrümantal.</value></data>
+  <data name="LyricsUnavailable"><value>Bu şarkı için söz bulunamadı.</value></data>
+  <data name="LyricsError"><value>Şarkı sözleri şu anda alınamadı.</value></data>
+  <data name="ShowLyricsButton"><value>Şarkı sözleri düğmesi</value></data>
+  <data name="ShowAudioOutput"><value>Ses çıkışı seçicisi</value></data>
+  <data name="LyricsTiming"><value>Şarkı sözü zamanlaması</value></data>
+  <data name="LyricsTimingEarly"><value>{0:0.0} sn erken</value></data>
+  <data name="LyricsTimingLate"><value>{0:0.0} sn geç</value></data>
+  <data name="LyricsTimingExact"><value>Tam zamanında</value></data>
+  <data name="GlobalShortcut"><value>Global kısayol</value></data>
+  <data name="SelectShortcut"><value>Kısayol seç</value></data>
+  <data name="PressShortcut"><value>Tuş kombinasyonuna bas…</value></data>
+  <data name="HotkeyCaptureHint"><value>Yeni kombinasyona bas. Esc iptal eder.</value></data>
+  <data name="HotkeyNeedsCombination"><value>Ctrl, Alt, Shift veya Win ile başka bir tuşa birlikte bas.</value></data>
+  <data name="HotkeySaved"><value>Kısayol kaydedildi.</value></data>
+  <data name="HotkeyConflict"><value>Bu kombinasyon başka bir uygulama tarafından kullanılıyor.</value></data>
+  <data name="LockPosition"><value>Pencere konumunu kilitle</value></data>
+  <data name="UnlockPosition"><value>Pencere kilidini aç</value></data>
+  <data name="PlaybackProgress"><value>Oynatma konumu</value></data>
+  <data name="AudioVolumeError"><value>Uygulama sesi değiştirilemedi.</value></data>
+  <data name="ShowProgress"><value>Oynatma çubuğu</value></data>
+  <data name="AmbientGlow"><value>Kapak rengi ışığı</value></data>
+  <data name="WheelVolume"><value>Fare tekerleğiyle uygulama sesi</value></data>
+  <data name="CloseToTray"><value>Kapatıldığında tepsiye küçült</value></data>
+  <data name="ShowWidget"><value>Mediance'ı göster</value></data>
+  <data name="HideWidget"><value>Mediance'ı gizle</value></data>
+  <data name="Exit"><value>Çıkış</value></data>
+  <data name="Theme"><value>Tema</value></data>
+  <data name="ThemeMidnight"><value>Midnight</value></data>
+  <data name="ThemePrism"><value>Prism</value></data>
+  <data name="ThemeClearGlass"><value>Clear Glass</value></data>
+  <data name="StartWithWindows"><value>Windows ile sessizce başlat</value></data>
+  <data name="LyricsLayout"><value>Şarkı sözü görünümü</value></data>
+  <data name="LyricsTwoLines"><value>2 satır · Şu anki + sonraki</value></data>
+  <data name="LyricsThreeLines"><value>3 satır · Önceki + şu anki + sonraki</value></data>
+  <data name="LyricsSyncedUnavailable"><value>Bu şarkı için senkronize söz bulunamadı.</value></data>
+  <data name="LyricsManualAvailable"><value>Senkronize söz bulunamadı. Bu şarkıyı kendin zamanlayabilirsin.</value></data>
+  <data name="LyricsManualStart"><value>Senkronlamayı başlat</value></data>
+  <data name="LyricsManualMark"><value>Bu satırı işaretle  ·  Space</value></data>
+  <data name="LyricsManualReady"><value>Şarkı başa alındı. Satır başladığı anda işaretle.</value></data>
+  <data name="LyricsManualRecording"><value>Dinlemeye devam et; sıradaki satır başlayınca işaretle.</value></data>
+  <data name="LyricsManualProgress"><value>Satır {0} / {1}</value></data>
+  <data name="LyricsManualLineCount"><value>{0} satır zamanlanacak</value></data>
+  <data name="LyricsManualRestart"><value>Baştan başlat</value></data>
+  <data name="LyricsManualCancel"><value>İptal</value></data>
+  <data name="LyricsManualRedo"><value>Yeniden senkronla</value></data>
+  <data name="LyricsManualSeekRequired"><value>Bu medya uygulaması başa sarmayı desteklemediği için zamanlama başlatılamadı.</value></data>
+  <data name="LyricsManualSaveError"><value>Zamanlama yerel olarak kaydedilemedi. Tekrar deneyebilirsin.</value></data>
+</root>
