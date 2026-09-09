@@ -16,7 +16,7 @@
   <a href="docs/FAQ.md">FAQ</a>
 </p>
 
-> The first public beta is available from [GitHub Releases](https://github.com/S1lahsizKuvv3t/Mediance/releases/tag/v0.9.0-beta.1). Signed installers and automatic updates are still on the release checklist.
+> The latest public beta is available from [GitHub Releases](https://github.com/S1lahsizKuvv3t/Mediance/releases/tag/v0.9.0-beta.2). Signed installers and automatic updates are still on the release checklist.
 
 ## What it does
 
@@ -47,7 +47,7 @@ The release build is self-contained. Users do not need to install the .NET SDK o
 2. Extract the whole archive to a normal folder.
 3. Run `Mediance.exe` from that folder.
 
-Do not move only the EXE out of the extracted folder; the adjacent runtime files are part of the application. Until releases are code-signed, Windows SmartScreen may show an unknown publisher warning.
+The package root contains only the launcher, so `Mediance.exe` is easy to find. Keep the adjacent `App` folder in place because it contains the self-contained application files. Until releases are code-signed, Windows SmartScreen may show an unknown publisher warning.
 
 The full instructions, update notes, and clean removal steps are in [Installation](docs/INSTALLATION.md).
 
@@ -89,6 +89,7 @@ Build output is written under `artifacts/` by the helper and is intentionally ex
 - `src/Mediance.Windows` — Windows media sessions, audio routing, and native window integration.
 - `src/Mediance.Lyrics` — synchronized and plain lyrics providers, caching, and local timing storage.
 - `prototypes/Mediance.AcrylicProbe` — the current WinUI 3 desktop application.
+- `packaging/Mediance.Launcher` — the small native launcher placed at the top of release archives.
 - `tests/Mediance.Core.Tests` — unit and reliability tests.
 - `docs` — user guides and technical notes.
 
