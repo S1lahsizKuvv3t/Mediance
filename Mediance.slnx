@@ -10,6 +10,9 @@
     <Project Path="prototypes/Mediance.LyricsProbe/Mediance.LyricsProbe.csproj" />
     <Project Path="prototypes/Mediance.MediaProbe/Mediance.MediaProbe.csproj" />
   </Folder>
+  <Folder Name="/packaging/">
+    <Project Path="packaging/Mediance.Launcher/Mediance.Launcher.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Mediance.Core.Tests/Mediance.Core.Tests.csproj" />
   </Folder>

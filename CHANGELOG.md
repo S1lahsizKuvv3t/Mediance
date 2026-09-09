@@ -6,6 +6,14 @@ Notable user-visible changes are recorded here. Mediance follows semantic versio
 
 No changes yet.
 
+## [0.9.0-beta.2] — 2026-09-09
+
+### Changed
+
+- The Windows ZIP now has a clean top level containing only `Mediance.exe`.
+- Application runtime files and language folders are grouped under `App`; license and package notes are grouped under `Documentation`.
+- A small native launcher starts the self-contained application without requiring a separate .NET installation.
+
 ## [0.9.0-beta.1] — 2026-09-09
 
 ### Added

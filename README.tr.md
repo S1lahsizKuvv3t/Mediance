@@ -16,7 +16,7 @@
   <a href="docs/FAQ.md">SSS</a>
 </p>
 
-> İlk genel beta sürümünü [GitHub Releases](https://github.com/S1lahsizKuvv3t/Mediance/releases/tag/v0.9.0-beta.1) sayfasından indirebilirsiniz. İmzalı kurulum paketi ve otomatik güncelleme henüz yayın kontrol listesindedir.
+> En yeni genel beta sürümünü [GitHub Releases](https://github.com/S1lahsizKuvv3t/Mediance/releases/tag/v0.9.0-beta.2) sayfasından indirebilirsiniz. İmzalı kurulum paketi ve otomatik güncelleme henüz yayın kontrol listesindedir.
 
 ## Mediance ne yapar?
 
@@ -47,7 +47,7 @@ Yayın paketi gerekli çalışma zamanlarını beraberinde taşır. Kullanıcın
 2. Arşivin tamamını normal bir klasöre çıkarın.
 3. Klasördeki `Mediance.exe` dosyasını çalıştırın.
 
-Yalnızca EXE dosyasını başka yere taşımayın; yanındaki çalışma zamanı dosyaları uygulamanın bir parçasıdır. Sürümler dijital olarak imzalanana kadar Windows SmartScreen bilinmeyen yayıncı uyarısı gösterebilir.
+Paketin en üstünde yalnızca başlatıcı bulunduğu için `Mediance.exe` kolayca görünür. Self-contained uygulama dosyalarını içeren `App` klasörünü başlatıcının yanında tutun. Sürümler dijital olarak imzalanana kadar Windows SmartScreen bilinmeyen yayıncı uyarısı gösterebilir.
 
 Güncelleme, kaldırma ve temiz kurulum adımları [Kurulum](docs/INSTALLATION.md) belgesinde bulunur.
 

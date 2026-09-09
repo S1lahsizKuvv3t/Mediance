@@ -17,7 +17,7 @@ Mediance yayın paketi .NET ve Windows App SDK çalışma zamanlarını içerir.
 4. Çıkan klasörü kalıcı olarak kullanmak istediğiniz bir yere taşıyın. Örneğin `%LOCALAPPDATA%\Programs\Mediance` kullanılabilir.
 5. Klasördeki `Mediance.exe` dosyasını çalıştırın.
 
-EXE'nin yanındaki DLL ve çalışma zamanı dosyaları gereklidir. Yalnızca `Mediance.exe` dosyasını masaüstüne taşımak uygulamayı bozabilir. Masaüstünde erişim istiyorsanız EXE'nin kendisini değil, kısayolunu oluşturun.
+Paketin en üstünde yalnızca `Mediance.exe` bulunur. Gerekli DLL, dil ve çalışma zamanı dosyaları `App` klasöründe düzenli biçimde saklanır. Bu klasörü silmeyin veya başlatıcıdan ayırmayın. Masaüstünde erişim istiyorsanız EXE'nin kendisini değil, kısayolunu oluşturun.
 
 ## SmartScreen uyarısı
 
@@ -26,7 +26,7 @@ EXE'nin yanındaki DLL ve çalışma zamanı dosyaları gereklidir. Yalnızca `M
 PowerShell ile SHA-256 kontrolü:
 
 ```powershell
-Get-FileHash .\Mediance-0.9.0-win-x64.zip -Algorithm SHA256
+Get-FileHash .\Mediance-0.9.0-beta.2-win-x64.zip -Algorithm SHA256
 ```
 
 ## İlk çalıştırma
