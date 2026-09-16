@@ -173,8 +173,8 @@ public sealed partial class MainWindow : Window
             {
                 _albumBackgroundTransition?.Stop();
                 _albumBackgroundTransition = null;
-                AlbumBackgroundImage.Opacity = 0;
-                AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1.06;
+                AlbumArtworkLayer.Opacity = 0;
+                AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1.025;
             }
         }
         Lyrics.Lead = TimeSpan.FromMilliseconds(Settings.LyricsLeadMilliseconds);
@@ -290,7 +290,7 @@ public sealed partial class MainWindow : Window
         if (e.PropertyName == nameof(PlayerViewModel.Artwork))
         {
             AnimateArtworkReveal();
-            AlbumBackgroundImage.Opacity = 0;
+            AlbumArtworkLayer.Opacity = 0;
             DispatcherQueue.TryEnqueue(AnimateAlbumBackgroundReveal);
         }
         if (e.PropertyName is null && !string.Equals(_lastTrackIdentity, Model.TrackIdentity, StringComparison.Ordinal))
@@ -375,29 +375,29 @@ public sealed partial class MainWindow : Window
         _albumBackgroundTransition = null;
         if (Settings.Theme != ThemePreset.Album || Model.Artwork is null)
         {
-            AlbumBackgroundImage.Opacity = 0;
-            AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1.06;
+            AlbumArtworkLayer.Opacity = 0;
+            AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1.025;
             return;
         }
         if (!_animationsEnabled || !Root.IsLoaded)
         {
-            AlbumBackgroundImage.Opacity = 0.88;
-            AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1.03;
+            AlbumArtworkLayer.Opacity = 1;
+            AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1;
             return;
         }
 
-        AlbumBackgroundImage.Opacity = 0;
-        AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1.075;
+        AlbumArtworkLayer.Opacity = 0;
+        AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1.025;
         var storyboard = new Storyboard();
         var ease = new QuinticEase { EasingMode = EasingMode.EaseOut };
-        storyboard.Children.Add(Animation(AlbumBackgroundImage, "Opacity", 0, 0.88, 620, ease));
-        storyboard.Children.Add(Animation(AlbumBackgroundTransform, "ScaleX", 1.075, 1.03, 1100, ease));
-        storyboard.Children.Add(Animation(AlbumBackgroundTransform, "ScaleY", 1.075, 1.03, 1100, ease));
+        storyboard.Children.Add(Animation(AlbumArtworkLayer, "Opacity", 0, 1, 620, ease));
+        storyboard.Children.Add(Animation(AlbumBackgroundTransform, "ScaleX", 1.025, 1, 1100, ease));
+        storyboard.Children.Add(Animation(AlbumBackgroundTransform, "ScaleY", 1.025, 1, 1100, ease));
         storyboard.Completed += (_, _) =>
         {
             if (!ReferenceEquals(_albumBackgroundTransition, storyboard)) return;
-            AlbumBackgroundImage.Opacity = 0.88;
-            AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1.03;
+            AlbumArtworkLayer.Opacity = 1;
+            AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1;
             storyboard.Stop();
             _albumBackgroundTransition = null;
         };
@@ -952,6 +952,9 @@ public sealed partial class MainWindow : Window
         await Task.Delay(80);
         if (AlbumBackdrop.Visibility != Visibility.Visible)
             throw new InvalidOperationException("Album theme background did not become visible.");
+        if (AlbumBackgroundFillImage.Stretch != Stretch.UniformToFill ||
+            AlbumBackgroundFocusImage.Stretch != Stretch.Uniform)
+            throw new InvalidOperationException("Album theme did not preserve its centered fit layer.");
         Settings.Theme = ThemePreset.Prism;
         await Task.Delay(80);
         if (AlbumBackdrop.Visibility != Visibility.Collapsed)

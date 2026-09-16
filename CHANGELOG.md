@@ -10,6 +10,7 @@ Notable user-visible changes are recorded here. Mediance follows semantic versio
 
 ### Changed
 
+- Keep the full album cover centered in the Album theme at both compact and expanded widget sizes, with a darker full-bleed layer filling the surrounding space.
 - The widget no longer takes foreground activation from games and other applications.
 - Mediance windows are hidden from the Windows taskbar and Alt+Tab switcher.
 
