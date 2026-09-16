@@ -6,15 +6,15 @@
         <Grid>
             <Grid x:Name="AlbumBackdrop" IsHitTestVisible="False"
                   Visibility="{x:Bind Settings.AlbumThemeVisibility, Mode=OneWay}">
-                <Grid x:Name="AlbumArtworkLayer" Opacity="0" RenderTransformOrigin="0.5,0.5">
-                    <Grid.RenderTransform>
+                <Border x:Name="AlbumArtworkLayer" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                    <Border.RenderTransform>
                         <CompositeTransform x:Name="AlbumBackgroundTransform" ScaleX="1.06" ScaleY="1.06" />
-                    </Grid.RenderTransform>
-                    <Image x:Name="AlbumBackgroundFillImage" Source="{x:Bind Model.Artwork, Mode=OneWay}"
-                           Stretch="UniformToFill" Opacity="0.36" />
-                    <Image x:Name="AlbumBackgroundFocusImage" Source="{x:Bind Model.Artwork, Mode=OneWay}"
-                           Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.92" />
-                </Grid>
+                    </Border.RenderTransform>
+                    <Border.Background>
+                        <ImageBrush ImageSource="{x:Bind Model.Artwork, Mode=OneWay}"
+                                    Stretch="UniformToFill" AlignmentX="Center" AlignmentY="Center" />
+                    </Border.Background>
+                </Border>
                 <Border Background="#8A0A0D13" />
                 <Border>
                     <Border.Background>

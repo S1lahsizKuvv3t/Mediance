@@ -952,9 +952,10 @@ public sealed partial class MainWindow : Window
         await Task.Delay(80);
         if (AlbumBackdrop.Visibility != Visibility.Visible)
             throw new InvalidOperationException("Album theme background did not become visible.");
-        if (AlbumBackgroundFillImage.Stretch != Stretch.UniformToFill ||
-            AlbumBackgroundFocusImage.Stretch != Stretch.Uniform)
-            throw new InvalidOperationException("Album theme did not preserve its centered fit layer.");
+        if (AlbumArtworkLayer.Background is not ImageBrush albumBrush ||
+            albumBrush.Stretch != Stretch.UniformToFill ||
+            albumBrush.AlignmentX != AlignmentX.Center || albumBrush.AlignmentY != AlignmentY.Center)
+            throw new InvalidOperationException("Album theme did not preserve its centered fill crop.");
         Settings.Theme = ThemePreset.Prism;
         await Task.Delay(80);
         if (AlbumBackdrop.Visibility != Visibility.Collapsed)
