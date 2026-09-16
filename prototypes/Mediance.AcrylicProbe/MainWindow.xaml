@@ -6,19 +6,22 @@
         <Grid>
             <Grid x:Name="AlbumBackdrop" IsHitTestVisible="False"
                   Visibility="{x:Bind Settings.AlbumThemeVisibility, Mode=OneWay}">
-                <Image x:Name="AlbumBackgroundImage" Source="{x:Bind Model.Artwork, Mode=OneWay}"
-                       Stretch="UniformToFill" Opacity="0" RenderTransformOrigin="0.5,0.5">
-                    <Image.RenderTransform>
+                <Grid x:Name="AlbumArtworkLayer" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                    <Grid.RenderTransform>
                         <CompositeTransform x:Name="AlbumBackgroundTransform" ScaleX="1.06" ScaleY="1.06" />
-                    </Image.RenderTransform>
-                </Image>
-                <Border Background="#A60A0D13" />
+                    </Grid.RenderTransform>
+                    <Image x:Name="AlbumBackgroundFillImage" Source="{x:Bind Model.Artwork, Mode=OneWay}"
+                           Stretch="UniformToFill" Opacity="0.36" />
+                    <Image x:Name="AlbumBackgroundFocusImage" Source="{x:Bind Model.Artwork, Mode=OneWay}"
+                           Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.92" />
+                </Grid>
+                <Border Background="#8A0A0D13" />
                 <Border>
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#76101620" Offset="0" />
-                            <GradientStop Color="#B20A0C12" Offset="0.58" />
-                            <GradientStop Color="#D0080A0F" Offset="1" />
+                            <GradientStop Color="#52101620" Offset="0" />
+                            <GradientStop Color="#870A0C12" Offset="0.58" />
+                            <GradientStop Color="#B0080A0F" Offset="1" />
                         </LinearGradientBrush>
                     </Border.Background>
                 </Border>
