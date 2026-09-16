@@ -30,7 +30,7 @@ Her parçanın güvenilir bir söz kaydı veya zaman kodlu sürümü bulunmayabi
 
 ## Genius'ta söz var ama neden otomatik akmıyor?
 
-Bir sayfada söz metninin bulunması zaman kodu bulunduğu anlamına gelmez. Mediance düz metinden tahmini senkron üretmez. Doğru düz metin doğrulanırsa manuel zamanlama seçeneği sunulur.
+Bir sayfada söz metninin bulunması zaman kodu bulunduğu anlamına gelmez. Mediance önce zaman kodlu kaynakları tarar. Geçici bir kaynak hatasında yalnızca düz söz gelirse panel kısa süre sonra senkronlu kaynakları otomatik olarak yeniden dener ve bulunan zamanlamaya kendiliğinden geçer. Hiçbir kaynakta zaman kodu yoksa doğru düz metin için manuel zamanlama seçeneği kalır.
 
 ## Manuel zamanlamam uygulamayı kapatınca kaybolur mu?
 

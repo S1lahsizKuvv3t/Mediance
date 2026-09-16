@@ -34,7 +34,8 @@ Implemented:
 - identity validation uses title, artist, album and duration where a catalogue exposes those fields; uncertain matches remain unavailable;
 - bracketed structural labels such as `[Nakarat]`, `[Verse]`, `[Köprü]` and their numbered/credited forms are removed centrally before either flowing or plain display, while vocal ad-libs remain;
 - provider failure isolation, so a blocked or unavailable source advances to the next source without affecting media controls;
-- a bounded memory-only result cache: successful documents live for four hours and unavailable results for 45 seconds, making repeated panel opens instant without persisting queries or lyrics;
+- a bounded memory-only result cache: synchronized documents live for four hours, plain fallback results for eight seconds and unavailable results for 45 seconds, without persisting queries or lyrics;
+- when only plain lyrics or a locally timed fallback is returned, the open panel automatically retries the synchronized sources after the short fallback cache expires and upgrades in place when source-authored timing appears;
 
 Verified against the real services on 2026-09-08:
 
@@ -46,6 +47,7 @@ Verified against the real services on 2026-09-08:
 - `58 — KAVAK`: synchronized, 33 timed lines;
 - `TSS — KAVAK` with its Spotify album/duration metadata: synchronized, 45 timed lines;
 - `60 — KAVAK, BAKAN`: synchronized through Apple Music TTML, 43 timed lines;
+- `Dum Taka Dum — Sansar Salvo`: synchronized, 84 timed lines (00:08.38–02:52.33); this exposed and now covers the stale plain-result cache path;
 - the reported `fıs? — KAVAK, BAKAN` probe has no source-authored timestamps, but its identity-validated plain lyrics now open the manual timing workflow;
 - SyncLRC was evaluated as another aggregator, but its public endpoints returned HTTP 403/429 to application requests on 2026-09-08, so it was not added as an unreliable runtime dependency.
 
