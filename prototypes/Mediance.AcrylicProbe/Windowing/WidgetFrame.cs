@@ -13,7 +13,7 @@ internal sealed class WidgetFrame
     private readonly AppWindow _window;
     private readonly OverlappedPresenter _presenter;
 
-    internal WidgetFrame(Window window, double widthDip = 400, double heightDip = 300)
+    internal WidgetFrame(Window window, double widthDip = 400, double heightDip = 300, bool noActivate = false)
     {
         _handle = WinRT.Interop.WindowNative.GetWindowHandle(window);
         _window = window.AppWindow;
@@ -23,6 +23,7 @@ internal sealed class WidgetFrame
         _presenter.IsMaximizable = false;
         _presenter.IsMinimizable = true;
         NativeWindowFeatures.ConfigureAppearance(_handle);
+        NativeWindowFeatures.ConfigureFloatingWindow(_handle, noActivate);
 
         var scale = NativeWindowFeatures.DpiScale(_handle);
         var area = DisplayArea.GetFromWindowId(_window.Id, DisplayAreaFallback.Nearest).WorkArea;
@@ -34,8 +35,10 @@ internal sealed class WidgetFrame
 
     internal void SetTopmost(bool enabled) => _presenter.IsAlwaysOnTop = enabled;
     internal bool IsVisible => IsWindowVisible(_handle);
+    internal bool IsToolWindow => NativeWindowFeatures.IsToolWindow(_handle);
+    internal bool IsNoActivateWindow => NativeWindowFeatures.IsNoActivateWindow(_handle);
     internal void Hide() => ShowWindow(_handle, 0);
-    internal void ShowWithoutActivation() => ShowWindow(_handle, 4);
+    internal void ShowWithoutActivation() => _window.Show(false);
     internal void RestorePosition(int x, int y)
     {
         var desired = new Mediance.Core.Windowing.PixelPoint(x, y);
@@ -47,12 +50,6 @@ internal sealed class WidgetFrame
     {
         var placement = WindowPlacement.Clamp(new(x, y), new(_window.Size.Width, _window.Size.Height), area);
         _window.Move(new PointInt32(placement.X, placement.Y));
-    }
-    internal void ShowAndActivate(Window window)
-    {
-        ShowWindow(_handle, 5);
-        SetForegroundWindow(_handle);
-        window.Activate();
     }
     internal void ResizeContent(double widthDip, double heightDip)
     {
@@ -75,6 +72,10 @@ internal sealed class WidgetFrame
     internal async Task VerifyAsync()
     {
         var original = _window.Position;
+        if (!IsToolWindow)
+            throw new InvalidOperationException("Widget is still eligible for the taskbar or Alt+Tab.");
+        if (!IsNoActivateWindow)
+            throw new InvalidOperationException("Widget can still steal foreground activation.");
         SetTopmost(true);
         await Task.Delay(100);
         if (!NativeWindowFeatures.IsTopmost(_handle)) throw new InvalidOperationException("Topmost did not reach native window state.");
@@ -95,7 +96,4 @@ internal sealed class WidgetFrame
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool ShowWindow(nint window, int command);
-    [DllImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool SetForegroundWindow(nint window);
 }

@@ -7,6 +7,11 @@ namespace Mediance.Windows.Windowing;
 /// <summary>Documented Win32/DWM operations scoped to one Mediance window.</summary>
 public static class NativeWindowFeatures
 {
+    private const int ExtendedStyleIndex = -20;
+    private const long AppWindowStyle = 0x00040000L;
+    private const long ToolWindowStyle = 0x00000080L;
+    private const long NoActivateStyle = 0x08000000L;
+
     public static double DpiScale(nint window) => Math.Max(96, GetDpiForWindow(window)) / 96d;
 
     public static void ConfigureAppearance(nint window)
@@ -14,6 +19,23 @@ public static class NativeWindowFeatures
         SetAttribute(window, 33, 2); // DWMWA_WINDOW_CORNER_PREFERENCE, DWMWCP_ROUND.
         SetAttribute(window, 20, 1); // DWMWA_USE_IMMERSIVE_DARK_MODE.
         SetAttribute(window, 34, unchecked((int)0xFFFFFFFE)); // DWMWA_BORDER_COLOR, DWMWA_COLOR_NONE.
+    }
+
+    public static void ConfigureFloatingWindow(nint window, bool noActivate)
+    {
+        var styles = GetWindowLongPtr(window, ExtendedStyleIndex).ToInt64();
+        var updated = (styles | ToolWindowStyle) & ~AppWindowStyle;
+        if (noActivate) updated |= NoActivateStyle;
+        else updated &= ~NoActivateStyle;
+
+        Marshal.SetLastPInvokeError(0);
+        var previous = SetWindowLongPtr(window, ExtendedStyleIndex, new nint(updated));
+        if (previous == 0 && Marshal.GetLastPInvokeError() != 0)
+            throw new Win32Exception(Marshal.GetLastPInvokeError());
+
+        const uint refreshFlags = 0x0001 | 0x0002 | 0x0004 | 0x0010 | 0x0020;
+        if (!SetWindowPos(window, 0, 0, 0, 0, 0, refreshFlags))
+            throw new Win32Exception(Marshal.GetLastWin32Error());
     }
 
     private static void SetAttribute(nint window, uint attribute, int value) =>
@@ -66,7 +88,16 @@ public static class NativeWindowFeatures
             info.Work.Right - info.Work.Left, info.Work.Bottom - info.Work.Top));
     }
 
-    public static bool IsTopmost(nint window) => (GetWindowLongPtr(window, -20).ToInt64() & 0x8) != 0;
+    public static bool IsTopmost(nint window) => (GetWindowLongPtr(window, ExtendedStyleIndex).ToInt64() & 0x8) != 0;
+    public static bool IsToolWindow(nint window) =>
+        (GetWindowLongPtr(window, ExtendedStyleIndex).ToInt64() & ToolWindowStyle) != 0;
+    public static bool IsNoActivateWindow(nint window) =>
+        (GetWindowLongPtr(window, ExtendedStyleIndex).ToInt64() & NoActivateStyle) != 0;
+    public static nint ForegroundWindow() => GetForegroundWindow();
+    public static void RestoreForegroundWindow(nint window)
+    {
+        if (window != 0) _ = SetForegroundWindow(window);
+    }
 
     [StructLayout(LayoutKind.Sequential)]
     private struct Point { public int X; public int Y; }
@@ -98,6 +129,16 @@ public static class NativeWindowFeatures
         MonitorEnumProc callback, nint data);
     [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
     private static extern nint GetWindowLongPtr(nint hwnd, int index);
+    [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW", SetLastError = true)]
+    private static extern nint SetWindowLongPtr(nint hwnd, int index, nint newValue);
+    [DllImport("user32.dll")]
+    private static extern nint GetForegroundWindow();
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetForegroundWindow(nint window);
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetWindowPos(nint hwnd, nint insertAfter, int x, int y, int width, int height, uint flags);
 }
 
 public sealed record MonitorWorkArea(string Id, PixelRect WorkArea);

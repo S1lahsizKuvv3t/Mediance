@@ -1,6 +1,6 @@
 namespace Mediance.Core.Settings;
 
-public enum ThemePreset { Midnight, Prism, ClearGlass }
+public enum ThemePreset { Midnight, Prism, ClearGlass, Album }
 
 public sealed record SavedWindowPlacement(int X, int Y);
 

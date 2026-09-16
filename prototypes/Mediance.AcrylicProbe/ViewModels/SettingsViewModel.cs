@@ -88,7 +88,8 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     [
         new(ThemePreset.Midnight, Localization.TextCatalog.Get("ThemeMidnight")),
         new(ThemePreset.Prism, Localization.TextCatalog.Get("ThemePrism")),
-        new(ThemePreset.ClearGlass, Localization.TextCatalog.Get("ThemeClearGlass"))
+        new(ThemePreset.ClearGlass, Localization.TextCatalog.Get("ThemeClearGlass")),
+        new(ThemePreset.Album, Localization.TextCatalog.Get("ThemeAlbum"))
     ];
     public ThemeOption SelectedTheme
     {
@@ -130,6 +131,7 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public Visibility ArtworkVisibility => Visible(ShowArtwork);
     public Visibility ProgressVisibility => Visible(ShowProgress);
     public Visibility AmbientGlowVisibility => Visible(EnableAmbientGlow);
+    public Visibility AlbumThemeVisibility => Visible(Theme == ThemePreset.Album);
     public Visibility TitleVisibility => Visible(ShowTitle);
     public Visibility ArtistVisibility => Visible(ShowArtist);
     public Visibility SourceVisibility => Visible(ShowSource);

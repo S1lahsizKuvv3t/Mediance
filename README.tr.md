@@ -28,7 +28,9 @@ Mediance masaüstünde küçük bir Acrylic widget olarak durur. Windows'un mevc
 - Yalnızca düz söz bulunan şarkılar için isteğe bağlı manuel zamanlama.
 - Bilgisayarın genel çıkışını değiştirmeden seçili uygulamayı başka bir ses cihazına yönlendirme.
 - Widget öğelerini ayrı ayrı gizleme; genişlik, kapak, yazı, kontrol, cam yoğunluğu ve tema ayarları.
+- Album temasıyla mevcut kapağı yumuşak geçişli ve okunaklı bir arka plana dönüştürme.
 - Üstte tutma, konum kilidi, iki monitörde kenara hizalama ve sistem tepsisine küçültme.
+- Oyunu ön planda tutma; widget görev çubuğu ve Alt+Tab'da görünmez, tıklanınca oyundan odağı almaz.
 - Kullanıcının belirleyebildiği global göster/gizle kısayolu.
 
 Mediance dinleme geçmişi tutmaz ve telemetri göndermez. Şarkı sözleri yalnızca lyrics paneli açıldığında aranır. Ayrıntılı veri akışı [Gizlilik](docs/PRIVACY.md) sayfasında açıklanmıştır.

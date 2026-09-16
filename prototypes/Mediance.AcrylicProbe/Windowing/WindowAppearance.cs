@@ -26,20 +26,25 @@ internal sealed class WindowAppearance(Window window, Border surface) : IDisposa
         {
             ThemePreset.Prism => (R: (byte)20, G: (byte)25, B: (byte)48),
             ThemePreset.ClearGlass => (R: (byte)25, G: (byte)27, B: (byte)30),
+            ThemePreset.Album => (R: (byte)13, G: (byte)16, B: (byte)22),
             _ => (R: (byte)20, G: (byte)24, B: (byte)30)
         };
         var solidColor = settings.Theme switch
         {
             ThemePreset.Prism => Color.FromArgb(255, 20, 24, 42),
             ThemePreset.ClearGlass => Color.FromArgb(255, 31, 32, 35),
+            ThemePreset.Album => Color.FromArgb(255, 13, 16, 22),
             _ => GlassBackdrop.SolidColor
         };
         var alpha = (byte)Math.Round(settings.GlassIntensity / 100 * 255);
         if (settings.Theme == ThemePreset.ClearGlass) alpha = (byte)Math.Round(alpha * 0.62);
         surface.Background = new SolidColorBrush(solid ? solidColor : Color.FromArgb(alpha, baseColor.R, baseColor.G, baseColor.B));
-        var border = settings.Theme == ThemePreset.Prism
-            ? Color.FromArgb(settings.ShowBorder ? (byte)92 : (byte)0, 99, 173, 255)
-            : Color.FromArgb(settings.ShowBorder ? (byte)37 : (byte)0, 255, 255, 255);
+        var border = settings.Theme switch
+        {
+            ThemePreset.Prism => Color.FromArgb(settings.ShowBorder ? (byte)92 : (byte)0, 99, 173, 255),
+            ThemePreset.Album => Color.FromArgb(settings.ShowBorder ? (byte)62 : (byte)0, 255, 255, 255),
+            _ => Color.FromArgb(settings.ShowBorder ? (byte)37 : (byte)0, 255, 255, 255)
+        };
         surface.BorderBrush = new SolidColorBrush(border);
     }
     public void Dispose() => window.SystemBackdrop = null;

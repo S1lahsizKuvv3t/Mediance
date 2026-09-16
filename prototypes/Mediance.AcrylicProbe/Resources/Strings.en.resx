@@ -184,6 +184,7 @@
   <data name="ThemeMidnight"><value>Midnight</value></data>
   <data name="ThemePrism"><value>Prism</value></data>
   <data name="ThemeClearGlass"><value>Clear Glass</value></data>
+  <data name="ThemeAlbum"><value>Album</value></data>
   <data name="StartWithWindows"><value>Start quietly with Windows</value></data>
   <data name="LyricsLayout"><value>Lyrics layout</value></data>
   <data name="LyricsTwoLines"><value>2 lines · Current + next</value></data>

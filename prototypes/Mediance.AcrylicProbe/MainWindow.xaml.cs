@@ -35,6 +35,7 @@ public sealed partial class MainWindow : Window
     private Storyboard? _entranceTransition;
     private Storyboard? _trackTransition;
     private Storyboard? _artworkTransition;
+    private Storyboard? _albumBackgroundTransition;
     private Storyboard? _lyricsPanelTransition;
     private CancellationTokenSource? _volumeHudCancellation;
     private ButtonBase? _pressedButton;
@@ -50,6 +51,7 @@ public sealed partial class MainWindow : Window
     private bool _allowClose;
     private bool _resizeQueued;
     private bool _lyricsToggleBusy;
+    private ThemePreset? _appliedTheme;
     public PlayerViewModel Model { get; }
     public SettingsViewModel Settings { get; }
     public AudioRoutingViewModel Routing { get; }
@@ -83,7 +85,7 @@ public sealed partial class MainWindow : Window
         Title = TextCatalog.Get("WindowTitle");
         var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Mediance.ico");
         if (File.Exists(iconPath)) AppWindow.SetIcon(iconPath);
-        _frame = new(this);
+        _frame = new(this, noActivate: true);
         var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
         Hotkey = new(new GlobalHotkeyRegistration(windowHandle), Settings);
         Hotkey.Pressed += Hotkey_Pressed;
@@ -159,8 +161,22 @@ public sealed partial class MainWindow : Window
 
     private void Settings_Changed(object? sender, EventArgs e)
     {
+        var themeChanged = _appliedTheme != Settings.Theme;
+        _appliedTheme = Settings.Theme;
         _appearance.Apply(Settings.Data);
         _frame.SetTopmost(Settings.AlwaysOnTop);
+        if (themeChanged)
+        {
+            if (Settings.Theme == ThemePreset.Album)
+                DispatcherQueue.TryEnqueue(AnimateAlbumBackgroundReveal);
+            else
+            {
+                _albumBackgroundTransition?.Stop();
+                _albumBackgroundTransition = null;
+                AlbumBackgroundImage.Opacity = 0;
+                AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1.06;
+            }
+        }
         Lyrics.Lead = TimeSpan.FromMilliseconds(Settings.LyricsLeadMilliseconds);
         if (_settingsLoaded) ApplyStartupSetting();
         QueueResize();
@@ -218,10 +234,10 @@ public sealed partial class MainWindow : Window
         Settings.SetWindowPosition(NativeWindowFeatures.MonitorIdAt(center), AppWindow.Position.X, AppWindow.Position.Y);
     }
 
-    internal void ShowAndActivate()
+    internal void ShowWithoutActivation()
     {
         if (_closing) return;
-        _frame.ShowAndActivate(this);
+        _frame.ShowWithoutActivation();
         AnimateEntrance();
     }
     internal void HideForBackgroundStartup() => _frame.Hide();
@@ -271,7 +287,12 @@ public sealed partial class MainWindow : Window
     {
         if (e.PropertyName is null or nameof(PlayerViewModel.AmbientColor)) AnimateAmbientGlow(Model.AmbientColor);
         if (!_seeking && (e.PropertyName is null or nameof(PlayerViewModel.Progress))) UpdateProgressVisual();
-        if (e.PropertyName == nameof(PlayerViewModel.Artwork)) AnimateArtworkReveal();
+        if (e.PropertyName == nameof(PlayerViewModel.Artwork))
+        {
+            AnimateArtworkReveal();
+            AlbumBackgroundImage.Opacity = 0;
+            DispatcherQueue.TryEnqueue(AnimateAlbumBackgroundReveal);
+        }
         if (e.PropertyName is null && !string.Equals(_lastTrackIdentity, Model.TrackIdentity, StringComparison.Ordinal))
         {
             _lastTrackIdentity = Model.TrackIdentity;
@@ -345,6 +366,42 @@ public sealed partial class MainWindow : Window
             _trackTransition = null;
         };
         _trackTransition = storyboard;
+        storyboard.Begin();
+    }
+
+    private void AnimateAlbumBackgroundReveal()
+    {
+        _albumBackgroundTransition?.Stop();
+        _albumBackgroundTransition = null;
+        if (Settings.Theme != ThemePreset.Album || Model.Artwork is null)
+        {
+            AlbumBackgroundImage.Opacity = 0;
+            AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1.06;
+            return;
+        }
+        if (!_animationsEnabled || !Root.IsLoaded)
+        {
+            AlbumBackgroundImage.Opacity = 0.88;
+            AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1.03;
+            return;
+        }
+
+        AlbumBackgroundImage.Opacity = 0;
+        AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1.075;
+        var storyboard = new Storyboard();
+        var ease = new QuinticEase { EasingMode = EasingMode.EaseOut };
+        storyboard.Children.Add(Animation(AlbumBackgroundImage, "Opacity", 0, 0.88, 620, ease));
+        storyboard.Children.Add(Animation(AlbumBackgroundTransform, "ScaleX", 1.075, 1.03, 1100, ease));
+        storyboard.Children.Add(Animation(AlbumBackgroundTransform, "ScaleY", 1.075, 1.03, 1100, ease));
+        storyboard.Completed += (_, _) =>
+        {
+            if (!ReferenceEquals(_albumBackgroundTransition, storyboard)) return;
+            AlbumBackgroundImage.Opacity = 0.88;
+            AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1.03;
+            storyboard.Stop();
+            _albumBackgroundTransition = null;
+        };
+        _albumBackgroundTransition = storyboard;
         storyboard.Begin();
     }
 
@@ -799,6 +856,7 @@ public sealed partial class MainWindow : Window
         _entranceTransition?.Stop();
         _trackTransition?.Stop();
         _artworkTransition?.Stop();
+        _albumBackgroundTransition?.Stop();
         _lyricsPanelTransition?.Stop();
         _volumeHudCancellation?.Cancel();
         Hotkey.Pressed -= Hotkey_Pressed;
@@ -847,7 +905,7 @@ public sealed partial class MainWindow : Window
         await Task.Delay(80);
         if (LockToggle.IsChecked is not true || TopmostToggle.IsChecked is not true ||
             !NativeWindowFeatures.IsTopmost(WinRT.Interop.WindowNative.GetWindowHandle(this)))
-            throw new InvalidOperationException("Footer lock/topmost quick controls did not reflect settings.");
+            throw new InvalidOperationException($"Footer lock/topmost quick controls did not reflect settings: lock={LockToggle.IsChecked}, topmostToggle={TopmostToggle.IsChecked}, nativeTopmost={NativeWindowFeatures.IsTopmost(WinRT.Interop.WindowNative.GetWindowHandle(this))}.");
         Settings.Reset();
         if (!Hotkey.IsRegistered) throw new InvalidOperationException("Global hotkey registration failed.");
         var diagnosticGesture = new HotkeyGesture(
@@ -890,7 +948,14 @@ public sealed partial class MainWindow : Window
         if (!_appearance.IsSolid) throw new InvalidOperationException("Solid mode failed.");
         Settings.SolidBackground = false;
         if (_appearance.IsSolid) throw new InvalidOperationException("Acrylic reconnection failed.");
+        Settings.Theme = ThemePreset.Album;
+        await Task.Delay(80);
+        if (AlbumBackdrop.Visibility != Visibility.Visible)
+            throw new InvalidOperationException("Album theme background did not become visible.");
         Settings.Theme = ThemePreset.Prism;
+        await Task.Delay(80);
+        if (AlbumBackdrop.Visibility != Visibility.Collapsed)
+            throw new InvalidOperationException("Album theme background did not collapse after changing themes.");
         if (Surface.BorderBrush is not SolidColorBrush prismBorder || prismBorder.Color.B <= prismBorder.Color.R)
             throw new InvalidOperationException("Prism theme did not apply its accent border.");
         Settings.LyricsLineCount = 2;
@@ -931,6 +996,8 @@ public sealed partial class MainWindow : Window
         Settings.Reset();
         var settingsWindow = OpenSettings();
         if (!ReferenceEquals(settingsWindow, OpenSettings())) throw new InvalidOperationException("Duplicate settings window.");
+        if (!settingsWindow.IsHiddenFromShellAndActivatable)
+            throw new InvalidOperationException("Settings window shell visibility or activation style is incorrect.");
         ProbeLog.Write("WindowSmoke: density, visibility, reflow and settings singleton passed");
 
         var previewArg = Environment.GetCommandLineArgs().FirstOrDefault(a => a.StartsWith("--preview-dir=", StringComparison.Ordinal));
