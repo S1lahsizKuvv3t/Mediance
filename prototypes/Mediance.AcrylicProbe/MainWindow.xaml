@@ -4,6 +4,25 @@
         xmlns:local="using:Mediance.AcrylicProbe.Localization">
     <Border x:Name="Surface" CornerRadius="8" BorderThickness="1" Background="Transparent" PointerWheelChanged="Surface_PointerWheelChanged">
         <Grid>
+            <Grid x:Name="AlbumBackdrop" IsHitTestVisible="False"
+                  Visibility="{x:Bind Settings.AlbumThemeVisibility, Mode=OneWay}">
+                <Image x:Name="AlbumBackgroundImage" Source="{x:Bind Model.Artwork, Mode=OneWay}"
+                       Stretch="UniformToFill" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                    <Image.RenderTransform>
+                        <CompositeTransform x:Name="AlbumBackgroundTransform" ScaleX="1.06" ScaleY="1.06" />
+                    </Image.RenderTransform>
+                </Image>
+                <Border Background="#A60A0D13" />
+                <Border>
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#76101620" Offset="0" />
+                            <GradientStop Color="#B20A0C12" Offset="0.58" />
+                            <GradientStop Color="#D0080A0F" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+            </Grid>
             <Border x:Name="AmbientGlow" IsHitTestVisible="False" Opacity="0.2" RenderTransformOrigin="0.5,0.5"
                     Visibility="{x:Bind Settings.AmbientGlowVisibility, Mode=OneWay}">
                 <Border.RenderTransform><CompositeTransform x:Name="AmbientGlowTransform" /></Border.RenderTransform>

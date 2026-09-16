@@ -83,7 +83,7 @@ Settings ayrı, yarı saydam bir pencere olarak widget'ın yanında açılır. D
 - Windows ile sessizce başlatma
 - Mat arka plan ve kenarlık
 - Cam yoğunluğu
-- Midnight, Prism ve Clear Glass temaları
+- Midnight, Prism, Clear Glass ve çalan parçanın kapağını yumuşak geçişli arka plana dönüştüren Album teması
 - Global kısayol seçimi
 
 Global kısayolu değiştirmek için **Kısayol seç** düğmesine basıp istediğiniz kombinasyonu yapın. Kombinasyonda en az bir Ctrl, Alt, Shift veya Windows tuşu bulunmalıdır. Windows kombinasyonu başka bir uygulamaya ayırmışsa mevcut kısayol korunur.

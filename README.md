@@ -28,7 +28,9 @@ Mediance sits on the desktop as a small Acrylic widget. It reads the media sessi
 - Create and keep local timings when only plain lyrics are available.
 - Choose a different output device for the selected media app without changing the system-wide default.
 - Hide individual parts of the widget and tune its width, artwork, text, controls, glass density, and theme.
+- Use the Album theme to turn the current cover into a smoothly animated, readable background.
 - Pin the widget above other windows, lock its position, snap it to either monitor, or hide it in the system tray.
+- Keep games in the foreground: the widget does not appear in the taskbar or Alt+Tab and pointer clicks do not activate it.
 - Show or hide it with a configurable global shortcut.
 
 Mediance does not keep listening history or send telemetry. Lyrics are fetched only after the lyrics panel is opened. See the [privacy notes](docs/PRIVACY.md) for the exact data flow.

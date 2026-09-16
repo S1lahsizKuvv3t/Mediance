@@ -105,6 +105,7 @@ public sealed class WindowAndSettingsTests
         Assert.Equal(2000, settings.LyricsLeadMilliseconds);
         Assert.Equal(3, settings.LyricsLineCount);
         Assert.Equal(ThemePreset.Midnight, settings.Theme);
+        Assert.Equal(ThemePreset.Album, new WidgetSettings { Theme = ThemePreset.Album }.Normalize().Theme);
         Assert.Equal(2, new WidgetSettings { LyricsLineCount = 2 }.Normalize().LyricsLineCount);
     }
 

@@ -87,6 +87,8 @@ public sealed partial class SettingsWindow : Window
         _frame.SetTopmost(Settings.AlwaysOnTop);
     }
 
+    internal bool IsHiddenFromShellAndActivatable => _frame.IsToolWindow && !_frame.IsNoActivateWindow;
+
     internal async Task SavePreviewAsync(string file, int page = 0)
     {
         Pages.SelectedIndex = page;

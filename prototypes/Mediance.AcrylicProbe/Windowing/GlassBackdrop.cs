@@ -30,6 +30,7 @@ internal sealed class GlassBackdrop : SystemBackdrop
         {
             ThemePreset.Prism => (Color.FromArgb(255, 22, 29, 54), 0.10f, 0.13f, Color.FromArgb(255, 20, 24, 42)),
             ThemePreset.ClearGlass => (Color.FromArgb(255, 30, 32, 36), 0.01f, 0.04f, Color.FromArgb(255, 31, 32, 35)),
+            ThemePreset.Album => (Color.FromArgb(255, 13, 16, 22), 0.02f, 0.06f, Color.FromArgb(255, 13, 16, 22)),
             _ => (Color.FromArgb(255, 20, 24, 30), 0.03f, 0.08f, SolidColor)
         };
         _controller.TintColor = tint;
