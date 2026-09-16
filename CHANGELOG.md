@@ -14,6 +14,10 @@ Notable user-visible changes are recorded here. Mediance follows semantic versio
 - The widget no longer takes foreground activation from games and other applications.
 - Mediance windows are hidden from the Windows taskbar and Alt+Tab switcher.
 
+### Fixed
+
+- Plain lyrics no longer stay cached for hours after a synchronized provider temporarily misses. The open lyrics panel automatically retries and upgrades to source-authored timing when it becomes available.
+
 ## [0.9.0-beta.2] — 2026-09-09
 
 ### Changed

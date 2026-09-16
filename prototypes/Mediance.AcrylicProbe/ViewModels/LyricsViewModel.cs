@@ -13,6 +13,7 @@ public sealed record LyricsLinesChangedEventArgs(
 
 public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
 {
+    private static readonly TimeSpan AutomaticSyncRetryDelay = TimeSpan.FromSeconds(12);
     private readonly ILyricsService _lyrics;
     private readonly IEditableLyricsService? _editableLyrics;
     private readonly PlayerViewModel _player;
@@ -149,21 +150,9 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
         {
             var document = await _lyrics.FindAsync(query, token);
             if (token.IsCancellationRequested || _disposed || _trackIdentity != _player.TrackIdentity) return;
-            _document = document;
-            _authorLines = document.Kind == LyricsKind.Plain
-                ? PlainLyricsTimeline.Clean(document.PlainText).Split('\n',
-                    StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                : [];
-            _authorIndex = 0;
-            _status = document.Kind switch
-            {
-                LyricsKind.Instrumental => Localization.TextCatalog.Get("LyricsInstrumental"),
-                LyricsKind.Unavailable => Localization.TextCatalog.Get("LyricsUnavailable"),
-                LyricsKind.Plain => Localization.TextCatalog.Get("LyricsManualAvailable"),
-                _ => ""
-            };
-            UpdateLines();
-            Raise();
+            ApplyDocument(document);
+            if (document.Kind == LyricsKind.Plain || document.IsUserTimed)
+                _ = RetrySourceAuthoredLyricsAsync(query, _trackIdentity, token);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception ex)
@@ -175,6 +164,52 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
             _status = Localization.TextCatalog.Get("LyricsError");
             Raise();
         }
+    }
+
+    private async Task RetrySourceAuthoredLyricsAsync(LyricsQuery query, string? trackIdentity,
+        CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(AutomaticSyncRetryDelay, token);
+            if (token.IsCancellationRequested || _disposed || !_visible || _authoring || _authorBusy ||
+                trackIdentity != _player.TrackIdentity) return;
+
+            var refreshed = await _lyrics.FindAsync(query, token);
+            if (token.IsCancellationRequested || _disposed || !_visible || _authoring || _authorBusy ||
+                trackIdentity != _player.TrackIdentity || refreshed.Kind != LyricsKind.Synced ||
+                refreshed.IsUserTimed) return;
+
+            ApplyDocument(refreshed);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            ProbeLog.Write($"LyricsRetry: {ex.GetType().Name} (0x{ex.HResult:X8})");
+        }
+    }
+
+    private void ApplyDocument(LyricsDocument document)
+    {
+        _document = document;
+        _authorLines = document.Kind == LyricsKind.Plain
+            ? PlainLyricsTimeline.Clean(document.PlainText).Split('\n',
+                StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            : [];
+        _authorIndex = 0;
+        _status = document.Kind switch
+        {
+            LyricsKind.Instrumental => Localization.TextCatalog.Get("LyricsInstrumental"),
+            LyricsKind.Unavailable => Localization.TextCatalog.Get("LyricsUnavailable"),
+            LyricsKind.Plain => Localization.TextCatalog.Get("LyricsManualAvailable"),
+            _ => ""
+        };
+        _activeLineIndex = -1;
+        _displayLineIndex = int.MinValue;
+        _previous = _current = _next = "";
+        _manualScrolling = false;
+        UpdateLines();
+        Raise();
     }
 
     private void Player_PropertyChanged(object? sender, PropertyChangedEventArgs e)

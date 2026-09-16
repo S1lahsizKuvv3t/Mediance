@@ -11,19 +11,22 @@ public sealed class MemoryLyricsCacheProvider : ILyricsProvider
     private readonly ILyricsProvider _inner;
     private readonly int _capacity;
     private readonly TimeSpan _positiveLifetime;
+    private readonly TimeSpan _plainLifetime;
     private readonly TimeSpan _negativeLifetime;
     private readonly Dictionary<string, Entry> _entries = new(StringComparer.Ordinal);
     private readonly LinkedList<string> _recency = [];
     private readonly object _sync = new();
 
     public MemoryLyricsCacheProvider(ILyricsProvider inner, int capacity = 96,
-        TimeSpan? positiveLifetime = null, TimeSpan? negativeLifetime = null)
+        TimeSpan? positiveLifetime = null, TimeSpan? negativeLifetime = null,
+        TimeSpan? plainLifetime = null)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 1);
         _inner = inner;
         _capacity = capacity;
         _positiveLifetime = positiveLifetime ?? TimeSpan.FromHours(4);
         _negativeLifetime = negativeLifetime ?? TimeSpan.FromSeconds(45);
+        _plainLifetime = plainLifetime ?? TimeSpan.FromSeconds(8);
     }
 
     public async Task<LyricsDocument> FindAsync(LyricsQuery query, CancellationToken token = default)
@@ -44,7 +47,12 @@ public sealed class MemoryLyricsCacheProvider : ILyricsProvider
 
         var document = await _inner.FindAsync(query, token);
         token.ThrowIfCancellationRequested();
-        var lifetime = document.Kind == LyricsKind.Unavailable ? _negativeLifetime : _positiveLifetime;
+        var lifetime = document.Kind switch
+        {
+            LyricsKind.Plain => _plainLifetime,
+            LyricsKind.Unavailable => _negativeLifetime,
+            _ => _positiveLifetime
+        };
         if (lifetime <= TimeSpan.Zero) return document;
         lock (_sync)
         {

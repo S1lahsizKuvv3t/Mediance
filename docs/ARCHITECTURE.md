@@ -57,10 +57,10 @@ Owns network providers and local manual timing storage:
 - Apple Music TTML after iTunes catalogue validation;
 - validated plain-text fallbacks;
 - per-provider deadlines and fallback order;
-- bounded memory-only result caching;
+- result-sensitive, bounded memory-only caching that keeps authored timing long-lived but expires plain fallbacks quickly;
 - privacy-preserving local manual timing.
 
-Plain text is never presented as synchronized. Source-authored LRC or TTML always wins over a local manual timing.
+Plain text is never presented as synchronized. The open panel rechecks synchronized sources after a degraded plain or locally timed result, and source-authored LRC or TTML always wins over local manual timing.
 
 ### Mediance.AcrylicProbe
 

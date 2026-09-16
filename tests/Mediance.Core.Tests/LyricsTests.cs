@@ -425,6 +425,23 @@ public sealed class LyricsTests
     }
 
     [Fact]
+    public async Task PlainFallbackCannotHideALaterSynchronizedResult()
+    {
+        var inner = new SequenceLyricsProvider(
+            new(LyricsKind.Plain, [], "First\nSecond"),
+            new(LyricsKind.Synced, [new(TimeSpan.FromSeconds(1), "Recovered")]));
+        var cache = new MemoryLyricsCacheProvider(inner, plainLifetime: TimeSpan.Zero);
+        var query = new LyricsQuery("Track", "Artist", null, TimeSpan.FromSeconds(120));
+
+        var first = await cache.FindAsync(query);
+        var second = await cache.FindAsync(query);
+
+        Assert.Equal(LyricsKind.Plain, first.Kind);
+        Assert.Equal(LyricsKind.Synced, second.Kind);
+        Assert.Equal(2, inner.Calls);
+    }
+
+    [Fact]
     public async Task GeniusFallbackValidatesCatalogueIdentityAndExtractsPlainLyrics()
     {
         var handler = new SequenceHandler(
@@ -547,6 +564,21 @@ public sealed class LyricsTests
             Calls++;
             if (delay is { } value) await Task.Delay(value, token);
             return result;
+        }
+    }
+
+    private sealed class SequenceLyricsProvider(params LyricsDocument[] results) : ILyricsProvider
+    {
+        private int _index;
+        public int Calls { get; private set; }
+
+        public Task<LyricsDocument> FindAsync(LyricsQuery query, CancellationToken token = default)
+        {
+            token.ThrowIfCancellationRequested();
+            Calls++;
+            var result = results[Math.Min(_index, results.Length - 1)];
+            _index++;
+            return Task.FromResult(result);
         }
     }
 
