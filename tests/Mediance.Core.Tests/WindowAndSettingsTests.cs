@@ -94,7 +94,8 @@ public sealed class WindowAndSettingsTests
     {
         var settings = (new WidgetSettings
         { WindowWidth = 99999, GlassIntensity = -5, TextScale = double.NaN, ShowArtwork = false, ShowControls = false,
-          ShowAudioOutput = false, LyricsLeadMilliseconds = 9000, LyricsLineCount = 9, Theme = (ThemePreset)99 }).Normalize();
+          ShowAudioOutput = false, LyricsLeadMilliseconds = 9000, LyricsLineCount = 9, Theme = (ThemePreset)99,
+          ViewMode = (WidgetViewMode)99 }).Normalize();
         Assert.Equal(720, settings.WindowWidth);
         Assert.Equal(420, new WidgetSettings { WindowWidth = 100 }.Normalize().WindowWidth);
         Assert.Equal(10, settings.GlassIntensity);
@@ -105,6 +106,7 @@ public sealed class WindowAndSettingsTests
         Assert.Equal(2000, settings.LyricsLeadMilliseconds);
         Assert.Equal(3, settings.LyricsLineCount);
         Assert.Equal(ThemePreset.Midnight, settings.Theme);
+        Assert.Equal(WidgetViewMode.Standard, settings.ViewMode);
         Assert.Equal(ThemePreset.Album, new WidgetSettings { Theme = ThemePreset.Album }.Normalize().Theme);
         Assert.Equal(2, new WidgetSettings { LyricsLineCount = 2 }.Normalize().LyricsLineCount);
     }
@@ -133,7 +135,8 @@ public sealed class WindowAndSettingsTests
             EnableAmbientGlow = false, EnableWheelVolume = false, IsLocked = true, GlassIntensity = 23, ControlSize = 64,
             CloseToTray = true, LyricsOpen = true, LyricsLineCount = 2, EnableAutomaticLyricsSync = false,
             StartWithWindows = true,
-            Theme = ThemePreset.Prism, WindowX = -820, WindowY = 140, LastMonitorId = @"\\.\DISPLAY2",
+            Theme = ThemePreset.Prism, ViewMode = WidgetViewMode.Micro,
+            WindowX = -820, WindowY = 140, LastMonitorId = @"\\.\DISPLAY2",
             MonitorPlacements = new Dictionary<string, SavedWindowPlacement> { [@"\\.\DISPLAY2"] = new(-820, 140) },
             LyricsLeadMilliseconds = 700, ShortcutModifiers = HotkeyModifiers.Control | HotkeyModifiers.Shift,
             ShortcutVirtualKey = 'L' });
@@ -149,6 +152,7 @@ public sealed class WindowAndSettingsTests
         Assert.False(saved.EnableAutomaticLyricsSync);
         Assert.True(saved.StartWithWindows);
         Assert.Equal(ThemePreset.Prism, saved.Theme);
+        Assert.Equal(WidgetViewMode.Micro, saved.ViewMode);
         Assert.Equal(@"\\.\DISPLAY2", saved.LastMonitorId);
         Assert.Equal(new SavedWindowPlacement(-820, 140), saved.MonitorPlacements[@"\\.\DISPLAY2"]);
         Assert.Equal(-820, saved.WindowX);

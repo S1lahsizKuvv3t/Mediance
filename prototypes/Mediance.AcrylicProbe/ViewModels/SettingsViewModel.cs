@@ -6,6 +6,7 @@ namespace Mediance.AcrylicProbe.ViewModels;
 
 public sealed record ThemeOption(ThemePreset Value, string Label);
 public sealed record LyricsLineOption(int Value, string Label);
+public sealed record ViewModeOption(WidgetViewMode Value, string Label);
 
 public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropertyChanged, IAsyncDisposable
 {
@@ -17,7 +18,9 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     private int _revision;
     private string _error = "";
     private IReadOnlyList<ToggleSetting>? _windowOptions;
-    private IReadOnlyList<ToggleSetting>? _visibilityOptions;
+    private IReadOnlyList<ToggleSetting>? _contentOptions;
+    private IReadOnlyList<ToggleSetting>? _controlOptions;
+    private IReadOnlyList<ToggleSetting>? _utilityOptions;
     public IReadOnlyList<ToggleSetting> WindowOptions => _windowOptions ??=
     [
         new(Localization.TextCatalog.Get("LockPosition"), () => IsLocked, v => IsLocked = v),
@@ -28,21 +31,27 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
         new(Localization.TextCatalog.Solid, () => SolidBackground, v => SolidBackground = v),
         new(Localization.TextCatalog.Get("ShowBorder"), () => ShowBorder, v => ShowBorder = v)
     ];
-    public IReadOnlyList<ToggleSetting> VisibilityOptions => _visibilityOptions ??=
+    public IReadOnlyList<ToggleSetting> ContentOptions => _contentOptions ??=
     [
         new(Localization.TextCatalog.Get("ShowArtwork"), () => ShowArtwork, v => ShowArtwork = v),
         new(Localization.TextCatalog.Get("ShowProgress"), () => ShowProgress, v => ShowProgress = v),
         new(Localization.TextCatalog.Get("ShowTitle"), () => ShowTitle, v => ShowTitle = v),
         new(Localization.TextCatalog.Get("ShowArtist"), () => ShowArtist, v => ShowArtist = v),
         new(Localization.TextCatalog.Get("ShowSource"), () => ShowSource, v => ShowSource = v),
+        new(Localization.TextCatalog.Get("ShowBrand"), () => ShowBrand, v => ShowBrand = v),
+        new(Localization.TextCatalog.Get("ShowPlaybackStatus"), () => ShowPlaybackStatus, v => ShowPlaybackStatus = v)
+    ];
+    public IReadOnlyList<ToggleSetting> ControlOptions => _controlOptions ??=
+    [
         new(Localization.TextCatalog.Get("ShowControls"), () => ShowControls, v => ShowControls = v),
-        new(Localization.TextCatalog.Get("ShowAudioOutput"), () => ShowAudioOutput, v => ShowAudioOutput = v),
         new(Localization.TextCatalog.Get("ShowPrevious"), () => ShowPrevious, v => ShowPrevious = v, () => ShowControls),
         new(Localization.TextCatalog.Get("ShowPlayPause"), () => ShowPlayPause, v => ShowPlayPause = v, () => ShowControls),
-        new(Localization.TextCatalog.Get("ShowNext"), () => ShowNext, v => ShowNext = v, () => ShowControls),
-        new(Localization.TextCatalog.Get("ShowBrand"), () => ShowBrand, v => ShowBrand = v),
+        new(Localization.TextCatalog.Get("ShowNext"), () => ShowNext, v => ShowNext = v, () => ShowControls)
+    ];
+    public IReadOnlyList<ToggleSetting> UtilityOptions => _utilityOptions ??=
+    [
+        new(Localization.TextCatalog.Get("ShowAudioOutput"), () => ShowAudioOutput, v => ShowAudioOutput = v),
         new(Localization.TextCatalog.Get("ShowCloseButton"), () => ShowCloseButton, v => ShowCloseButton = v),
-        new(Localization.TextCatalog.Get("ShowPlaybackStatus"), () => ShowPlaybackStatus, v => ShowPlaybackStatus = v),
         new(Localization.TextCatalog.Get("ShowLyricsButton"), () => ShowLyricsButton, v => ShowLyricsButton = v)
     ];
     public WidgetSettings Data => _data;
@@ -75,6 +84,7 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public bool EnableAutomaticLyricsSync { get => _data.EnableAutomaticLyricsSync; set => Change(_data with { EnableAutomaticLyricsSync = value }); }
     public bool StartWithWindows { get => _data.StartWithWindows; set => Change(_data with { StartWithWindows = value }); }
     public ThemePreset Theme { get => _data.Theme; set => Change(_data with { Theme = value }); }
+    public WidgetViewMode ViewMode { get => _data.ViewMode; set => Change(_data with { ViewMode = value }); }
     public bool ShowAudioOutput { get => _data.ShowAudioOutput; set => Change(_data with { ShowAudioOutput = value }); }
     public double WindowWidth { get => _data.WindowWidth; set => Change(_data with { WindowWidth = value }); }
     public double ArtworkSize { get => _data.ArtworkSize; set => Change(_data with { ArtworkSize = value }); }
@@ -97,6 +107,16 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
         get => ThemeOptions.First(x => x.Value == Theme);
         set { if (value is not null) Theme = value.Value; }
     }
+    public IReadOnlyList<ViewModeOption> ViewModeOptions { get; } =
+    [
+        new(WidgetViewMode.Standard, Localization.TextCatalog.Get("ViewModeStandard")),
+        new(WidgetViewMode.Micro, Localization.TextCatalog.Get("ViewModeMicro"))
+    ];
+    public ViewModeOption SelectedViewMode
+    {
+        get => ViewModeOptions.First(x => x.Value == ViewMode);
+        set { if (value is not null) ViewMode = value.Value; }
+    }
     public IReadOnlyList<LyricsLineOption> LyricsLineOptions { get; } =
     [
         new(2, Localization.TextCatalog.Get("LyricsTwoLines")),
@@ -108,6 +128,7 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
         set { if (value is not null) LyricsLineCount = value.Value; }
     }
     public bool GlassEnabled => !SolidBackground;
+    public bool IsMicroMode => ViewMode == WidgetViewMode.Micro;
     public string GlassValue => $"{GlassIntensity:0}%";
     public string WidthValue => $"{WindowWidth:0} px";
     public string LockGlyph => IsLocked ? "\uE72E" : "\uE785";
@@ -126,13 +147,16 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public double SourceFontSize => 11 * TextScale / 100;
     public double TransportIconSize => ControlSize * 0.39;
     public CornerRadius PlayCornerRadius => new(ControlSize / 2);
+    public CornerRadius SurfaceCornerRadius => new(IsMicroMode ? 18 : 8);
     public bool HasMetadata => ShowTitle || ShowArtist || ShowSource;
     public bool HasMainText => HasMetadata || ShowBrand;
     public double ArtworkGap => ShowArtwork && HasMainText ? 18 : 0;
     public Visibility ArtworkVisibility => Visible(ShowArtwork);
     public Visibility ProgressVisibility => Visible(ShowProgress);
-    public Visibility AmbientGlowVisibility => Visible(EnableAmbientGlow);
-    public Visibility AlbumThemeVisibility => Visible(Theme == ThemePreset.Album);
+    public Visibility AmbientGlowVisibility => Visible(!IsMicroMode && EnableAmbientGlow);
+    public Visibility AlbumThemeVisibility => Visible(!IsMicroMode && Theme == ThemePreset.Album);
+    public Visibility StandardModeVisibility => Visible(!IsMicroMode);
+    public Visibility MicroModeVisibility => Visible(IsMicroMode);
     public Visibility TitleVisibility => Visible(ShowTitle);
     public Visibility ArtistVisibility => Visible(ShowArtist);
     public Visibility SourceVisibility => Visible(ShowSource);
@@ -205,7 +229,9 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     {
         PropertyChanged?.Invoke(this, new(null));
         if (_windowOptions is not null) foreach (var option in _windowOptions) option.Refresh();
-        if (_visibilityOptions is not null) foreach (var option in _visibilityOptions) option.Refresh();
+        if (_contentOptions is not null) foreach (var option in _contentOptions) option.Refresh();
+        if (_controlOptions is not null) foreach (var option in _controlOptions) option.Refresh();
+        if (_utilityOptions is not null) foreach (var option in _utilityOptions) option.Refresh();
         Changed?.Invoke(this, EventArgs.Empty);
     }
     public void Reset() => Change(new());

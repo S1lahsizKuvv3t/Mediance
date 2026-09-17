@@ -38,6 +38,7 @@ public sealed partial class MainWindow : Window
     private Storyboard? _artworkTransition;
     private Storyboard? _albumBackgroundTransition;
     private Storyboard? _lyricsPanelTransition;
+    private Storyboard? _microOpacityTransition;
     private CancellationTokenSource? _volumeHudCancellation;
     private ButtonBase? _pressedButton;
     private string? _lastTrackIdentity;
@@ -52,7 +53,9 @@ public sealed partial class MainWindow : Window
     private bool _allowClose;
     private bool _resizeQueued;
     private bool _lyricsToggleBusy;
+    private bool _pointerInsideSurface;
     private ThemePreset? _appliedTheme;
+    private WidgetViewMode? _appliedViewMode;
     public PlayerViewModel Model { get; }
     public SettingsViewModel Settings { get; }
     public AudioRoutingViewModel Routing { get; }
@@ -154,7 +157,8 @@ public sealed partial class MainWindow : Window
         if (Settings.LyricsOpen) _ = Lyrics.SetVisibleAsync(true);
         await Routing.RefreshAsync();
         Root.UpdateLayout();
-        _frame.ResizeContent(Settings.WindowWidth, Root.ActualHeight + 26);
+        if (Settings.IsMicroMode) _frame.ResizeContent(76, 76);
+        else _frame.ResizeContent(Settings.WindowWidth, Root.ActualHeight + 26);
         RestoreSavedPosition();
         QueueResize();
         if (Environment.GetCommandLineArgs().Contains("--background")) _frame.Hide();
@@ -170,7 +174,9 @@ public sealed partial class MainWindow : Window
     private void Settings_Changed(object? sender, EventArgs e)
     {
         var themeChanged = _appliedTheme != Settings.Theme;
+        var viewModeChanged = _appliedViewMode != Settings.ViewMode;
         _appliedTheme = Settings.Theme;
+        _appliedViewMode = Settings.ViewMode;
         _appearance.Apply(Settings.Data);
         _frame.SetTopmost(Settings.AlwaysOnTop);
         if (themeChanged)
@@ -188,6 +194,8 @@ public sealed partial class MainWindow : Window
         Lyrics.Lead = TimeSpan.FromMilliseconds(Settings.LyricsLeadMilliseconds);
         Lyrics.AutomaticSyncEnabled = Settings.EnableAutomaticLyricsSync;
         if (_settingsLoaded) ApplyStartupSetting();
+        if (viewModeChanged)
+            AnimateMicroOpacity(Settings.IsMicroMode && !_pointerInsideSurface ? 0.1 : 1, Settings.IsMicroMode ? 520 : 220);
         QueueResize();
     }
     private void ApplyStartupSetting()
@@ -219,7 +227,9 @@ public sealed partial class MainWindow : Window
         DispatcherQueue.TryEnqueue(() =>
         {
             _resizeQueued = false;
-            if (!_closing && Root.ActualHeight > 0) _frame.ResizeContent(Settings.WindowWidth, Root.ActualHeight + 26);
+            if (_closing) return;
+            if (Settings.IsMicroMode) _frame.ResizeContent(76, 76);
+            else if (Root.ActualHeight > 0) _frame.ResizeContent(Settings.WindowWidth, Root.ActualHeight + 26);
         });
     }
 
@@ -253,6 +263,39 @@ public sealed partial class MainWindow : Window
     private async void Previous_Click(object sender, RoutedEventArgs e) => await Model.SendAsync(MediaCommand.Previous);
     private async void Play_Click(object sender, RoutedEventArgs e) => await Model.SendAsync(MediaCommand.Toggle);
     private async void Next_Click(object sender, RoutedEventArgs e) => await Model.SendAsync(MediaCommand.Next);
+    private void Micro_Click(object sender, RoutedEventArgs e) => Settings.ViewMode = WidgetViewMode.Standard;
+    private void Surface_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        _pointerInsideSurface = true;
+        if (Settings.IsMicroMode) AnimateMicroOpacity(1, 180);
+    }
+    private void Surface_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        _pointerInsideSurface = false;
+        if (Settings.IsMicroMode) AnimateMicroOpacity(0.1, 420);
+    }
+    private void AnimateMicroOpacity(double target, int milliseconds)
+    {
+        _microOpacityTransition?.Stop();
+        _microOpacityTransition = null;
+        if (!_animationsEnabled)
+        {
+            Surface.Opacity = target;
+            return;
+        }
+        var storyboard = new Storyboard();
+        storyboard.Children.Add(Animation(Surface, "Opacity", Surface.Opacity, target, milliseconds,
+            new QuinticEase { EasingMode = EasingMode.EaseOut }));
+        storyboard.Completed += (_, _) =>
+        {
+            if (!ReferenceEquals(_microOpacityTransition, storyboard)) return;
+            Surface.Opacity = target;
+            storyboard.Stop();
+            _microOpacityTransition = null;
+        };
+        _microOpacityTransition = storyboard;
+        storyboard.Begin();
+    }
     private async void RefreshAudio_Click(object sender, RoutedEventArgs e) => await Routing.RefreshAsync();
     private async void Lyrics_Click(object sender, RoutedEventArgs e)
     {
@@ -1007,6 +1050,15 @@ public sealed partial class MainWindow : Window
         if (SettingsButton.Visibility != Visibility.Visible || SettingsButton.ActualWidth <= 0)
             throw new InvalidOperationException("Settings access was lost with content hidden.");
         Settings.Reset();
+        Settings.ViewMode = WidgetViewMode.Micro;
+        await Task.Delay(650);
+        if (MicroSurface.Visibility != Visibility.Visible || Root.Visibility != Visibility.Collapsed ||
+            AppWindow.ClientSize.Width >= 200 || AppWindow.ClientSize.Height >= 200 || Surface.Opacity > 0.12)
+            throw new InvalidOperationException("Micro mode did not settle into its compact idle state.");
+        Settings.ViewMode = WidgetViewMode.Standard;
+        await Task.Delay(300);
+        if (MicroSurface.Visibility != Visibility.Collapsed || Root.Visibility != Visibility.Visible || Surface.Opacity < 0.99)
+            throw new InvalidOperationException("Standard mode did not restore from micro mode.");
         var settingsWindow = OpenSettings();
         if (!ReferenceEquals(settingsWindow, OpenSettings())) throw new InvalidOperationException("Duplicate settings window.");
         if (!settingsWindow.IsHiddenFromShellAndActivatable)
@@ -1032,6 +1084,13 @@ public sealed partial class MainWindow : Window
             await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-elements.png"), 1);
             await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-sizes.png"), 2);
             await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-audio.png"), 3);
+            Settings.ViewMode = WidgetViewMode.Micro;
+            await Task.Delay(650);
+            await WindowPreview.SaveAsync(Surface, Path.Combine(directory, "widget-micro-idle.png"));
+            Surface.Opacity = 1;
+            await WindowPreview.SaveAsync(Surface, Path.Combine(directory, "widget-micro-hover.png"));
+            Settings.ViewMode = WidgetViewMode.Standard;
+            await Task.Delay(300);
             Settings.ShowArtwork = false;
             Settings.ShowControls = false;
             Settings.ShowAudioOutput = false;

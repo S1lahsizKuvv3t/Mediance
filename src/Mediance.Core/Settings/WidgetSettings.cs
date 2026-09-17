@@ -1,6 +1,7 @@
 namespace Mediance.Core.Settings;
 
 public enum ThemePreset { Midnight, Prism, ClearGlass, Album }
+public enum WidgetViewMode { Standard, Micro }
 
 public sealed record SavedWindowPlacement(int X, int Y);
 
@@ -35,6 +36,7 @@ public sealed record WidgetSettings
     public bool EnableAutomaticLyricsSync { get; init; } = true;
     public bool StartWithWindows { get; init; }
     public ThemePreset Theme { get; init; } = ThemePreset.Midnight;
+    public WidgetViewMode ViewMode { get; init; } = WidgetViewMode.Standard;
     public bool ShowAudioOutput { get; init; } = true;
     public int? WindowX { get; init; }
     public int? WindowY { get; init; }
@@ -63,6 +65,7 @@ public sealed record WidgetSettings
             LyricsLeadMilliseconds = FiniteClamp(LyricsLeadMilliseconds, -2000, 2000, 500),
             LyricsLineCount = LyricsLineCount == 2 ? 2 : 3,
             Theme = Enum.IsDefined(Theme) ? Theme : ThemePreset.Midnight,
+            ViewMode = Enum.IsDefined(ViewMode) ? ViewMode : WidgetViewMode.Standard,
             MonitorPlacements = MonitorPlacements ?? EmptyMonitorPlacements,
             ShortcutModifiers = shortcut.Modifiers,
             ShortcutVirtualKey = shortcut.VirtualKey

@@ -211,4 +211,14 @@
   <data name="LyricsAutoAligning"><value>Sözler sesle eşleştiriliyor…</value></data>
   <data name="LyricsAutoLowConfidence"><value>Otomatik eşleşme yeterince güvenilir değildi. Manuel zamanlamayı kullanabilirsin.</value></data>
   <data name="LyricsAutoError"><value>Otomatik senkron bu parçada tamamlanamadı. Manuel zamanlamayı kullanabilirsin.</value></data>
+  <data name="ViewMode"><value>Görünüm modu</value></data>
+  <data name="ViewModeStandard"><value>Standart oynatıcı</value></data>
+  <data name="ViewModeMicro"><value>Micro · yalnızca logo</value></data>
+  <data name="ViewModeHint"><value>Micro mod, pencereyi küçük bir logo karesine dönüştürür. Logoya tıklayınca standart görünüm geri gelir.</value></data>
+  <data name="ElementsContent"><value>İçerik</value></data>
+  <data name="ElementsContentHint"><value>Şarkı ve uygulama bilgisinde görünen parçalar</value></data>
+  <data name="ElementsControls"><value>Medya kontrolleri</value></data>
+  <data name="ElementsControlsHint"><value>Oynatma düğmeleri ve ana kontrol grubu</value></data>
+  <data name="ElementsUtilities"><value>Araçlar</value></data>
+  <data name="ElementsUtilitiesHint"><value>Ses çıkışı, lyrics ve pencere düğmeleri</value></data>
 </root>

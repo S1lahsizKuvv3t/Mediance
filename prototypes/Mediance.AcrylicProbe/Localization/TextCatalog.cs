@@ -38,6 +38,14 @@ public static class TextCatalog
     public static string Refresh => Get("Refresh");
     public static string PlaybackProgress => Get("PlaybackProgress");
     public static string Theme => Get("Theme");
+    public static string ViewMode => Get("ViewMode");
+    public static string ViewModeHint => Get("ViewModeHint");
+    public static string ElementsContent => Get("ElementsContent");
+    public static string ElementsContentHint => Get("ElementsContentHint");
+    public static string ElementsControls => Get("ElementsControls");
+    public static string ElementsControlsHint => Get("ElementsControlsHint");
+    public static string ElementsUtilities => Get("ElementsUtilities");
+    public static string ElementsUtilitiesHint => Get("ElementsUtilitiesHint");
     public static string StartWithWindows => Get("StartWithWindows");
     public static string LyricsLayout => Get("LyricsLayout");
     public static string AutomaticLyricsSync => Get("AutomaticLyricsSync");

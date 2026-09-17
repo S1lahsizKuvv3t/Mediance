@@ -211,4 +211,14 @@
   <data name="LyricsAutoAligning"><value>Matching lyrics to the audio…</value></data>
   <data name="LyricsAutoLowConfidence"><value>The automatic match was not reliable enough. You can use manual timing.</value></data>
   <data name="LyricsAutoError"><value>Automatic sync could not finish for this track. You can use manual timing.</value></data>
+  <data name="ViewMode"><value>View mode</value></data>
+  <data name="ViewModeStandard"><value>Standard player</value></data>
+  <data name="ViewModeMicro"><value>Micro · logo only</value></data>
+  <data name="ViewModeHint"><value>Micro mode turns the window into a small logo tile. Click the logo to restore the standard view.</value></data>
+  <data name="ElementsContent"><value>Content</value></data>
+  <data name="ElementsContentHint"><value>Track and application information shown in the widget</value></data>
+  <data name="ElementsControls"><value>Media controls</value></data>
+  <data name="ElementsControlsHint"><value>Playback buttons and the main control group</value></data>
+  <data name="ElementsUtilities"><value>Utilities</value></data>
+  <data name="ElementsUtilitiesHint"><value>Audio output, lyrics, and window actions</value></data>
 </root>
