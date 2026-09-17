@@ -19,6 +19,7 @@ Notable user-visible changes are recorded here. Mediance follows semantic versio
 ### Fixed
 
 - Plain lyrics no longer stay cached for hours after a synchronized provider temporarily misses. The open lyrics panel automatically retries and upgrades to source-authored timing when it becomes available.
+- Rapid track and timeline changes no longer leave the widget frozen on the previous song. Coherent snapshots are published during notification bursts, and an unexpected refresh failure no longer stops later media updates.
 
 ## [0.9.0-beta.2] — 2026-09-09
 

@@ -76,10 +76,17 @@ public sealed class WindowsMediaSessionService : IMediaSessionService
                     await EnsureManagerAsync(_lifetime.Token);
                     await RefreshAsync(_lifetime.Token);
                 }
-                catch (Exception ex) when (IsNativeFailure(ex))
+                catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
+                {
+                    break;
+                }
+                catch (Exception ex)
                 {
                     Report(ex);
-                    await ResetManagerAsync();
+                    // A single unexpected session/provider failure must never kill the
+                    // serialized refresh worker. Native failures invalidate the manager;
+                    // other failures are retried by the next notification or heartbeat.
+                    if (IsNativeFailure(ex)) await ResetManagerAsync();
                 }
             }
         }
@@ -129,6 +136,7 @@ public sealed class WindowsMediaSessionService : IMediaSessionService
     private async Task RefreshAsync(CancellationToken cancellationToken)
     {
         MediaSnapshot? next = null;
+        var refreshAgain = false;
         await _gate.WaitAsync(cancellationToken);
         try
         {
@@ -194,17 +202,18 @@ public sealed class WindowsMediaSessionService : IMediaSessionService
             var exactCurrentId = _entries.FirstOrDefault(e => e.Native.Equals(current))?.Id;
             var currentId = SessionSelection.ResolveCurrentSessionId(states, exactCurrentId, currentSourceAppId);
             var selection = SessionSelection.Choose(states, currentId, _pinnedId);
-            // An event arriving during an async read invalidates this snapshot.
-            // The coalesced channel already contains the next refresh request.
-            if (revision == Interlocked.Read(ref _revision))
-            {
-                _pinnedId = selection.PinnedId;
-                next = new(states.AsReadOnly(), currentId, _pinnedId, selection.SelectedId, currentSourceAppId);
-                Volatile.Write(ref _snapshot, next);
-            }
+            // Publish the coherent read even when a newer notification arrived while
+            // metadata was being awaited. Dropping every such read can starve the UI
+            // during rapid track/timeline changes and leave commands targeting stale
+            // seek bounds. The queued follow-up immediately converges to the newest state.
+            refreshAgain = revision != Interlocked.Read(ref _revision);
+            _pinnedId = selection.PinnedId;
+            next = new(states.AsReadOnly(), currentId, _pinnedId, selection.SelectedId, currentSourceAppId);
+            Volatile.Write(ref _snapshot, next);
         }
         finally { _gate.Release(); }
         if (next is not null) SnapshotChanged?.Invoke(this, next);
+        if (refreshAgain) _changes.Writer.TryWrite(true);
     }
 
     public async Task PinAsync(string? sessionId, CancellationToken cancellationToken = default)
