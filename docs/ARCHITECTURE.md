@@ -72,7 +72,7 @@ The project name will be simplified before 1.0 packaging so release users do not
 
 ## Media state flow
 
-Windows media notifications can arrive in bursts. Event handlers only signal a bounded channel; one worker serializes native refreshes and publishes immutable snapshots. A revision check prevents an asynchronous metadata read from replacing a newer state.
+Windows media notifications can arrive in bursts. Event handlers only signal a bounded channel; one worker serializes native refreshes and publishes immutable snapshots. Every internally coherent read is published even if a newer notification arrives while metadata is being awaited, then the queued follow-up converges to the latest state. This prevents notification bursts from starving the UI. Unexpected per-pass failures are reported and retried instead of terminating the refresh worker.
 
 ```text
 Windows GSMTC event
