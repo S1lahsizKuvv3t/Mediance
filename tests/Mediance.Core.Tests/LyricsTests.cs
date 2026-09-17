@@ -40,6 +40,63 @@ public sealed class LyricsTests
     }
 
     [Fact]
+    public void AutomaticAlignmentMapsTranscriptSegmentsToLyricLines()
+    {
+        const string lyrics = "Gecenin içinde yürüyorum\nSesini uzaktan duyuyorum\nSabaha kadar buradayım\nYoluma yine devam ederim";
+        TimedSpeechSegment[] transcript =
+        [
+            new(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(4), "gecenin içinde yürüyorum"),
+            new(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(8), "sesini uzaktan duyuyorum"),
+            new(TimeSpan.FromSeconds(9), TimeSpan.FromSeconds(12), "sabaha kadar buradayım"),
+            new(TimeSpan.FromSeconds(13), TimeSpan.FromSeconds(16), "yoluma yine devam ederim")
+        ];
+
+        var result = AutomaticLyricsAligner.Align(lyrics, transcript, TimeSpan.FromSeconds(7),
+            TimeSpan.FromSeconds(40));
+
+        Assert.True(result.IsReliable(4));
+        Assert.Equal([8, 12, 16, 20], result.LineStarts.Select(value => value.TotalSeconds));
+        Assert.Equal(4, result.AnchoredLines);
+        Assert.Equal(1, result.Confidence, 3);
+    }
+
+    [Fact]
+    public void AutomaticAlignmentToleratesRecognitionTyposAndInterpolatesMissingLines()
+    {
+        const string lyrics = "Karanlık sokakta yalnızım\nGölgeler peşimden geliyor\nBir ışık uzakta yanıyor\nKoşarım durmadan ileri";
+        TimedSpeechSegment[] transcript =
+        [
+            new(TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5), "karanlik sokakda yalnizim"),
+            new(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(13), "bir isik uzakta yaniyor"),
+            new(TimeSpan.FromSeconds(14), TimeSpan.FromSeconds(17), "kosarim durmadan ileri")
+        ];
+
+        var result = AutomaticLyricsAligner.Align(lyrics, transcript, TimeSpan.Zero,
+            TimeSpan.FromSeconds(25));
+
+        Assert.True(result.IsReliable(4));
+        Assert.Equal(4, result.LineStarts.Count);
+        Assert.InRange(result.LineStarts[1].TotalSeconds, 5, 9.9);
+        Assert.True(result.LineStarts.SequenceEqual(result.LineStarts.Order()));
+    }
+
+    [Fact]
+    public void AutomaticAlignmentRejectsAnUnrelatedTranscript()
+    {
+        const string lyrics = "Birinci söz satırı\nİkinci söz satırı\nÜçüncü söz satırı\nDördüncü söz satırı";
+        TimedSpeechSegment[] transcript =
+        [
+            new(TimeSpan.Zero, TimeSpan.FromSeconds(2), "weather report tomorrow"),
+            new(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), "unrelated spoken sentence")
+        ];
+
+        var result = AutomaticLyricsAligner.Align(lyrics, transcript, TimeSpan.Zero,
+            TimeSpan.FromSeconds(20));
+
+        Assert.False(result.IsReliable(4));
+    }
+
+    [Fact]
     public async Task ManualTimingPersistsWithoutWritingTrackOrLyricText()
     {
         var directory = Path.Combine(Path.GetTempPath(), "Mediance-lyrics-" + Guid.NewGuid().ToString("N"));

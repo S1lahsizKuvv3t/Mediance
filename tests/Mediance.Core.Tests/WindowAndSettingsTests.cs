@@ -131,7 +131,8 @@ public sealed class WindowAndSettingsTests
         var store = new JsonSettingsStore(folder.File);
         await store.SaveAsync(new() { ShowArtwork = false, ShowAudioOutput = false, ShowProgress = false,
             EnableAmbientGlow = false, EnableWheelVolume = false, IsLocked = true, GlassIntensity = 23, ControlSize = 64,
-            CloseToTray = true, LyricsOpen = true, LyricsLineCount = 2, StartWithWindows = true,
+            CloseToTray = true, LyricsOpen = true, LyricsLineCount = 2, EnableAutomaticLyricsSync = false,
+            StartWithWindows = true,
             Theme = ThemePreset.Prism, WindowX = -820, WindowY = 140, LastMonitorId = @"\\.\DISPLAY2",
             MonitorPlacements = new Dictionary<string, SavedWindowPlacement> { [@"\\.\DISPLAY2"] = new(-820, 140) },
             LyricsLeadMilliseconds = 700, ShortcutModifiers = HotkeyModifiers.Control | HotkeyModifiers.Shift,
@@ -145,6 +146,7 @@ public sealed class WindowAndSettingsTests
         Assert.True(saved.CloseToTray);
         Assert.True(saved.LyricsOpen);
         Assert.Equal(2, saved.LyricsLineCount);
+        Assert.False(saved.EnableAutomaticLyricsSync);
         Assert.True(saved.StartWithWindows);
         Assert.Equal(ThemePreset.Prism, saved.Theme);
         Assert.Equal(@"\\.\DISPLAY2", saved.LastMonitorId);

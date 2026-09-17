@@ -16,10 +16,13 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
     private static readonly TimeSpan AutomaticSyncRetryDelay = TimeSpan.FromSeconds(12);
     private readonly ILyricsService _lyrics;
     private readonly IEditableLyricsService? _editableLyrics;
+    private readonly IAutomaticLyricsSynchronizer? _automaticLyrics;
     private readonly PlayerViewModel _player;
+    private readonly DispatcherQueue _dispatcher;
     private readonly DispatcherQueueTimer _timer;
     private readonly DispatcherQueueTimer _followTimer;
     private CancellationTokenSource? _loadCancellation;
+    private CancellationTokenSource? _automaticCancellation;
     private LyricsDocument _document = LyricsDocument.Unavailable;
     private string? _trackIdentity;
     private string _status = "";
@@ -38,13 +41,22 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
     private LyricsDocument? _retimingOriginal;
     private bool _visible;
     private bool _disposed;
+    private bool _automaticSyncEnabled = true;
+    private bool _automaticBusy;
+    private string? _automaticAttemptIdentity;
+    private AutomaticLyricsSyncStage? _automaticStage;
+    private DateTimeOffset _automaticCaptureStartedUtc;
+    private TimeSpan _automaticCaptureOffset;
     private TimeSpan _lead = TimeSpan.FromMilliseconds(500);
 
-    public LyricsViewModel(ILyricsService lyrics, PlayerViewModel player, DispatcherQueue dispatcher)
+    public LyricsViewModel(ILyricsService lyrics, PlayerViewModel player, DispatcherQueue dispatcher,
+        IAutomaticLyricsSynchronizer? automaticLyrics = null)
     {
         _lyrics = lyrics;
         _editableLyrics = lyrics as IEditableLyricsService;
+        _automaticLyrics = automaticLyrics;
         _player = player;
+        _dispatcher = dispatcher;
         _trackIdentity = player.TrackIdentity;
         _player.PropertyChanged += Player_PropertyChanged;
         _timer = dispatcher.CreateTimer();
@@ -87,6 +99,23 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
     public bool IsAuthoring => _authoring;
     private bool IsFlowing => _document.Kind == LyricsKind.Synced;
     public bool IsVisible => _visible;
+    public bool AutomaticSyncEnabled
+    {
+        get => _automaticSyncEnabled;
+        set
+        {
+            if (_automaticSyncEnabled == value) return;
+            _automaticSyncEnabled = value;
+            if (!value)
+            {
+                _automaticCancellation?.Cancel();
+                if (_document.Kind == LyricsKind.Plain)
+                    _status = Localization.TextCatalog.Get("LyricsManualAvailable");
+            }
+            else TryStartAutomaticSync();
+            Raise();
+        }
+    }
     public TimeSpan Lead
     {
         get => _lead;
@@ -118,6 +147,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
             _manualScrolling = false;
             CancelAuthoring(false);
             _loadCancellation?.Cancel();
+            _automaticCancellation?.Cancel();
         }
         Raise();
     }
@@ -153,6 +183,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
             ApplyDocument(document);
             if (document.Kind == LyricsKind.Plain || document.IsUserTimed)
                 _ = RetrySourceAuthoredLyricsAsync(query, _trackIdentity, token);
+            if (document.Kind == LyricsKind.Plain) TryStartAutomaticSync();
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception ex)
@@ -191,6 +222,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
 
     private void ApplyDocument(LyricsDocument document)
     {
+        if (document.Kind != LyricsKind.Plain) _automaticCancellation?.Cancel();
         _document = document;
         _authorLines = document.Kind == LyricsKind.Plain
             ? PlainLyricsTimeline.Clean(document.PlainText).Split('\n',
@@ -201,7 +233,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
         {
             LyricsKind.Instrumental => Localization.TextCatalog.Get("LyricsInstrumental"),
             LyricsKind.Unavailable => Localization.TextCatalog.Get("LyricsUnavailable"),
-            LyricsKind.Plain => Localization.TextCatalog.Get("LyricsManualAvailable"),
+            LyricsKind.Plain => Localization.TextCatalog.Get(_automaticSyncEnabled
+                ? "LyricsAutoWaiting" : "LyricsManualAvailable"),
             _ => ""
         };
         _activeLineIndex = -1;
@@ -214,13 +247,21 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
 
     private void Player_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName is nameof(PlayerViewModel.EstimatedPosition) or nameof(PlayerViewModel.IsPlaying) or null)
+            TryStartAutomaticSync();
         if (e.PropertyName is not null and not nameof(PlayerViewModel.TrackIdentity)) return;
         if (_trackIdentity == _player.TrackIdentity) return;
+        if (_automaticStage == AutomaticLyricsSyncStage.Capturing) _automaticCancellation?.Cancel();
+        _automaticAttemptIdentity = null;
         CancelAuthoring(false);
         _trackIdentity = _player.TrackIdentity;
         if (_visible) _ = ReloadAsync();
     }
-    private void Timer_Tick(DispatcherQueueTimer sender, object args) => UpdateLines();
+    private void Timer_Tick(DispatcherQueueTimer sender, object args)
+    {
+        ValidateAutomaticCapture();
+        UpdateLines();
+    }
     private void FollowTimer_Tick(DispatcherQueueTimer sender, object args)
     {
         _manualScrolling = false;
@@ -258,6 +299,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
         if (_authorBusy || _editableLyrics is null || _document.Kind != LyricsKind.Plain || _authorLines.Length == 0)
             return;
         _authorBusy = true;
+        _automaticCancellation?.Cancel();
         try
         {
             if (!_authoring)
@@ -364,7 +406,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
             _status = "";
         }
         else if (_document.Kind == LyricsKind.Plain)
-            _status = Localization.TextCatalog.Get("LyricsManualAvailable");
+            _status = Localization.TextCatalog.Get(_automaticSyncEnabled
+                ? "LyricsAutoWaiting" : "LyricsManualAvailable");
         if (notify) Raise();
     }
 
@@ -399,6 +442,120 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
     }
     private void Raise() => PropertyChanged?.Invoke(this, new(null));
 
+    private void TryStartAutomaticSync()
+    {
+        if (_disposed || !_visible || !_automaticSyncEnabled || _automaticLyrics is null ||
+            _editableLyrics is null || _automaticBusy || _authoring || _authorBusy ||
+            _document.Kind != LyricsKind.Plain || string.IsNullOrWhiteSpace(_document.PlainText)) return;
+        var identity = _player.TrackIdentity;
+        var query = _player.LyricsQuery;
+        var source = _player.SourceAppId;
+        if (identity is null || query is null || string.IsNullOrWhiteSpace(source) ||
+            _automaticAttemptIdentity == identity) return;
+        var position = _player.EstimatedPosition;
+        if (!_player.IsPlaying || position < TimeSpan.Zero || position > TimeSpan.FromSeconds(8))
+        {
+            _status = Localization.TextCatalog.Get("LyricsAutoWaiting");
+            return;
+        }
+
+        _automaticAttemptIdentity = identity;
+        _automaticBusy = true;
+        _automaticStage = AutomaticLyricsSyncStage.Capturing;
+        _automaticCaptureStartedUtc = DateTimeOffset.UtcNow;
+        _automaticCaptureOffset = position;
+        _automaticCancellation?.Cancel();
+        _automaticCancellation?.Dispose();
+        _automaticCancellation = new();
+        _ = RunAutomaticSyncAsync(new(source, query, _document.PlainText, position), identity,
+            _automaticCancellation.Token);
+    }
+
+    private async Task RunAutomaticSyncAsync(
+        AutomaticLyricsSyncRequest request, string identity, CancellationToken token)
+    {
+        void ProgressChanged(object? sender, AutomaticLyricsSyncProgress progress)
+        {
+            _automaticStage = progress.Stage;
+            _dispatcher.TryEnqueue(() =>
+            {
+                if (_disposed || identity != _player.TrackIdentity || _document.Kind != LyricsKind.Plain) return;
+                _status = Localization.TextCatalog.Get(progress.Stage switch
+                {
+                    AutomaticLyricsSyncStage.Capturing => "LyricsAutoCapturing",
+                    AutomaticLyricsSyncStage.DownloadingModel => "LyricsAutoDownloading",
+                    AutomaticLyricsSyncStage.Transcribing => "LyricsAutoTranscribing",
+                    _ => "LyricsAutoAligning"
+                });
+                Raise();
+            });
+        }
+
+        _automaticLyrics!.ProgressChanged += ProgressChanged;
+        try
+        {
+            var alignment = await _automaticLyrics.SynchronizeAsync(request, token);
+            if (token.IsCancellationRequested || alignment is null) return;
+            var lineCount = PlainLyricsTimeline.Clean(request.PlainText).Split('\n',
+                StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Length;
+            if (!alignment.IsReliable(lineCount))
+            {
+                _dispatcher.TryEnqueue(() =>
+                {
+                    if (!_disposed && identity == _player.TrackIdentity && _document.Kind == LyricsKind.Plain)
+                    {
+                        _status = Localization.TextCatalog.Get("LyricsAutoLowConfidence");
+                        Raise();
+                    }
+                });
+                return;
+            }
+
+            var saved = await _editableLyrics!.SaveTimingAsync(request.Query, request.PlainText,
+                alignment.LineStarts, token);
+            _dispatcher.TryEnqueue(() =>
+            {
+                if (!_disposed && identity == _player.TrackIdentity && _document.Kind == LyricsKind.Plain)
+                    ApplyDocument(saved);
+            });
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            ProbeLog.Write($"LyricsAutoSync: {ex.GetType().Name} (0x{ex.HResult:X8})");
+            _dispatcher.TryEnqueue(() =>
+            {
+                if (!_disposed && identity == _player.TrackIdentity && _document.Kind == LyricsKind.Plain)
+                {
+                    _status = Localization.TextCatalog.Get("LyricsAutoError");
+                    Raise();
+                }
+            });
+        }
+        finally
+        {
+            _automaticLyrics.ProgressChanged -= ProgressChanged;
+            _automaticStage = null;
+            _automaticBusy = false;
+            if (token.IsCancellationRequested && identity == _player.TrackIdentity)
+                _automaticAttemptIdentity = null;
+            _dispatcher.TryEnqueue(TryStartAutomaticSync);
+        }
+    }
+
+    private void ValidateAutomaticCapture()
+    {
+        if (!_automaticBusy || _automaticStage != AutomaticLyricsSyncStage.Capturing) return;
+        if (_automaticAttemptIdentity != _player.TrackIdentity || !_player.IsPlaying)
+        {
+            _automaticCancellation?.Cancel();
+            return;
+        }
+        var expected = _automaticCaptureOffset + (DateTimeOffset.UtcNow - _automaticCaptureStartedUtc);
+        if (Math.Abs((_player.EstimatedPosition - expected).TotalSeconds) > 2.5)
+            _automaticCancellation?.Cancel();
+    }
+
     public void Dispose()
     {
         if (_disposed) return;
@@ -410,5 +567,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
         _player.PropertyChanged -= Player_PropertyChanged;
         _loadCancellation?.Cancel();
         _loadCancellation?.Dispose();
+        _automaticCancellation?.Cancel();
+        _automaticCancellation?.Dispose();
     }
 }

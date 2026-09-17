@@ -6,6 +6,7 @@ using Mediance.Core.Media;
 using Mediance.Core.Settings;
 using Mediance.Windows.Media;
 using Mediance.Windows.Audio;
+using Mediance.Windows.Lyrics;
 using Mediance.Windows.Windowing;
 using Mediance.Lyrics;
 using Microsoft.UI.Windowing;
@@ -74,7 +75,8 @@ public sealed partial class MainWindow : Window
                 new TimeoutLyricsProvider(new SozMuzikLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)),
                 new TimeoutLyricsProvider(new GeniusLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)),
                 new TimeoutLyricsProvider(new BbsLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3))))),
-            new LocalLyricsTimingStore(GetLyricsTimingPath()), TimeSpan.FromSeconds(20)), Model, DispatcherQueue);
+            new LocalLyricsTimingStore(GetLyricsTimingPath()), TimeSpan.FromSeconds(20)), Model, DispatcherQueue,
+            new WindowsAutomaticLyricsSynchronizer(GetLyricsModelPath()));
         Lyrics.LinesChanged += Lyrics_LinesChanged;
         Settings = new(_smoke ? null : new JsonSettingsStore(GetSettingsPath()));
         InitializeComponent();
@@ -136,6 +138,12 @@ public sealed partial class MainWindow : Window
         return Path.Combine(localAppData, "Mediance", "lyrics-timing.json");
     }
 
+    private static string GetLyricsModelPath()
+    {
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return Path.Combine(localAppData, "Mediance", "Models", "ggml-small.bin");
+    }
+
     private async void Root_Loaded(object sender, RoutedEventArgs e)
     {
         Root.Loaded -= Root_Loaded;
@@ -178,6 +186,7 @@ public sealed partial class MainWindow : Window
             }
         }
         Lyrics.Lead = TimeSpan.FromMilliseconds(Settings.LyricsLeadMilliseconds);
+        Lyrics.AutomaticSyncEnabled = Settings.EnableAutomaticLyricsSync;
         if (_settingsLoaded) ApplyStartupSetting();
         QueueResize();
     }

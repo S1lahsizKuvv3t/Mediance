@@ -72,6 +72,7 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public bool ShowLyricsButton { get => _data.ShowLyricsButton; set => Change(_data with { ShowLyricsButton = value }); }
     public bool LyricsOpen { get => _data.LyricsOpen; set => Change(_data with { LyricsOpen = value }); }
     public int LyricsLineCount { get => _data.LyricsLineCount; set => Change(_data with { LyricsLineCount = value }); }
+    public bool EnableAutomaticLyricsSync { get => _data.EnableAutomaticLyricsSync; set => Change(_data with { EnableAutomaticLyricsSync = value }); }
     public bool StartWithWindows { get => _data.StartWithWindows; set => Change(_data with { StartWithWindows = value }); }
     public ThemePreset Theme { get => _data.Theme; set => Change(_data with { Theme = value }); }
     public bool ShowAudioOutput { get => _data.ShowAudioOutput; set => Change(_data with { ShowAudioOutput = value }); }

@@ -11,14 +11,17 @@ Implemented:
 - synchronized LRC parsing, including multiple timestamps, millisecond fractions and signed offsets;
 - binary-search active-line selection that immediately follows seeks;
 - persisted two-line (current/next) or three-line (previous/current/next) synchronized layouts, instrumental and unavailable states;
-- plain-text-only results are never shown as synchronized lyrics and no estimated timestamps are fabricated;
+- plain-text-only results are never shown as synchronized lyrics by themselves. When automatic sync is enabled, an independently recognized local transcript must pass the alignment confidence gate before derived timestamps are accepted;
+- automatic sync starts only near the beginning of a continuously playing track, captures only the selected application's process-loopback audio, cancels on pause/seek/source change, and keeps captured audio in memory;
+- Whisper runs locally with a multilingual model downloaded on first use. The transcript is aligned to verified plain text with monotonic token matching; at least 58% combined confidence and 45% anchored lines are required before the complete timeline is saved;
+- a rejected or failed automatic attempt remains plain and keeps the manual timing workflow available;
 - when every synchronized source misses but an identity-validated plain lyric is available, the panel offers manual timing: playback seeks to the beginning and each line is marked with the main button or Space;
 - restart and cancel controls keep incomplete attempts out of storage. The final mark saves immediately and switches to the normal synchronized renderer;
 - user-timed results expose `Synchronize again`; cancelling a redo restores the previous working timing, while completing it atomically replaces that entry;
 - completed timing persists atomically under local app data and reloads across application restarts. The versioned file is capped at 500 entries and stores only SHA-256 track, lyric and per-line fingerprints plus duration/timing metadata; it contains no title, artist or lyric text;
 - if the timing file is malformed after an interrupted write, the damaged copy is preserved and the last complete `.bak` file is restored automatically; invalid entries in a readable file are skipped individually;
 - stored timings require the stable normalized title/artist identity, compatible duration, matching line count and either the full lyric fingerprint or at least 85% matching positional line fingerprints. This prevents provider punctuation or formatting changes from losing a valid timing;
-- source-authored LRC/TTML always wins over a stored manual timing;
+- source-authored LRC/TTML always wins over a stored local automatic or manual timing;
 - the runtime provider chain queries LRCLIB LRC, Better Lyrics TTML, AMLL TTML and Apple Music TTML; each provider is isolated so an HTTP failure advances to the next source;
 - Apple Music candidates are validated through the public iTunes song/artist catalogue. A TTML document marked as untimed, or one without timed paragraphs, is rejected;
 - LRCLIB exact plain-text hits continue into catalogue search so a timestamped duplicate wins, and a plain result from any provider is held only as a fallback while later synchronized providers are checked;
@@ -53,6 +56,8 @@ Verified against the real services on 2026-09-08:
 
 API references: [LRCLIB](https://lrclib.net/docs), [Better Lyrics](https://lyrics-api-docs.boidu.dev/), [AMLL TTML API](https://github.com/amll-dev/amll-ttml-api), [iTunes Search API](https://performance-partners.apple.com/search-api) and [Lyrically Apple Music endpoint](https://lyrics.paxsenix.org/docs).
 
-Phase 6 still adds deeper metadata cleanup, per-track offsets and further graceful-failure polish. HTTP failures and individual source stalls never delay media controls.
+The first play of a plain-only track is a learning pass: future timestamps cannot be known before their audio has played. An accepted timeline is available on later plays. A licensed timed catalogue would be required to promise complete first-play timing for every song.
+
+Phase 6 still adds deeper metadata cleanup, per-track offsets and further graceful-failure polish. HTTP failures, model download failures and individual source stalls never delay media controls.
 
 Lyrics are requested only when the user opens the panel. Do not commit lyrics or listening-history fixtures and do not write lyric text or query metadata to diagnostic logs. Unit tests use short synthetic timestamped lines written for the tests.

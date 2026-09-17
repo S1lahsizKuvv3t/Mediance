@@ -17,7 +17,8 @@
 - [ ] ZIP is tested on a Windows 11 machine without the development environment.
 - [ ] Spotify and YouTube Music playback controls are checked.
 - [ ] Per-app audio routing is checked with at least two output devices.
-- [ ] Lyrics, manual timing, settings persistence, tray, startup, and hotkey are checked.
+- [ ] Source-timed lyrics, automatic on-device alignment, low-confidence rejection, manual timing, settings persistence, tray, startup, and hotkey are checked.
+- [ ] The first-use speech-model download, cancellation, offline fallback, and local model removal path are checked.
 - [ ] Sleep/resume, source restart, device removal, and multiple-monitor scenarios are checked.
 
 ## Package

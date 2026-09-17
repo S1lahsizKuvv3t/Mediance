@@ -50,7 +50,11 @@ Parça adı veya sanatçı bilgisi kaynak uygulama tarafından eksik bildirilmi�
 
 ## Lyrics sabit görünüyor
 
-Kaynak yalnızca düz söz sağlamış olabilir. Düz sözler otomatik zamanlanmış gibi gösterilmez. Panelde manuel zamanlama seçeneği varsa satır zamanlarını kendiniz oluşturabilirsiniz.
+Kaynak yalnızca düz söz sağlamış olabilir. Settings içindeki **Otomatik şarkı sözü senkronu** açıkken parçayı baştan ve kesintisiz oynatın. Mediance seçili uygulamanın sesini bir öğrenme çalımı boyunca yerelde analiz eder; güvenilir zamanlama sonraki çalımda yüklenir. İlk kullanımda model indirmesi gerekir. Otomatik sonuç reddedilirse manuel zamanlama seçeneği kullanılabilir.
+
+## Otomatik lyrics analizi başlamıyor
+
+Lyrics paneli açık olmalı, parça ilk sekiz saniye içinde ve oynuyor olmalıdır. Mediance aktif ses oturumunu bulamazsa, oynatma duraklatılırsa, zaman çizelgesinde atlama yapılırsa veya başka şarkıya geçilirse yakalama iptal edilir. Parçayı yeniden baştan başlatın. Model veya zamanlamaları sıfırlamak için Mediance'ı kapatıp `%LOCALAPPDATA%\Mediance\Models` klasörünü silebilirsiniz; model sonraki kullanımda yeniden indirilir.
 
 ## Lyrics erken veya geç
 

@@ -27,7 +27,7 @@ The current feature set is intentionally close to the planned 1.0 scope. Work be
 
 These ideas are useful, but they should not delay a stable first release:
 
-- import and export for settings and manual timings;
+- import and export for settings and local automatic/manual timings;
 - a local manual-timing manager;
 - per-track lyric offset overrides;
 - packaged-app/AUMID audio routing;
