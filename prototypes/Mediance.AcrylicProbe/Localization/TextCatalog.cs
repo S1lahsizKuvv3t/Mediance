@@ -40,6 +40,8 @@ public static class TextCatalog
     public static string Theme => Get("Theme");
     public static string StartWithWindows => Get("StartWithWindows");
     public static string LyricsLayout => Get("LyricsLayout");
+    public static string AutomaticLyricsSync => Get("AutomaticLyricsSync");
+    public static string AutomaticLyricsSyncHint => Get("AutomaticLyricsSyncHint");
     public static string LyricsManualRestart => Get("LyricsManualRestart");
     public static string LyricsManualCancel => Get("LyricsManualCancel");
     public static string LyricsManualRedo => Get("LyricsManualRedo");

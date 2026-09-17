@@ -28,13 +28,21 @@ Ses seçicisinin yanındaki yenile düğmesini veya Settings içindeki Ses sayfa
 
 Her parçanın güvenilir bir söz kaydı veya zaman kodlu sürümü bulunmayabilir. Mediance yanlış şarkının sözlerini göstermekten kaçınmak için belirsiz eşleşmeleri reddeder. Kaynak sitelerin geçici olarak çevrimdışı veya sınırlı olması da sonucu etkileyebilir.
 
-## Genius'ta söz var ama neden otomatik akmıyor?
+## Genius'ta söz var ama neden hemen otomatik akmıyor?
 
-Bir sayfada söz metninin bulunması zaman kodu bulunduğu anlamına gelmez. Mediance önce zaman kodlu kaynakları tarar. Geçici bir kaynak hatasında yalnızca düz söz gelirse panel kısa süre sonra senkronlu kaynakları otomatik olarak yeniden dener ve bulunan zamanlamaya kendiliğinden geçer. Hiçbir kaynakta zaman kodu yoksa doğru düz metin için manuel zamanlama seçeneği kalır.
+Bir sayfada söz metninin bulunması zaman kodu bulunduğu anlamına gelmez. Mediance önce zaman kodlu kaynakları tarar ve geçici hatalarda kısa süre sonra yeniden dener. Hiçbir kaynakta zaman kodu yoksa **Otomatik şarkı sözü senkronu** açıkken seçili uygulamanın sesini şarkının başından bir kez cihazda analiz eder. Güvenilir eşleşme kaydedilir ve sonraki çalımda normal senkronlu görünümde açılır. Şarkının henüz duyulmamış geleceğini ilk çalımın başında bilemeyeceği için düz metinden anında eksiksiz zaman çizelgesi üretilemez. Manuel zamanlama her zaman yedek seçenek olarak kalır.
 
-## Manuel zamanlamam uygulamayı kapatınca kaybolur mu?
+## Otomatik lyric senkronu internete ses gönderiyor mu?
 
-Tamamlanan zamanlama yerel olarak saklanır ve sonraki açılışta yüklenir. Yarım bırakılan çalışma kaydedilmez. Kayıt dosyasının son sağlam yedeği de tutulur.
+Hayır. Seçili medya uygulamasının sesi Windows process-loopback ile yakalanır, bellekte tutulur ve Whisper tarafından bilgisayarda çözümlenir. İlk kullanımda çok dilli model indirilir; model hazır olduktan sonra ses çözümlemesi yereldir. Yakalanan ses dosyaya veya sunucuya yüklenmez.
+
+## Otomatik senkron neden vazgeçti?
+
+Şarkı duraklatılır, ileri geri sarılır veya kaynak değişirse hatalı zaman üretmemek için o yakalama iptal edilir; şarkı daha sonra baştan ve kesintisiz çaldığında yeniden denenir. Ses çözümlemesi sözlerle yeterince uyuşmazsa sonuç senkronlu diye gösterilmez ve manuel seçenek korunur.
+
+## Yerel zamanlamam uygulamayı kapatınca kaybolur mu?
+
+Kabul edilen otomatik veya tamamlanan manuel zamanlama yerel olarak saklanır ve sonraki açılışta yüklenir. Yarım bırakılan çalışma kaydedilmez. Kayıt dosyasının son sağlam yedeği de tutulur.
 
 ## Manuel zamanlamayı değiştirebilir miyim?
 
@@ -42,7 +50,7 @@ Evet. Kullanıcı tarafından zamanlanmış bir şarkıda **Yeniden senkronla** 
 
 ## Mediance şarkı sözlerini veya dinleme geçmişimi kaydediyor mu?
 
-Hayır. Dinleme geçmişi oluşturulmaz. Manuel zamanlama dosyasında şarkı adı, sanatçı veya söz metni yerine tek yönlü parmak izleri ve zaman değerleri bulunur.
+Hayır. Dinleme geçmişi oluşturulmaz. Yerel zamanlama dosyasında şarkı adı, sanatçı veya söz metni yerine tek yönlü parmak izleri ve zaman değerleri bulunur. Otomatik senkron sırasında yakalanan ses bellekte işlenir ve arşivlenmez.
 
 ## Lyrics araması sırasında internete ne gönderiliyor?
 
@@ -86,4 +94,4 @@ Mevcut hedef Windows 11 24H2 x64'tür. Windows 10 için destek sözü verilmemek
 
 ## Uygulamayı nasıl tamamen kaldırırım?
 
-Mediance'ı kapatın ve uygulama klasörünü silin. Yerel ayarları ve manuel zamanlamaları da kaldırmak isterseniz `%LOCALAPPDATA%\Mediance` klasörünü silin. Windows ile başlatma açıksa önce Settings üzerinden kapatmanız önerilir.
+Mediance'ı kapatın ve uygulama klasörünü silin. Yerel ayarları, zamanlamaları ve indirilen konuşma modelini de kaldırmak isterseniz `%LOCALAPPDATA%\Mediance` klasörünü silin. Windows ile başlatma açıksa önce Settings üzerinden kapatmanız önerilir.

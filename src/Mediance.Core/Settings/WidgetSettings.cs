@@ -32,6 +32,7 @@ public sealed record WidgetSettings
     public bool ShowLyricsButton { get; init; } = true;
     public bool LyricsOpen { get; init; }
     public int LyricsLineCount { get; init; } = 3;
+    public bool EnableAutomaticLyricsSync { get; init; } = true;
     public bool StartWithWindows { get; init; }
     public ThemePreset Theme { get; init; } = ThemePreset.Midnight;
     public bool ShowAudioOutput { get; init; } = true;

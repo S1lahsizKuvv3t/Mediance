@@ -24,6 +24,13 @@ and is distributed under its repository's MIT-derived license, including its lis
 Source: https://github.com/File-New-Project/EarTrumpet
 License: https://github.com/File-New-Project/EarTrumpet/blob/master/LICENSE
 
+## Whisper.net and whisper.cpp
+
+Mediance uses Whisper.net and its CPU runtime to run speech recognition locally for optional automatic lyrics synchronization. Whisper.net is an MIT-licensed .NET binding over the MIT-licensed whisper.cpp runtime. The multilingual GGML model is downloaded on demand and is not bundled in the release archive.
+
+Whisper.net source and license: https://github.com/sandrohanea/whisper.net
+whisper.cpp source and license: https://github.com/ggml-org/whisper.cpp
+
 ## Lyrics services
 
 Mediance can request lyrics or catalogue metadata from external services when the user opens the lyrics panel. These services are not bundled libraries and remain subject to their own terms and availability. The current provider list and transmitted fields are documented in `docs/PRIVACY.md`.

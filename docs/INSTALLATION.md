@@ -5,7 +5,7 @@
 - Windows 11 24H2 veya daha yeni bir sürüm
 - x64 işlemci
 - Yaklaşık 400 MB boş alan; kesin boyut sürüme göre değişebilir
-- Lyrics özelliği için internet bağlantısı
+- Lyrics araması ve otomatik senkron modelinin ilk indirmesi için internet bağlantısı
 
 Mediance yayın paketi .NET ve Windows App SDK çalışma zamanlarını içerir. Son kullanıcıların ayrıca geliştirme aracı kurması gerekmez.
 
@@ -58,7 +58,7 @@ Ayarlar ve manuel lyrics zamanlamaları uygulama klasöründe değil `%LOCALAPPD
 2. Sistem tepsisi menüsünden **Çıkış** seçeneğini kullanın.
 3. Mediance uygulama klasörünü silin.
 
-Kişisel ayarları ve manuel zamanlamaları da kaldırmak için `%LOCALAPPDATA%\Mediance` klasörünü silebilirsiniz. Bu son adım geri alınamaz; yerel manuel zamanlamalar da silinir.
+Kişisel ayarları, yerel zamanlamaları ve indirilen ses modelini de kaldırmak için `%LOCALAPPDATA%\Mediance` klasörünü silebilirsiniz. Bu son adım geri alınamaz.
 
 ## Kaynak koddan çalıştırma
 

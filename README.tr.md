@@ -25,7 +25,7 @@ Mediance masaüstünde küçük bir Acrylic widget olarak durur. Windows'un mevc
 - Oynat, duraklat, önceki, sonraki ve zaman çizelgesinde ilerleme kontrolleri.
 - Alakasız bir tarayıcı videosu yerine Spotify ve YouTube Music'e öncelik verme.
 - Yumuşak geçişli senkronize şarkı sözleri ve ayarlanabilir zamanlama farkı.
-- Yalnızca düz söz bulunan şarkılar için isteğe bağlı manuel zamanlama.
+- Yalnızca doğrulanmış düz söz bulunan şarkılarda cihaz üzerinde otomatik zamanlama; gerektiğinde manuel zamanlama seçeneği.
 - Bilgisayarın genel çıkışını değiştirmeden seçili uygulamayı başka bir ses cihazına yönlendirme.
 - Widget öğelerini ayrı ayrı gizleme; genişlik, kapak, yazı, kontrol, cam yoğunluğu ve tema ayarları.
 - Album temasıyla mevcut kapağı yumuşak geçişli ve okunaklı bir arka plana dönüştürme.
@@ -59,7 +59,7 @@ Uyumlu bir uygulamada müzik başlatın ve Mediance'ı açın. Widget tercih edi
 
 Ses çıkışı seçicisi yalnızca seçilen medya uygulamasını etkiler. **Varsayılan** seçimi uygulamayı yeniden Windows'un genel çıkışına bağlar. Tarayıcı yönlendirmesi tek bir sekmeye değil tarayıcı işlemine uygulanır.
 
-`lyrics` düğmesi mevcut şarkı için söz aramasını başlatır. Kaynağında zaman kodu bulunan sözler her zaman önceliklidir. Yalnızca doğrulanmış düz söz bulunursa kullanıcı isterse satırların zamanını kendisi işaretleyebilir; tamamlanan zamanlar yerel olarak saklanır.
+`lyrics` düğmesi mevcut şarkı için söz aramasını başlatır. Kaynağında zaman kodu bulunan sözler her zaman önceliklidir. Yalnızca doğrulanmış düz söz bulunursa isteğe bağlı yerel senkron sistemi seçili medya uygulamasını şarkının başından bir kez dinler, bağımsız ses çözümlemesini sözlerle eşleştirir ve yalnızca güvenilir sonucu saklar. Manuel zamanlama seçeneği de korunur. Çok dilli model ilk kullanımda bir kez indirilir; yakalanan ses arşivlenmez.
 
 Bütün kontroller [Kullanım rehberinde](docs/WALKTHROUGH.md), sık karşılaşılan sorular ise [SSS](docs/FAQ.md) sayfasında anlatılmıştır.
 
@@ -85,7 +85,7 @@ Projede geliştirme için kısa komutlar da bulunur:
 
 ## Güncel durum
 
-Mevcut sürüm 85 otomatik testi ve native pencere smoke testini geçmektedir. Spotify kontrolleri ve uygulamaya özel ses yönlendirmesi gerçek cihazlarda da doğrulanmıştır. İmzalı 1.0 sürümünden önce kalan işler [Yol haritasında](docs/ROADMAP.md) tutulur.
+Mevcut sürüm 89 otomatik testi ve native pencere smoke testini geçmektedir. Spotify kontrolleri ve uygulamaya özel ses yönlendirmesi gerçek cihazlarda da doğrulanmıştır. Süreç bazlı ses yakalama ile ilk model indirmesi yayından önce canlı kabul testinden geçirilecektir. İmzalı 1.0 sürümünden önce kalan işler [Yol haritasında](docs/ROADMAP.md) tutulur.
 
 Hata ve özellik talepleri için GitHub issue şablonlarını kullanabilirsiniz. Güvenlik sorunları herkese açık issue olarak paylaşılmamalıdır; bunun için [SECURITY.md](SECURITY.md) belgesini izleyin.
 

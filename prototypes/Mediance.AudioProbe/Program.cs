@@ -35,7 +35,21 @@ try
         return result.Succeeded ? 0 : 2;
     }
 
-    throw new ArgumentException("Use: inspect [source.exe] | set <source.exe> <device number> | default <source.exe>");
+    if (mode == "capture")
+    {
+        var seconds = args.Length > 2 && int.TryParse(args[2], out var requested)
+            ? Math.Clamp(requested, 1, 15) : 3;
+        using var wave = await WindowsProcessLoopbackCapture.CaptureWaveAsync(source, TimeSpan.FromSeconds(seconds));
+        if (wave is null)
+        {
+            Console.WriteLine("No matching active audio process was available.");
+            return 2;
+        }
+        Console.WriteLine($"Captured {wave.Length} WAV bytes from only the selected process in {seconds} second(s). Nothing was saved.");
+        return wave.Length > 44 ? 0 : 2;
+    }
+
+    throw new ArgumentException("Use: inspect [source.exe] | set <source.exe> <device number> | default <source.exe> | capture <source.exe> [seconds]");
 }
 catch (Exception ex)
 {

@@ -20,7 +20,7 @@ public sealed class WindowsAudioRoutingService : IAudioRoutingService
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceAppId);
         using var enumerator = new MMDeviceEnumerator();
         var devices = ReadDevices(enumerator, token);
-        var processIds = ReadMatchingAudioProcesses(enumerator, sourceAppId, token);
+        var processIds = WindowsAudioProcessResolver.Find(sourceAppId, token);
         var routes = new List<string?>();
         using var policy = new AudioPolicyConfigAdapter();
         foreach (var processId in processIds)
@@ -91,7 +91,7 @@ public sealed class WindowsAudioRoutingService : IAudioRoutingService
                     using var session = sessions[sessionIndex];
                     if (session.IsSystemSoundsSession) continue;
                     var processId = session.GetProcessID;
-                    if (processId == 0 || !MatchesSource(processId, sourceAppId)) continue;
+                    if (processId == 0 || !WindowsAudioProcessResolver.MatchesSource(processId, sourceAppId)) continue;
                     using var volume = session.SimpleAudioVolume;
                     target ??= Math.Clamp(volume.Volume + delta, 0, 1);
                     volume.Volume = target.Value;
@@ -131,44 +131,4 @@ public sealed class WindowsAudioRoutingService : IAudioRoutingService
         return result;
     }
 
-    private static IReadOnlyList<uint> ReadMatchingAudioProcesses(MMDeviceEnumerator enumerator,
-        string sourceAppId, CancellationToken token)
-    {
-        var result = new HashSet<uint>();
-        using var collection = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-        for (var i = 0; i < collection.Count; i++)
-        {
-            token.ThrowIfCancellationRequested();
-            using var device = collection[i];
-            using var manager = device.AudioSessionManager;
-            manager.RefreshSessions();
-            using var sessions = manager.Sessions;
-            for (var sessionIndex = 0; sessionIndex < sessions.Count; sessionIndex++)
-            {
-                var session = sessions[sessionIndex];
-                using (session)
-                {
-                    if (session.IsSystemSoundsSession) continue;
-                    var processId = session.GetProcessID;
-                    if (processId != 0 && MatchesSource(processId, sourceAppId)) result.Add(processId);
-                }
-            }
-        }
-        return result.Order().ToArray();
-    }
-
-    private static bool MatchesSource(uint processId, string sourceAppId)
-    {
-        try
-        {
-            using var process = Process.GetProcessById(checked((int)processId));
-            var expected = Path.GetFileNameWithoutExtension(sourceAppId);
-            return string.Equals(process.ProcessName, expected, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(process.ProcessName + ".exe", sourceAppId, StringComparison.OrdinalIgnoreCase);
-        }
-        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or System.ComponentModel.Win32Exception)
-        {
-            return false;
-        }
-    }
 }

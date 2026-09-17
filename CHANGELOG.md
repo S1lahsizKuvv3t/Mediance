@@ -7,6 +7,8 @@ Notable user-visible changes are recorded here. Mediance follows semantic versio
 ### Added
 
 - Album theme uses the current artwork as a smoothly animated widget background.
+- Plain-only lyrics can now be synchronized automatically on-device. Mediance captures only the selected media process, transcribes it with a local Whisper model, aligns the independent transcript to the verified lyric text, rejects low-confidence matches, and keeps accepted timings locally.
+- Settings includes a persistent automatic lyrics sync switch. The multilingual model downloads on first use instead of increasing the release archive size.
 
 ### Changed
 

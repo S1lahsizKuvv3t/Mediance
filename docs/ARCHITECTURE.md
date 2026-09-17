@@ -29,6 +29,7 @@ Contains platform-independent rules and contracts:
 - seek and progress calculations;
 - LRC parsing and active-line lookup;
 - lyrics matching and cleanup;
+- transcript-to-line sequence alignment and confidence gating;
 - settings models and atomic JSON storage;
 - window drag and edge-snap geometry.
 
@@ -40,6 +41,7 @@ Owns operating-system integration:
 - media commands and artwork reads;
 - Core Audio endpoint and application-session enumeration;
 - per-application persisted audio endpoint routing;
+- process-specific loopback capture and local Whisper transcription for plain-only lyrics;
 - global hotkey registration;
 - system tray icon and menu;
 - single-instance activation;
@@ -49,7 +51,7 @@ The audio-policy COM adapter is isolated here because its ABI is not part of the
 
 ### Mediance.Lyrics
 
-Owns network providers and local manual timing storage:
+Owns network providers and privacy-preserving local timing storage:
 
 - LRCLIB LRC;
 - Better Lyrics TTML;
@@ -58,9 +60,9 @@ Owns network providers and local manual timing storage:
 - validated plain-text fallbacks;
 - per-provider deadlines and fallback order;
 - result-sensitive, bounded memory-only caching that keeps authored timing long-lived but expires plain fallbacks quickly;
-- privacy-preserving local manual timing.
+- privacy-preserving local automatic and manual timing.
 
-Plain text is never presented as synchronized. The open panel rechecks synchronized sources after a degraded plain or locally timed result, and source-authored LRC or TTML always wins over local manual timing.
+Plain text alone is never presented as synchronized. The open panel rechecks synchronized sources after a degraded plain or locally timed result. A plain-only result may also enter the independent on-device audio alignment path described below; source-authored LRC or TTML always wins over every local timing.
 
 ### Mediance.AcrylicProbe
 
@@ -112,7 +114,9 @@ The lyrics view model starts a lookup only when the panel is open. Track changes
 
 Recent results are kept in a bounded in-memory cache. Successful documents live longer than unavailable results; no query or lyrics text is written as part of this cache.
 
-Manual timing uses a versioned atomic file under local application data. Track and lyric identities are one-way fingerprints. A damaged main file is preserved and the last complete backup is restored when possible.
+When verified lyrics contain no timestamps, optional automatic sync captures only the selected application's process-loopback stream. Audio stays in memory, is converted to 16 kHz mono, and is transcribed locally with Whisper. The portable aligner maps normalized transcript tokens to lyric lines in order, interpolates only between anchored regions, and accepts a complete timeline only above both token and anchored-line confidence thresholds. Pauses, seeks and source changes cancel capture rather than creating a misleading timeline.
+
+Local automatic and manual timing use the same versioned atomic file under local application data. Track and lyric identities are one-way fingerprints. A damaged main file is preserved and the last complete backup is restored when possible. Source-authored LRC or TTML always remains authoritative.
 
 ## Settings and window state
 

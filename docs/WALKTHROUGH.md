@@ -58,7 +58,11 @@ Sözler kaynaktan erken veya geç geliyorsa **Settings → Boyutlar → Şarkı 
 
 ## Manuel lyrics zamanlama
 
-Bazen doğru söz metni bulunur fakat kaynağında zaman kodu yoktur. Bu durumda Mediance düz metni senkronizeymiş gibi oynatmaz; bunun yerine manuel zamanlama seçeneği gösterir.
+Bazen doğru söz metni bulunur fakat kaynağında zaman kodu yoktur. **Otomatik şarkı sözü senkronu** açıksa Mediance, yalnızca seçili medya uygulamasının sesini parça baştan ve kesintisiz çalarken yakalar. Çok dilli Whisper modeli cihazda bağımsız bir konuşma çözümlemesi üretir; bu çözümleme doğrulanmış sözlerle sırayla eşleştirilir. Yeterince çok satır ve kelime eşleşmedikçe sonuç senkronlu kabul edilmez.
+
+İlk kullanımda yerel model bir kez indirilir. Yakalanan ses bellekte işlenir ve arşivlenmez. İlk çalım bir öğrenme geçişidir; güvenilir zaman çizelgesi tamamlandıktan sonra sonraki çalımlarda doğrudan yüklenir. Şarkıyı duraklatmak, ileri geri sarmak veya uygulamayı değiştirmek yakalamayı iptal eder. Ayarı **Settings → Boyutlar** altından kapatabilirsiniz.
+
+Otomatik eşleşme tamamlanamazsa manuel zamanlama seçeneği gösterilmeye devam eder.
 
 1. Zamanlamayı başlatın. Mediance parçayı başa alır ve oynatır.
 2. Ekrandaki güncel satır söylenmeye başladığında büyük işaretleme düğmesine veya Space tuşuna basın.
@@ -67,7 +71,7 @@ Bazen doğru söz metni bulunur fakat kaynağında zaman kodu yoktur. Bu durumda
 
 Yarım kalan çalışma kaydedilmez. Baştan başlatabilir veya iptal edebilirsiniz. Daha önce zamanladığınız bir şarkıda **Yeniden senkronla** seçeneği görünür; yeni denemeyi iptal ederseniz eski çalışan zamanlama korunur.
 
-Tamamlanan zamanlamalar `%LOCALAPPDATA%\Mediance\lyrics-timing.json` dosyasında tutulur. Dosyada şarkı adı, sanatçı veya söz metni bulunmaz; yalnızca eşleştirme parmak izleri ve zaman değerleri saklanır. İnternet kaynağında gerçek senkronize söz daha sonra bulunursa kaynak zamanlaması yerel kaydın önüne geçer.
+Kabul edilen otomatik ve tamamlanan manuel zamanlamalar `%LOCALAPPDATA%\Mediance\lyrics-timing.json` dosyasında tutulur. Dosyada şarkı adı, sanatçı veya söz metni bulunmaz; yalnızca eşleştirme parmak izleri ve zaman değerleri saklanır. İnternet kaynağında gerçek senkronize söz daha sonra bulunursa kaynak zamanlaması yerel kaydın önüne geçer.
 
 ## Settings penceresi
 
@@ -112,7 +116,8 @@ Mediance kullanıcı dosyalarını `%LOCALAPPDATA%\Mediance` altında tutar:
 
 - `widget-settings.json`: görünüm, kısayol ve pencere tercihleri;
 - `widget-settings.json.bak`: son sağlam ayar yedeği;
-- `lyrics-timing.json`: tamamlanan manuel zamanlamalar;
+- `lyrics-timing.json`: kabul edilen otomatik ve tamamlanan manuel zamanlamalar;
+- `Models\ggml-small.bin`: ilk otomatik senkron kullanımında indirilen yerel konuşma modeli;
 - `lyrics-timing.json.bak`: son sağlam zamanlama yedeği;
 - `prototypes\acrylic.log`: içerik barındırmayan yerel hata günlüğü.
 

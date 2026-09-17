@@ -202,4 +202,13 @@
   <data name="LyricsManualRedo"><value>Yeniden senkronla</value></data>
   <data name="LyricsManualSeekRequired"><value>Bu medya uygulaması başa sarmayı desteklemediği için zamanlama başlatılamadı.</value></data>
   <data name="LyricsManualSaveError"><value>Zamanlama yerel olarak kaydedilemedi. Tekrar deneyebilirsin.</value></data>
+  <data name="AutomaticLyricsSync"><value>Otomatik şarkı sözü senkronu</value></data>
+  <data name="AutomaticLyricsSyncHint"><value>Senkronlu kaynak bulunamazsa yalnızca seçili uygulamanın sesini cihazında analiz eder. İlk kullanımda yerel model indirilir.</value></data>
+  <data name="LyricsAutoWaiting"><value>Otomatik senkron, şarkı baştan çaldığında başlayacak. İstersen manuel olarak da zamanlayabilirsin.</value></data>
+  <data name="LyricsAutoCapturing"><value>Otomatik senkron hazırlanıyor · şarkıyı dinliyor…</value></data>
+  <data name="LyricsAutoDownloading"><value>Yerel ses modeli bir kez indiriliyor…</value></data>
+  <data name="LyricsAutoTranscribing"><value>Şarkı cihazında analiz ediliyor…</value></data>
+  <data name="LyricsAutoAligning"><value>Sözler sesle eşleştiriliyor…</value></data>
+  <data name="LyricsAutoLowConfidence"><value>Otomatik eşleşme yeterince güvenilir değildi. Manuel zamanlamayı kullanabilirsin.</value></data>
+  <data name="LyricsAutoError"><value>Otomatik senkron bu parçada tamamlanamadı. Manuel zamanlamayı kullanabilirsin.</value></data>
 </root>
