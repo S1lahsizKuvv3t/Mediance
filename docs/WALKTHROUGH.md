@@ -58,9 +58,9 @@ Sözler kaynaktan erken veya geç geliyorsa **Settings → Boyutlar → Şarkı 
 
 ## Manuel lyrics zamanlama
 
-Bazen doğru söz metni bulunur fakat kaynağında zaman kodu yoktur. **Otomatik şarkı sözü senkronu** açıksa Mediance, yalnızca seçili medya uygulamasının sesini parça baştan ve kesintisiz çalarken yakalar. Çok dilli Whisper modeli cihazda bağımsız bir konuşma çözümlemesi üretir; bu çözümleme doğrulanmış sözlerle sırayla eşleştirilir. Yeterince çok satır ve kelime eşleşmedikçe sonuç senkronlu kabul edilmez.
+Bazen doğru söz metni bulunur fakat kaynağında zaman kodu yoktur. **Otomatik şarkı sözü senkronu** açıksa Mediance, yalnızca seçili medya uygulamasının sesinden mevcut konumda en fazla 75 saniyelik bir örnek yakalar. Çok dilli Whisper modeli cihazda bağımsız bir konuşma çözümlemesi üretir; bu çözümleme doğrulanmış sözlerin o konuma en yakın bölümüyle sırayla eşleştirilir. Yeterince çok satır ve kelime eşleşmedikçe sonuç senkronlu kabul edilmez; sistem şarkının ilerleyen bölümlerinde üç denemeye kadar devam eder.
 
-İlk kullanımda yerel model bir kez indirilir. Yakalanan ses bellekte işlenir ve arşivlenmez. İlk çalım bir öğrenme geçişidir; güvenilir zaman çizelgesi tamamlandıktan sonra sonraki çalımlarda doğrudan yüklenir. Şarkıyı duraklatmak, ileri geri sarmak veya uygulamayı değiştirmek yakalamayı iptal eder. Ayarı **Settings → Boyutlar** altından kapatabilirsiniz.
+İlk kullanımda yerel model bir kez indirilir. Yakalanan ses bellekte işlenir ve arşivlenmez. Güvenilir zaman çizelgesi tamamlandıktan sonra sonraki çalımlarda doğrudan yüklenir. Şarkıyı duraklatmak, ileri geri sarmak veya uygulamayı değiştirmek aktif yakalamayı iptal eder. Ayarı **Settings → Boyutlar** altından kapatabilirsiniz.
 
 Otomatik eşleşme tamamlanamazsa manuel zamanlama seçeneği gösterilmeye devam eder.
 

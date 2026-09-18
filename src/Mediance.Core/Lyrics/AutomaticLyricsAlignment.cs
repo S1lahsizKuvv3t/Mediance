@@ -12,7 +12,7 @@ public sealed record AutomaticLyricsAlignment(
 {
     public bool IsReliable(int lineCount) =>
         lineCount > 0 && LineStarts.Count == lineCount && Confidence >= 0.58 &&
-        AnchoredLines >= Math.Max(3, (int)Math.Ceiling(lineCount * 0.45));
+        AnchoredLines >= Math.Max(3, Math.Min(8, (int)Math.Ceiling(lineCount * 0.18)));
 }
 
 public enum AutomaticLyricsSyncStage { Capturing, DownloadingModel, Transcribing, Aligning }
@@ -67,10 +67,13 @@ public static class AutomaticLyricsAligner
 
         var starts = FillMissingStarts(lines, anchors, lyricTokens, captureOffset, trackDuration);
         var matchedWeight = matches.Sum(match => match.Score);
-        var tokenCoverage = matchedWeight / Math.Max(1, lyricTokens.Count);
-        var lineCoverage = (double)anchoredLines / lines.Length;
+        var tokenCoverage = matchedWeight / Math.Max(1, Math.Min(lyricTokens.Count, speechTokens.Count));
+        var averageTokensPerLine = (double)lyricTokens.Count / lines.Length;
+        var expectedLines = Math.Clamp((int)Math.Ceiling(speechTokens.Count / averageTokensPerLine), 1, lines.Length);
+        var lineCoverage = Math.Min(1, (double)anchoredLines / expectedLines);
         var ordered = StartsAreStrictlyIncreasing(starts);
-        var confidence = Math.Clamp(tokenCoverage * 0.72 + lineCoverage * 0.28, 0, 1);
+        var confidence = Math.Clamp(tokenCoverage * 0.76 + lineCoverage * 0.24, 0, 1);
+        confidence *= PositionConsistency(matches, lyricTokens, speechTokens, lines.Length, trackDuration);
         if (!ordered) confidence *= 0.35;
         return new(starts, confidence, anchoredLines);
     }
@@ -110,7 +113,14 @@ public static class AutomaticLyricsAligner
         var columns = speech.Count + 1;
         var scores = new double[rows, columns];
         var moves = new byte[rows, columns];
-        for (var row = 1; row < rows; row++) scores[row, 0] = row * GapPenalty;
+        // A capture may begin in the middle of a track. Lyric prefixes and
+        // suffixes therefore remain free while the captured speech is fully
+        // aligned to the most likely contiguous region.
+        for (var row = 1; row < rows; row++)
+        {
+            scores[row, 0] = 0;
+            moves[row, 0] = 2;
+        }
         for (var column = 1; column < columns; column++) scores[0, column] = column * GapPenalty;
 
         for (var row = 1; row < rows; row++)
@@ -140,7 +150,8 @@ public static class AutomaticLyricsAligner
         }
 
         var matches = new List<TokenMatch>();
-        var lyricIndex = lyrics.Count;
+        var lyricIndex = Enumerable.Range(0, rows)
+            .MaxBy(row => scores[row, speech.Count]);
         var speechIndex = speech.Count;
         while (lyricIndex > 0 || speechIndex > 0)
         {
@@ -158,6 +169,22 @@ public static class AutomaticLyricsAligner
         }
         matches.Reverse();
         return matches;
+    }
+
+    private static double PositionConsistency(
+        IReadOnlyList<TokenMatch> matches,
+        IReadOnlyList<LyricToken> lyrics,
+        IReadOnlyList<SpeechToken> speech,
+        int lineCount,
+        TimeSpan? trackDuration)
+    {
+        if (matches.Count == 0 || trackDuration is not { TotalSeconds: > 0 } duration) return 1;
+        var lyricCenter = matches.Average(match => lyrics[match.LyricIndex].LineIndex + 0.5) / lineCount;
+        var speechCenter = matches.Average(match => speech[match.SpeechIndex].Start.TotalSeconds) /
+            duration.TotalSeconds;
+        var distance = Math.Abs(lyricCenter - speechCenter);
+        if (distance <= 0.25) return 1;
+        return Math.Clamp(1 - (distance - 0.25) / 0.35, 0.2, 1);
     }
 
     private static TimeSpan[] FillMissingStarts(

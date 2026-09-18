@@ -97,6 +97,28 @@ public sealed class LyricsTests
     }
 
     [Fact]
+    public void AutomaticAlignmentAcceptsAReliableMidSongCapture()
+    {
+        const string lyrics = "Birinci satır burada\nİkinci satır burada\nÜçüncü satır burada\n" +
+            "Gecenin içinde yürüyorum\nSesini uzaktan duyuyorum\nSabaha kadar buradayım\n" +
+            "Yedinci satır burada\nSekizinci satır burada\nDokuzuncu satır burada\nOnuncu satır burada";
+        TimedSpeechSegment[] transcript =
+        [
+            new(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(4), "gecenin içinde yürüyorum"),
+            new(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(8), "sesini uzaktan duyuyorum"),
+            new(TimeSpan.FromSeconds(9), TimeSpan.FromSeconds(12), "sabaha kadar buradayım")
+        ];
+
+        var result = AutomaticLyricsAligner.Align(lyrics, transcript, TimeSpan.FromSeconds(42),
+            TimeSpan.FromSeconds(120));
+
+        Assert.True(result.IsReliable(10));
+        Assert.Equal(3, result.AnchoredLines);
+        Assert.InRange(result.LineStarts[3].TotalSeconds, 42, 45);
+        Assert.True(result.LineStarts.SequenceEqual(result.LineStarts.Order()));
+    }
+
+    [Fact]
     public async Task ManualTimingPersistsWithoutWritingTrackOrLyricText()
     {
         var directory = Path.Combine(Path.GetTempPath(), "Mediance-lyrics-" + Guid.NewGuid().ToString("N"));

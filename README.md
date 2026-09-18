@@ -59,7 +59,7 @@ Start music in a supported app and open Mediance. The widget follows the preferr
 
 The audio output selector affects the selected application only. Choosing **Default** returns that app to the Windows default device. Browser routing applies to the browser process rather than one individual tab.
 
-Open `lyrics` to request lyrics for the current track. Source-authored synchronized lyrics always take priority. When only verified plain lyrics are available, optional on-device sync listens only to the selected media process from the beginning of one play, aligns a local speech transcript to the lyrics, and saves a result only when its confidence is high enough. Manual timing remains available. The multilingual model is downloaded once on first use and audio is kept in memory rather than archived.
+Open `lyrics` to request lyrics for the current track. Source-authored synchronized lyrics always take priority. When only verified plain lyrics are available, optional on-device sync listens only to the selected media process in bounded 75-second samples, aligns a local speech transcript to the likely lyric region, and saves a result only when its confidence is high enough. It can start mid-track and retry later sections automatically. Manual timing remains available. The multilingual model is downloaded once on first use and audio is kept in memory rather than archived.
 
 The [walkthrough](docs/WALKTHROUGH.md) covers every control and setting. Common questions are collected in the [FAQ](docs/FAQ.md).
 
@@ -99,7 +99,7 @@ More detail is available in [Architecture](docs/ARCHITECTURE.md).
 
 ## Current status
 
-The current build passes 89 automated tests and the native window smoke test. Spotify playback controls and per-app output routing have also been checked on real hardware. Process-specific capture and first-use model behavior still require a live acceptance pass before release. The remaining work before a signed 1.0 release is tracked in the [roadmap](docs/ROADMAP.md).
+The current build passes 91 automated tests and the native window smoke test. Spotify playback controls and per-app output routing have also been checked on real hardware. Process-specific capture and first-use model behavior still require a live acceptance pass before release. The remaining work before a signed 1.0 release is tracked in the [roadmap](docs/ROADMAP.md).
 
 Please use the issue templates for reproducible bugs and feature requests. For security reports, follow [SECURITY.md](SECURITY.md) rather than opening a public issue.
 

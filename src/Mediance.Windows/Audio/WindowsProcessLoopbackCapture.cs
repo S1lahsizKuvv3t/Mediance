@@ -1,5 +1,6 @@
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
+using System.Runtime.InteropServices;
 
 namespace Mediance.Windows.Audio;
 
@@ -15,12 +16,7 @@ public static class WindowsProcessLoopbackCapture
         var processes = await Task.Run(() => WindowsAudioProcessResolver.Find(sourceAppId, token), token);
         if (processes.Count == 0) return null;
 
-        using var recorder = await new WasapiRecorderBuilder()
-            .WithProcessLoopback(processes[0], ProcessLoopbackMode.IncludeTargetProcessTree)
-            .WithSharedMode()
-            .WithFormat(Format)
-            .WithBufferLength(100)
-            .BuildAsync();
+        using var recorder = await BuildRecorderAsync(processes, token);
         var stream = new MemoryStream();
         try
         {
@@ -43,5 +39,33 @@ public static class WindowsProcessLoopbackCapture
         }
         stream.Position = 0;
         return stream;
+    }
+
+    private static async Task<WasapiRecorder> BuildRecorderAsync(
+        IReadOnlyList<uint> processes, CancellationToken token)
+    {
+        Exception? lastError = null;
+        foreach (var processId in processes)
+        {
+            for (var attempt = 0; attempt < 2; attempt++)
+            {
+                token.ThrowIfCancellationRequested();
+                try
+                {
+                    return await new WasapiRecorderBuilder()
+                        .WithProcessLoopback(processId, ProcessLoopbackMode.IncludeTargetProcessTree)
+                        .WithSharedMode()
+                        .WithFormat(Format)
+                        .WithBufferLength(100)
+                        .BuildAsync();
+                }
+                catch (Exception ex) when (ex is IOException or COMException or InvalidOperationException)
+                {
+                    lastError = ex;
+                    if (attempt == 0) await Task.Delay(300, token);
+                }
+            }
+        }
+        throw lastError ?? new InvalidOperationException("No matching audio process could be captured.");
     }
 }

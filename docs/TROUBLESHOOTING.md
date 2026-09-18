@@ -54,7 +54,7 @@ Kaynak yalnızca düz söz sağlamış olabilir. Settings içindeki **Otomatik �
 
 ## Otomatik lyrics analizi başlamıyor
 
-Lyrics paneli açık olmalı, parça ilk sekiz saniye içinde ve oynuyor olmalıdır. Mediance aktif ses oturumunu bulamazsa, oynatma duraklatılırsa, zaman çizelgesinde atlama yapılırsa veya başka şarkıya geçilirse yakalama iptal edilir. Parçayı yeniden baştan başlatın. Model veya zamanlamaları sıfırlamak için Mediance'ı kapatıp `%LOCALAPPDATA%\Mediance\Models` klasörünü silebilirsiniz; model sonraki kullanımda yeniden indirilir.
+Lyrics paneli açık, otomatik senkron etkin ve parça oynuyor olmalıdır. Mediance mevcut konumdan en fazla 75 saniye dinler; eşleşme zayıfsa ilerleyen bölümlerde otomatik olarak yeniden dener. Aktif ses oturumu bulunamazsa, oynatma duraklatılırsa, zaman çizelgesinde atlama yapılırsa veya başka şarkıya geçilirse o yakalama iptal edilir. Model veya zamanlamaları sıfırlamak için Mediance'ı kapatıp `%LOCALAPPDATA%\Mediance\Models` klasörünü silebilirsiniz; model sonraki kullanımda yeniden indirilir.
 
 ## Lyrics erken veya geç
 
