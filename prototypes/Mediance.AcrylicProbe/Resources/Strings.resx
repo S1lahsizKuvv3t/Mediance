@@ -225,18 +225,6 @@
   <data name="ThemeExported"><value>Tema profili kaydedildi.</value></data>
   <data name="ThemeImported"><value>Tema profili uygulandı.</value></data>
   <data name="ThemeTransferError"><value>Tema profili okunamadı veya kaydedilemedi.</value></data>
-  <data name="LyricsCenter"><value>Senkron</value></data>
-  <data name="LyricsSyncProgress"><value>Otomatik senkron durumu</value></data>
-  <data name="LyricsSyncStages"><value>Ses yakalanıyor → model hazırlanıyor → eşleştiriliyor → yerel olarak kaydediliyor</value></data>
   <data name="LyricsSyncIdle"><value>Şu anda çalışan bir otomatik senkron yok.</value></data>
-  <data name="SavedLyricsTimings"><value>Yerel zamanlamalar</value></data>
-  <data name="SavedLyricsTimingsHint"><value>Gizlilik için şarkı adları saklanmaz. Her kayıt yalnızca anonim kimlik, satır sayısı ve tarihi gösterir.</value></data>
-  <data name="LyricsTimingPrivateLabel"><value>Yerel zamanlama · {0}</value></data>
-  <data name="LyricsTimingDetail"><value>{0} satır · {1}</value></data>
-  <data name="LyricsTimingEmpty"><value>Henüz kaydedilmiş bir zamanlama yok.</value></data>
-  <data name="LyricsTimingDeleted"><value>Zamanlama silindi.</value></data>
-  <data name="LyricsTimingListError"><value>Zamanlamalar okunamadı.</value></data>
-  <data name="LyricsTimingDeleteError"><value>Zamanlama silinemedi.</value></data>
-  <data name="DeleteTiming"><value>Zamanlamayı sil</value></data>
   <data name="EnterMicroMode"><value>Micro moda geç</value></data>
 </root>

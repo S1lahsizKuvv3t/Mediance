@@ -21,17 +21,13 @@ public sealed partial class SettingsWindow : Window
     public SettingsViewModel Settings { get; }
     public AudioRoutingViewModel Routing { get; }
     public HotkeyViewModel Hotkey { get; }
-    public LyricsViewModel Lyrics { get; }
-    public LyricsSyncCenterViewModel LyricsSyncCenter { get; }
 
     public SettingsWindow(SettingsViewModel settings, AudioRoutingViewModel routing, HotkeyViewModel hotkey,
-        LyricsViewModel lyrics, LyricsSyncCenterViewModel lyricsSyncCenter, AppWindow owner)
+        AppWindow owner)
     {
         Settings = settings;
         Routing = routing;
         Hotkey = hotkey;
-        Lyrics = lyrics;
-        LyricsSyncCenter = lyricsSyncCenter;
         InitializeComponent();
         Root.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler(Root_KeyDown), true);
         Title = $"Mediance · {TextCatalog.Settings}";
@@ -45,7 +41,6 @@ public sealed partial class SettingsWindow : Window
         Closed += Window_Closed;
         Root.Loaded += Root_Loaded;
         _ = Routing.RefreshAsync();
-        _ = LyricsSyncCenter.RefreshAsync();
     }
 
     private void Root_Loaded(object sender, RoutedEventArgs e)
@@ -127,11 +122,6 @@ public sealed partial class SettingsWindow : Window
     }
     private static bool IsDown(int virtualKey) => (GetKeyState(virtualKey) & 0x8000) != 0;
     private async void RefreshAudio_Click(object sender, RoutedEventArgs e) => await Routing.RefreshAsync();
-    private async void RefreshLyricsTimings_Click(object sender, RoutedEventArgs e) => await LyricsSyncCenter.RefreshAsync();
-    private async void DeleteLyricsTiming_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { Tag: string id }) await LyricsSyncCenter.DeleteAsync(id);
-    }
     private async void ExportTheme_Click(object sender, RoutedEventArgs e)
     {
         try

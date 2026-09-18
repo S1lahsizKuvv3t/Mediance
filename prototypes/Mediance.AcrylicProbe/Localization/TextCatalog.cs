@@ -59,11 +59,5 @@ public static class TextCatalog
     public static string LyricsManualRestart => Get("LyricsManualRestart");
     public static string LyricsManualCancel => Get("LyricsManualCancel");
     public static string LyricsManualRedo => Get("LyricsManualRedo");
-    public static string LyricsCenter => Get("LyricsCenter");
-    public static string LyricsSyncProgress => Get("LyricsSyncProgress");
-    public static string LyricsSyncStages => Get("LyricsSyncStages");
-    public static string SavedLyricsTimings => Get("SavedLyricsTimings");
-    public static string SavedLyricsTimingsHint => Get("SavedLyricsTimingsHint");
-    public static string DeleteTiming => Get("DeleteTiming");
     public static string EnterMicroMode => Get("EnterMicroMode");
 }

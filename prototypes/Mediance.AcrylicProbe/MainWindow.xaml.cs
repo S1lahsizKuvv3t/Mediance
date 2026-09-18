@@ -60,7 +60,6 @@ public sealed partial class MainWindow : Window
     public SettingsViewModel Settings { get; }
     public AudioRoutingViewModel Routing { get; }
     public LyricsViewModel Lyrics { get; }
-    public LyricsSyncCenterViewModel LyricsSyncCenter { get; }
     public HotkeyViewModel Hotkey { get; }
 
     public MainWindow()
@@ -82,7 +81,6 @@ public sealed partial class MainWindow : Window
                 new TimeoutLyricsProvider(new BbsLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3))))),
             _lyricsTimingStore, TimeSpan.FromSeconds(20)), Model, DispatcherQueue,
             new WindowsAutomaticLyricsSynchronizer(GetLyricsModelPath()));
-        LyricsSyncCenter = new(_lyricsTimingStore);
         Lyrics.LinesChanged += Lyrics_LinesChanged;
         Settings = new(_smoke ? null : new JsonSettingsStore(GetSettingsPath()));
         InitializeComponent();
@@ -278,7 +276,7 @@ public sealed partial class MainWindow : Window
     {
         if (_settingsWindow is null)
         {
-            _settingsWindow = new(Settings, Routing, Hotkey, Lyrics, LyricsSyncCenter, AppWindow);
+            _settingsWindow = new(Settings, Routing, Hotkey, AppWindow);
             _settingsWindow.Closed += (_, _) => _settingsWindow = null;
         }
         _settingsWindow.Activate();

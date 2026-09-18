@@ -225,18 +225,6 @@
   <data name="ThemeExported"><value>Theme profile saved.</value></data>
   <data name="ThemeImported"><value>Theme profile applied.</value></data>
   <data name="ThemeTransferError"><value>The theme profile could not be read or saved.</value></data>
-  <data name="LyricsCenter"><value>Sync</value></data>
-  <data name="LyricsSyncProgress"><value>Automatic sync status</value></data>
-  <data name="LyricsSyncStages"><value>Capturing audio → preparing model → aligning → saving locally</value></data>
   <data name="LyricsSyncIdle"><value>No automatic synchronization is currently running.</value></data>
-  <data name="SavedLyricsTimings"><value>Local timings</value></data>
-  <data name="SavedLyricsTimingsHint"><value>Track names are not stored for privacy. Each entry shows only an anonymous ID, line count, and date.</value></data>
-  <data name="LyricsTimingPrivateLabel"><value>Local timing · {0}</value></data>
-  <data name="LyricsTimingDetail"><value>{0} lines · {1}</value></data>
-  <data name="LyricsTimingEmpty"><value>No saved timings yet.</value></data>
-  <data name="LyricsTimingDeleted"><value>Timing deleted.</value></data>
-  <data name="LyricsTimingListError"><value>Timings could not be loaded.</value></data>
-  <data name="LyricsTimingDeleteError"><value>Timing could not be deleted.</value></data>
-  <data name="DeleteTiming"><value>Delete timing</value></data>
   <data name="EnterMicroMode"><value>Enter Micro mode</value></data>
 </root>
