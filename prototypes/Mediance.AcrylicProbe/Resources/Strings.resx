@@ -21,9 +21,6 @@
   <data name="Topmost" xml:space="preserve">
     <value>Üstte tut</value>
   </data>
-  <data name="Solid" xml:space="preserve">
-    <value>Mat görünüm</value>
-  </data>
   <data name="GlassStrength" xml:space="preserve">
     <value>Cam yoğunluğu</value>
   </data>
@@ -132,9 +129,6 @@
   <data name="ShowCloseButton">
     <value>Kapat düğmesi</value>
   </data>
-  <data name="ShowBorder">
-    <value>İnce kenarlık</value>
-  </data>
   <data name="ShowPlaybackStatus">
     <value>Çalma durumu</value>
   </data>
@@ -174,8 +168,6 @@
   <data name="PlaybackProgress"><value>Oynatma konumu</value></data>
   <data name="AudioVolumeError"><value>Uygulama sesi değiştirilemedi.</value></data>
   <data name="ShowProgress"><value>Oynatma çubuğu</value></data>
-  <data name="AmbientGlow"><value>Kapak rengi ışığı</value></data>
-  <data name="WheelVolume"><value>Fare tekerleğiyle uygulama sesi</value></data>
   <data name="CloseToTray"><value>Kapatıldığında tepsiye küçült</value></data>
   <data name="ShowWidget"><value>Mediance'ı göster</value></data>
   <data name="HideWidget"><value>Mediance'ı gizle</value></data>
@@ -246,4 +238,5 @@
   <data name="LyricsTimingListError"><value>Zamanlamalar okunamadı.</value></data>
   <data name="LyricsTimingDeleteError"><value>Zamanlama silinemedi.</value></data>
   <data name="DeleteTiming"><value>Zamanlamayı sil</value></data>
+  <data name="EnterMicroMode"><value>Micro moda geç</value></data>
 </root>

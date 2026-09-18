@@ -15,7 +15,6 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
-using Windows.UI;
 using Windows.UI.ViewManagement;
 
 namespace Mediance.AcrylicProbe;
@@ -30,7 +29,6 @@ public sealed partial class MainWindow : Window
     private readonly LocalLyricsTimingStore _lyricsTimingStore;
     private SettingsWindow? _settingsWindow;
     private Storyboard? _lyricsTransition;
-    private Storyboard? _ambientTransition;
     private Storyboard? _progressTransition;
     private Storyboard? _progressValueTransition;
     private Storyboard? _volumeHudTransition;
@@ -68,7 +66,7 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         _smoke = Environment.GetCommandLineArgs().Contains("--smoke-test");
-        Model = new(new WindowsMediaSessionService(), new WindowsArtworkPaletteService(), DispatcherQueue);
+        Model = new(new WindowsMediaSessionService(), DispatcherQueue);
         Routing = new(new WindowsAudioRoutingService(), Model);
         _lyricsClient = new();
         _lyricsTimingStore = new(GetLyricsTimingPath());
@@ -307,6 +305,7 @@ public sealed partial class MainWindow : Window
     private async void Play_Click(object sender, RoutedEventArgs e) => await Model.SendAsync(MediaCommand.Toggle);
     private async void Next_Click(object sender, RoutedEventArgs e) => await Model.SendAsync(MediaCommand.Next);
     private void Micro_Click(object sender, RoutedEventArgs e) => Settings.ViewMode = WidgetViewMode.Standard;
+    private void EnterMicro_Click(object sender, RoutedEventArgs e) => Settings.ViewMode = WidgetViewMode.Micro;
     private void Surface_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
         _pointerInsideSurface = true;
@@ -380,7 +379,6 @@ public sealed partial class MainWindow : Window
 
     private void Model_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is null or nameof(PlayerViewModel.AmbientColor)) AnimateAmbientGlow(Model.AmbientColor);
         if (!_seeking && (e.PropertyName is null or nameof(PlayerViewModel.Progress))) UpdateProgressVisual();
         if (e.PropertyName == nameof(PlayerViewModel.Artwork))
         {
@@ -592,43 +590,6 @@ public sealed partial class MainWindow : Window
         storyboard.Begin();
     }
 
-    private void AnimateAmbientGlow(Color color)
-    {
-        if (_closing || AmbientColorStop.Color == color) return;
-        _ambientTransition?.SkipToFill();
-        _ambientTransition?.Stop();
-        var storyboard = new Storyboard();
-        var animation = new ColorAnimation
-        {
-            From = AmbientColorStop.Color,
-            To = color,
-            Duration = new Duration(TimeSpan.FromMilliseconds(_animationsEnabled ? 1100 : 1)),
-            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
-        };
-        Storyboard.SetTarget(animation, AmbientColorStop);
-        Storyboard.SetTargetProperty(animation, "Color");
-        storyboard.Children.Add(animation);
-        if (_animationsEnabled)
-        {
-            AmbientGlow.Opacity = 0.12;
-            AmbientGlowTransform.ScaleX = AmbientGlowTransform.ScaleY = 1.06;
-            storyboard.Children.Add(Animation(AmbientGlow, "Opacity", 0.12, 0.2, 900, new SineEase { EasingMode = EasingMode.EaseOut }));
-            storyboard.Children.Add(Animation(AmbientGlowTransform, "ScaleX", 1.06, 1, 1150, new QuinticEase { EasingMode = EasingMode.EaseOut }));
-            storyboard.Children.Add(Animation(AmbientGlowTransform, "ScaleY", 1.06, 1, 1150, new QuinticEase { EasingMode = EasingMode.EaseOut }));
-        }
-        storyboard.Completed += (_, _) =>
-        {
-            if (!ReferenceEquals(_ambientTransition, storyboard)) return;
-            AmbientColorStop.Color = color;
-            AmbientGlow.Opacity = 0.2;
-            AmbientGlowTransform.ScaleX = AmbientGlowTransform.ScaleY = 1;
-            storyboard.Stop();
-            _ambientTransition = null;
-        };
-        _ambientTransition = storyboard;
-        storyboard.Begin();
-    }
-
     private void SeekTrack_SizeChanged(object sender, SizeChangedEventArgs e) => UpdateProgressVisual();
     private void UpdateProgressVisual(double? preview = null)
     {
@@ -726,7 +687,7 @@ public sealed partial class MainWindow : Window
 
     private async void Surface_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
     {
-        if (_closing || !Settings.EnableWheelVolume) return;
+        if (_closing) return;
         if (IsDescendantOf(e.OriginalSource as DependencyObject, LyricsPanel)) return;
         var delta = e.GetCurrentPoint(Surface).Properties.MouseWheelDelta;
         if (delta == 0) return;
@@ -938,7 +899,6 @@ public sealed partial class MainWindow : Window
         Model.PropertyChanged -= Model_PropertyChanged;
         Lyrics.LinesChanged -= Lyrics_LinesChanged;
         _lyricsTransition?.Stop();
-        _ambientTransition?.Stop();
         _progressTransition?.Stop();
         _progressValueTransition?.Stop();
         _volumeHudTransition?.Stop();
@@ -1033,10 +993,8 @@ public sealed partial class MainWindow : Window
         var lowAlpha = _appearance.OverlayAlpha;
         Settings.GlassIntensity = 95;
         if (_appearance.OverlayAlpha - lowAlpha < 200) throw new InvalidOperationException("Density did not change the rendered tint layer.");
-        Settings.SolidBackground = true;
-        if (!_appearance.IsSolid) throw new InvalidOperationException("Solid mode failed.");
-        Settings.SolidBackground = false;
-        if (_appearance.IsSolid) throw new InvalidOperationException("Acrylic reconnection failed.");
+        if (_appearance.IsSolid && _appearance.NativeState == "Active")
+            throw new InvalidOperationException("The always-glass mode unexpectedly disconnected Acrylic.");
         Settings.Theme = ThemePreset.Album;
         await Task.Delay(80);
         if (AlbumBackdrop.Visibility != Visibility.Visible)
@@ -1061,10 +1019,9 @@ public sealed partial class MainWindow : Window
             throw new InvalidOperationException("Three-line lyrics mode did not restore the previous line.");
         Settings.Reset();
         Settings.ShowProgress = false;
-        Settings.EnableAmbientGlow = false;
         await Task.Delay(80);
-        if (ProgressHost.Visibility != Visibility.Collapsed || AmbientGlow.Visibility != Visibility.Collapsed)
-            throw new InvalidOperationException("Phase 2 visual settings did not collapse their elements.");
+        if (ProgressHost.Visibility != Visibility.Collapsed)
+            throw new InvalidOperationException("The progress setting did not collapse its element.");
         ShowVolumeHud(75, false);
         if (VolumeHud.Visibility != Visibility.Visible || !VolumeHudText.Text.Contains("75%", StringComparison.Ordinal))
             throw new InvalidOperationException("Application volume HUD did not appear.");
@@ -1087,12 +1044,15 @@ public sealed partial class MainWindow : Window
         if (SettingsButton.Visibility != Visibility.Visible || SettingsButton.ActualWidth <= 0)
             throw new InvalidOperationException("Settings access was lost with content hidden.");
         Settings.Reset();
-        Settings.ViewMode = WidgetViewMode.Micro;
+        if (EnterMicroButton.Visibility != Visibility.Visible)
+            throw new InvalidOperationException("The top-right Micro button was not visible in the full widget.");
+        EnterMicro_Click(this, new RoutedEventArgs());
         await Task.Delay(650);
         if (MicroSurface.Visibility != Visibility.Visible || Root.Visibility != Visibility.Collapsed ||
-            AppWindow.ClientSize.Width >= 200 || AppWindow.ClientSize.Height >= 200 || Surface.Opacity > 0.12)
+            EnterMicroButton.Visibility != Visibility.Collapsed || AppWindow.ClientSize.Width >= 200 ||
+            AppWindow.ClientSize.Height >= 200 || Surface.Opacity > 0.12)
             throw new InvalidOperationException("Micro mode did not settle into its compact idle state.");
-        Settings.ViewMode = WidgetViewMode.Standard;
+        Micro_Click(this, new RoutedEventArgs());
         await Task.Delay(300);
         if (MicroSurface.Visibility != Visibility.Collapsed || Root.Visibility != Visibility.Visible || Surface.Opacity < 0.99)
             throw new InvalidOperationException("Standard mode did not restore from micro mode.");
@@ -1118,8 +1078,8 @@ public sealed partial class MainWindow : Window
         Settings.ShowControls = true;
         Settings.ViewMode = WidgetViewMode.Standard;
         await Task.Delay(300);
-        if (Settings.ControlOptions.Count != 1 || Settings.ContentOptions.Count != 5 ||
-            Settings.UtilityOptions.Count != 2)
+        if (Settings.WindowOptions.Count != 1 || Settings.ControlOptions.Count != 1 ||
+            Settings.ContentOptions.Count != 5 || Settings.UtilityOptions.Count != 2)
             throw new InvalidOperationException("The simplified Elements categories exposed legacy toggles.");
         var settingsWindow = OpenSettings();
         if (!ReferenceEquals(settingsWindow, OpenSettings())) throw new InvalidOperationException("Duplicate settings window.");
@@ -1131,7 +1091,6 @@ public sealed partial class MainWindow : Window
         if (previewArg is not null)
         {
             var directory = previewArg["--preview-dir=".Length..];
-            Settings.SolidBackground = true;
             if (Environment.GetCommandLineArgs().Contains("--narrow-preview")) Settings.WindowWidth = 420;
             await Task.Delay(300);
             await WindowPreview.SaveAsync(Surface, Path.Combine(directory, "widget.png"));

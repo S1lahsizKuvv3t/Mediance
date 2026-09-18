@@ -28,16 +28,6 @@
                     </Border.Background>
                 </Border>
             </Grid>
-            <Border x:Name="AmbientGlow" IsHitTestVisible="False" Opacity="0.2" RenderTransformOrigin="0.5,0.5"
-                    Visibility="{x:Bind Settings.AmbientGlowVisibility, Mode=OneWay}">
-                <Border.RenderTransform><CompositeTransform x:Name="AmbientGlowTransform" /></Border.RenderTransform>
-                <Border.Background>
-                    <RadialGradientBrush Center="0.2,0.15" GradientOrigin="0.2,0.15" RadiusX="0.85" RadiusY="1.15">
-                        <GradientStop x:Name="AmbientColorStop" Color="#FF305274" Offset="0" />
-                        <GradientStop Color="#00305274" Offset="1" />
-                    </RadialGradientBrush>
-                </Border.Background>
-            </Border>
             <Grid x:Name="MicroSurface" Margin="7" Visibility="{x:Bind Settings.MicroModeVisibility, Mode=OneWay}">
                 <Button x:Name="MicroButton" Padding="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                         Background="#E6050507" BorderBrush="#24FFFFFF" BorderThickness="1" CornerRadius="14"
@@ -48,7 +38,7 @@
             <Grid x:Name="CoverControlsSurface" Margin="12" RowSpacing="10"
                   Visibility="{x:Bind Settings.CoverControlsModeVisibility, Mode=OneWay}">
                 <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-                <Button HorizontalAlignment="Right" VerticalAlignment="Top" Width="28" Height="28" Padding="0"
+                <Button HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,38,0" Width="28" Height="28" Padding="0"
                         Background="#66050507" BorderThickness="0" CornerRadius="14" Canvas.ZIndex="4"
                         Click="Settings_Click" AutomationProperties.Name="{x:Bind local:TextCatalog.Settings}">
                     <FontIcon Glyph="&#xE713;" FontSize="11" />
@@ -86,7 +76,7 @@
                         <Image Source="Assets/Mediance-mark.png" Width="15" Height="15" />
                         <TextBlock Text="{x:Bind local:TextCatalog.AppName}" FontSize="12" FontWeight="SemiBold" Opacity="0.72" />
                     </StackPanel>
-                    <Button HorizontalAlignment="Right" Width="30" Height="30" Padding="0" Background="Transparent" BorderThickness="0"
+                    <Button HorizontalAlignment="Right" Margin="0,0,38,0" Width="30" Height="30" Padding="0" Background="Transparent" BorderThickness="0"
                             Click="Settings_Click" AutomationProperties.Name="{x:Bind local:TextCatalog.Settings}">
                         <FontIcon Glyph="&#xE713;" FontSize="12" />
                     </Button>
@@ -138,7 +128,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <Grid x:Name="TrackPanel" Grid.Row="0" Margin="0,0,0,12" ColumnSpacing="12" RenderTransformOrigin="0.5,0.5"
+            <Grid x:Name="TrackPanel" Grid.Row="0" Margin="0,0,30,12" ColumnSpacing="12" RenderTransformOrigin="0.5,0.5"
                   Visibility="{x:Bind Settings.MainRowVisibility, Mode=OneWay}">
                 <Grid.RenderTransform><CompositeTransform x:Name="TrackPanelTransform" /></Grid.RenderTransform>
                 <Grid.ColumnDefinitions>
@@ -317,6 +307,12 @@
                         AutomationProperties.Name="{x:Bind local:TextCatalog.Settings}" />
             </Grid>
             </Grid>
+            <Button x:Name="EnterMicroButton" Canvas.ZIndex="24" HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Margin="0,7,7,0" Width="28" Height="28" Padding="0" Background="Transparent" BorderThickness="0"
+                    Visibility="{x:Bind Settings.NonMicroModeVisibility, Mode=OneWay}" Click="EnterMicro_Click"
+                    AutomationProperties.Name="{x:Bind local:TextCatalog.EnterMicroMode}" ToolTipService.ToolTip="{x:Bind local:TextCatalog.EnterMicroMode}">
+                <Border Width="11" Height="1.5" CornerRadius="1" Background="#CFFFFFFF" />
+            </Button>
             <Border x:Name="VolumeHud" Canvas.ZIndex="30" HorizontalAlignment="Center" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5"
                     Margin="0,10,0,0" Padding="12,6" CornerRadius="10" Background="#E020252C"
                     BorderBrush="#24FFFFFF" BorderThickness="1" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False">

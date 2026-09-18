@@ -110,6 +110,12 @@ public sealed class WindowAndSettingsTests
         Assert.Equal(24, settings.AlbumBlur);
         Assert.Equal(100, settings.AlbumZoom);
         Assert.Equal(54, settings.AlbumDarkness);
+        var retired = new WidgetSettings { SolidBackground = true, EnableAmbientGlow = true,
+            EnableWheelVolume = false, ShowBorder = false }.Normalize();
+        Assert.False(retired.SolidBackground);
+        Assert.False(retired.EnableAmbientGlow);
+        Assert.True(retired.EnableWheelVolume);
+        Assert.True(retired.ShowBorder);
         Assert.Equal(ThemePreset.Album, new WidgetSettings { Theme = ThemePreset.Album }.Normalize().Theme);
         Assert.Equal(2, new WidgetSettings { LyricsLineCount = 2 }.Normalize().LyricsLineCount);
     }
@@ -119,15 +125,14 @@ public sealed class WindowAndSettingsTests
     {
         var source = new WidgetSettings
         {
-            Theme = ThemePreset.Album, SolidBackground = true, GlassIntensity = 71,
-            EnableAmbientGlow = false, ShowBorder = false, AlbumBlur = 12,
+            Theme = ThemePreset.Album, GlassIntensity = 71, AlbumBlur = 12,
             AlbumZoom = 124, AlbumDarkness = 66, WindowWidth = 700,
             ShortcutVirtualKey = 0x58
         };
         var profile = ThemeProfile.Parse(ThemeProfile.FromSettings(source).ToJson());
         var applied = profile.ApplyTo(new WidgetSettings { WindowWidth = 480, ShortcutVirtualKey = 0x4D });
         Assert.Equal(ThemePreset.Album, applied.Theme);
-        Assert.True(applied.SolidBackground);
+        Assert.False(applied.SolidBackground);
         Assert.Equal(12, applied.AlbumBlur);
         Assert.Equal(124, applied.AlbumZoom);
         Assert.Equal(66, applied.AlbumDarkness);
@@ -169,7 +174,7 @@ public sealed class WindowAndSettingsTests
         Assert.False(saved.ShowAudioOutput);
         Assert.False(saved.ShowProgress);
         Assert.False(saved.EnableAmbientGlow);
-        Assert.False(saved.EnableWheelVolume);
+        Assert.True(saved.EnableWheelVolume);
         Assert.True(saved.CloseToTray);
         Assert.True(saved.LyricsOpen);
         Assert.Equal(2, saved.LyricsLineCount);

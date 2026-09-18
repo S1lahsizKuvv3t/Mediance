@@ -11,7 +11,6 @@ public static class TextCatalog
     public static string Close => Get("Close");
     public static string DragHint => Get("DragHint");
     public static string Topmost => Get("Topmost");
-    public static string Solid => Get("Solid");
     public static string GlassStrength => Get("GlassStrength");
     public static string Previous => Get("Previous");
     public static string Next => Get("Next");
@@ -66,4 +65,5 @@ public static class TextCatalog
     public static string SavedLyricsTimings => Get("SavedLyricsTimings");
     public static string SavedLyricsTimingsHint => Get("SavedLyricsTimingsHint");
     public static string DeleteTiming => Get("DeleteTiming");
+    public static string EnterMicroMode => Get("EnterMicroMode");
 }

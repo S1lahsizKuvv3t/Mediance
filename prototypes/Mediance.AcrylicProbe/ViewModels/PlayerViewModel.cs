@@ -7,14 +7,12 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Graphics.Imaging;
 using Windows.Storage.Streams;
-using Windows.UI;
 
 namespace Mediance.AcrylicProbe.ViewModels;
 
 public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
 {
     private readonly IMediaSessionService _media;
-    private readonly IArtworkPaletteService _palette;
     private readonly DispatcherQueue _dispatcher;
     private readonly DispatcherQueueTimer _timelineTimer;
     private readonly DispatcherQueueTimer _watchdogTimer;
@@ -34,16 +32,14 @@ public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
     private ImageSource? _albumArtwork;
     private ArtworkData? _artworkData;
     private double _albumBlur;
-    private Color _ambientColor = Color.FromArgb(255, 48, 82, 116);
     private string _error = "";
     private DateTimeOffset _lastSnapshotUtc = DateTimeOffset.UtcNow;
     private bool _watchdogBusy;
     private int _watchdogFailures;
 
-    public PlayerViewModel(IMediaSessionService media, IArtworkPaletteService palette, DispatcherQueue dispatcher)
+    public PlayerViewModel(IMediaSessionService media, DispatcherQueue dispatcher)
     {
         _media = media;
-        _palette = palette;
         _dispatcher = dispatcher;
         _media.SnapshotChanged += OnSnapshotChanged;
         _media.Diagnostic += OnDiagnostic;
@@ -84,7 +80,6 @@ public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
     public string Status => _selected is null ? "" : TextCatalog.Get(_selected.Status == PlaybackStatus.Playing ? "Playing" : "Paused");
     public ImageSource? Artwork => _artwork;
     public ImageSource? AlbumArtwork => _albumArtwork ?? _artwork;
-    public Color AmbientColor => _ambientColor;
     public string Error => _error;
     public bool CanPrevious => !_busy && _selected?.Capabilities.CanPrevious == true;
     public bool CanNext => !_busy && _selected?.Capabilities.CanNext == true;
@@ -131,7 +126,6 @@ public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
             _albumArtworkCancellation?.Cancel();
             _albumArtworkCancellation?.Dispose();
             _albumArtworkCancellation = null;
-            _ambientColor = Color.FromArgb(255, 48, 82, 116);
             _error = "";
             if (selected?.HasArtwork == true) StartArtworkLoad(selected.Id, version, _artworkCancellation.Token);
         }
@@ -177,10 +171,6 @@ public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
             _artworkData = data;
             PropertyChanged?.Invoke(this, new(nameof(Artwork)));
             StartAlbumArtworkLoad();
-            var color = await _palette.ExtractAsync(data, token);
-            if (color is null || token.IsCancellationRequested || _disposed || version != _artworkVersion) return;
-            _ambientColor = Color.FromArgb(255, color.Value.Red, color.Value.Green, color.Value.Blue);
-            PropertyChanged?.Invoke(this, new(nameof(AmbientColor)));
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception ex) { ProbeLog.Write("Artwork", ex); }

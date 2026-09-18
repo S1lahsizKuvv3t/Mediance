@@ -60,6 +60,10 @@ public sealed record WidgetSettings
         if (!shortcut.IsValid) shortcut = HotkeyGesture.Default;
         return this with
         {
+            SolidBackground = false,
+            EnableAmbientGlow = false,
+            EnableWheelVolume = true,
+            ShowBorder = true,
             GlassIntensity = FiniteClamp(GlassIntensity, 10, 95, 55),
             WindowWidth = FiniteClamp(WindowWidth, 420, 720, 520),
             ArtworkSize = FiniteClamp(ArtworkSize, 48, 120, 84),

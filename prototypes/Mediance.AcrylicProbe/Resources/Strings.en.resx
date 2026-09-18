@@ -21,9 +21,6 @@
   <data name="Topmost" xml:space="preserve">
     <value>Keep on top</value>
   </data>
-  <data name="Solid" xml:space="preserve">
-    <value>Solid background</value>
-  </data>
   <data name="GlassStrength" xml:space="preserve">
     <value>Glass strength</value>
   </data>
@@ -132,9 +129,6 @@
   <data name="ShowCloseButton">
     <value>Close button</value>
   </data>
-  <data name="ShowBorder">
-    <value>Thin border</value>
-  </data>
   <data name="ShowPlaybackStatus">
     <value>Playback status</value>
   </data>
@@ -174,8 +168,6 @@
   <data name="PlaybackProgress"><value>Playback position</value></data>
   <data name="AudioVolumeError"><value>The application volume could not be changed.</value></data>
   <data name="ShowProgress"><value>Playback bar</value></data>
-  <data name="AmbientGlow"><value>Artwork color glow</value></data>
-  <data name="WheelVolume"><value>Mouse wheel application volume</value></data>
   <data name="CloseToTray"><value>Minimize to tray when closed</value></data>
   <data name="ShowWidget"><value>Show Mediance</value></data>
   <data name="HideWidget"><value>Hide Mediance</value></data>
@@ -246,4 +238,5 @@
   <data name="LyricsTimingListError"><value>Timings could not be loaded.</value></data>
   <data name="LyricsTimingDeleteError"><value>Timing could not be deleted.</value></data>
   <data name="DeleteTiming"><value>Delete timing</value></data>
+  <data name="EnterMicroMode"><value>Enter Micro mode</value></data>
 </root>

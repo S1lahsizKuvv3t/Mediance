@@ -26,13 +26,7 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     private IReadOnlyList<ToggleSetting>? _utilityOptions;
     public IReadOnlyList<ToggleSetting> WindowOptions => _windowOptions ??=
     [
-        new(Localization.TextCatalog.Get("LockPosition"), () => IsLocked, v => IsLocked = v),
-        new(Localization.TextCatalog.Topmost, () => AlwaysOnTop, v => AlwaysOnTop = v),
-        new(Localization.TextCatalog.Get("AmbientGlow"), () => EnableAmbientGlow, v => EnableAmbientGlow = v),
-        new(Localization.TextCatalog.Get("WheelVolume"), () => EnableWheelVolume, v => EnableWheelVolume = v),
-        new(Localization.TextCatalog.Get("CloseToTray"), () => CloseToTray, v => CloseToTray = v),
-        new(Localization.TextCatalog.Solid, () => SolidBackground, v => SolidBackground = v),
-        new(Localization.TextCatalog.Get("ShowBorder"), () => ShowBorder, v => ShowBorder = v)
+        new(Localization.TextCatalog.Get("CloseToTray"), () => CloseToTray, v => CloseToTray = v)
     ];
     public IReadOnlyList<ToggleSetting> ContentOptions => _contentOptions ??=
     [
@@ -58,19 +52,15 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public event EventHandler? Changed;
     public bool AlwaysOnTop { get => _data.AlwaysOnTop; set => Change(_data with { AlwaysOnTop = value }); }
     public bool IsLocked { get => _data.IsLocked; set => Change(_data with { IsLocked = value }); }
-    public bool SolidBackground { get => _data.SolidBackground; set => Change(_data with { SolidBackground = value }); }
     public double GlassIntensity { get => _data.GlassIntensity; set => Change(_data with { GlassIntensity = value }); }
     public bool ShowArtwork { get => _data.ShowArtwork; set => Change(_data with { ShowArtwork = value }); }
     public bool ShowProgress { get => _data.ShowProgress; set => Change(_data with { ShowProgress = value }); }
-    public bool EnableAmbientGlow { get => _data.EnableAmbientGlow; set => Change(_data with { EnableAmbientGlow = value }); }
-    public bool EnableWheelVolume { get => _data.EnableWheelVolume; set => Change(_data with { EnableWheelVolume = value }); }
     public bool CloseToTray { get => _data.CloseToTray; set => Change(_data with { CloseToTray = value }); }
     public bool ShowTitle { get => _data.ShowTitle; set => Change(_data with { ShowTitle = value }); }
     public bool ShowArtist { get => _data.ShowArtist; set => Change(_data with { ShowArtist = value }); }
     public bool ShowSource { get => _data.ShowSource; set => Change(_data with { ShowSource = value }); }
     public bool ShowControls { get => _data.ShowControls; set => Change(_data with { ShowControls = value }); }
     public bool ShowBrand { get => _data.ShowBrand; set => Change(_data with { ShowBrand = value }); }
-    public bool ShowBorder { get => _data.ShowBorder; set => Change(_data with { ShowBorder = value }); }
     public bool ShowPlaybackStatus { get => _data.ShowPlaybackStatus; set => Change(_data with { ShowPlaybackStatus = value }); }
     public bool ShowLyricsButton { get => _data.ShowLyricsButton; set => Change(_data with { ShowLyricsButton = value }); }
     public bool LyricsOpen { get => _data.LyricsOpen; set => Change(_data with { LyricsOpen = value }); }
@@ -126,7 +116,7 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
         get => LyricsLineOptions.First(x => x.Value == LyricsLineCount);
         set { if (value is not null) LyricsLineCount = value.Value; }
     }
-    public bool GlassEnabled => !SolidBackground;
+    public bool GlassEnabled => true;
     public bool AlbumControlsEnabled => Theme == ThemePreset.Album;
     public bool IsMicroMode => ViewMode == WidgetViewMode.Micro;
     public bool IsCoverControlsMode => ViewMode == WidgetViewMode.CoverControls;
@@ -161,8 +151,8 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public double ArtworkGap => ShowArtwork && HasMainText ? 18 : 0;
     public Visibility ArtworkVisibility => Visible(ShowArtwork);
     public Visibility ProgressVisibility => Visible(ShowProgress);
-    public Visibility AmbientGlowVisibility => Visible(!IsMicroMode && EnableAmbientGlow);
     public Visibility AlbumThemeVisibility => Visible(!IsMicroMode && Theme == ThemePreset.Album);
+    public Visibility NonMicroModeVisibility => Visible(!IsMicroMode);
     public Visibility StandardModeVisibility => Visible(ViewMode == WidgetViewMode.Standard);
     public Visibility MicroModeVisibility => Visible(IsMicroMode);
     public Visibility CoverControlsModeVisibility => Visible(IsCoverControlsMode);

@@ -18,23 +18,6 @@ public sealed class MediaEnhancementTests
     }
 
     [Fact]
-    public void DominantArtworkColorIgnoresTransparentPixels()
-    {
-        byte[] pixels =
-        [
-            200, 40, 20, 255,
-            205, 42, 22, 255,
-            198, 38, 18, 255,
-            0, 255, 0, 0
-        ];
-        var color = ArtworkPalette.SelectDominant(pixels);
-        Assert.NotNull(color);
-        Assert.InRange(color.Value.Red, 18, 22);
-        Assert.InRange(color.Value.Green, 38, 42);
-        Assert.InRange(color.Value.Blue, 198, 205);
-    }
-
-    [Fact]
     public void VolumeResultNormalizesForHud()
     {
         Assert.Equal(100, ApplicationVolumeResult.Success(2, false).Percent);
