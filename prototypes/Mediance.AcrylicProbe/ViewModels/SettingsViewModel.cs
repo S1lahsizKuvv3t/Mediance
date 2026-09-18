@@ -40,21 +40,15 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
         new(Localization.TextCatalog.Get("ShowProgress"), () => ShowProgress, v => ShowProgress = v),
         new(Localization.TextCatalog.Get("ShowTitle"), () => ShowTitle, v => ShowTitle = v),
         new(Localization.TextCatalog.Get("ShowArtist"), () => ShowArtist, v => ShowArtist = v),
-        new(Localization.TextCatalog.Get("ShowSource"), () => ShowSource, v => ShowSource = v),
-        new(Localization.TextCatalog.Get("ShowBrand"), () => ShowBrand, v => ShowBrand = v),
-        new(Localization.TextCatalog.Get("ShowPlaybackStatus"), () => ShowPlaybackStatus, v => ShowPlaybackStatus = v)
+        new(Localization.TextCatalog.Get("ShowSource"), () => ShowSource, v => ShowSource = v)
     ];
     public IReadOnlyList<ToggleSetting> ControlOptions => _controlOptions ??=
     [
-        new(Localization.TextCatalog.Get("ShowControls"), () => ShowControls, v => ShowControls = v),
-        new(Localization.TextCatalog.Get("ShowPrevious"), () => ShowPrevious, v => ShowPrevious = v, () => ShowControls),
-        new(Localization.TextCatalog.Get("ShowPlayPause"), () => ShowPlayPause, v => ShowPlayPause = v, () => ShowControls),
-        new(Localization.TextCatalog.Get("ShowNext"), () => ShowNext, v => ShowNext = v, () => ShowControls)
+        new(Localization.TextCatalog.Get("ShowControls"), () => ShowControls, v => ShowControls = v)
     ];
     public IReadOnlyList<ToggleSetting> UtilityOptions => _utilityOptions ??=
     [
         new(Localization.TextCatalog.Get("ShowAudioOutput"), () => ShowAudioOutput, v => ShowAudioOutput = v),
-        new(Localization.TextCatalog.Get("ShowCloseButton"), () => ShowCloseButton, v => ShowCloseButton = v),
         new(Localization.TextCatalog.Get("ShowLyricsButton"), () => ShowLyricsButton, v => ShowLyricsButton = v)
     ];
     public WidgetSettings Data => _data;
@@ -75,11 +69,7 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public bool ShowArtist { get => _data.ShowArtist; set => Change(_data with { ShowArtist = value }); }
     public bool ShowSource { get => _data.ShowSource; set => Change(_data with { ShowSource = value }); }
     public bool ShowControls { get => _data.ShowControls; set => Change(_data with { ShowControls = value }); }
-    public bool ShowPrevious { get => _data.ShowPrevious; set => Change(_data with { ShowPrevious = value }); }
-    public bool ShowPlayPause { get => _data.ShowPlayPause; set => Change(_data with { ShowPlayPause = value }); }
-    public bool ShowNext { get => _data.ShowNext; set => Change(_data with { ShowNext = value }); }
     public bool ShowBrand { get => _data.ShowBrand; set => Change(_data with { ShowBrand = value }); }
-    public bool ShowCloseButton { get => _data.ShowCloseButton; set => Change(_data with { ShowCloseButton = value }); }
     public bool ShowBorder { get => _data.ShowBorder; set => Change(_data with { ShowBorder = value }); }
     public bool ShowPlaybackStatus { get => _data.ShowPlaybackStatus; set => Change(_data with { ShowPlaybackStatus = value }); }
     public bool ShowLyricsButton { get => _data.ShowLyricsButton; set => Change(_data with { ShowLyricsButton = value }); }
@@ -182,14 +172,9 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public Visibility SourceVisibility => Visible(ShowSource);
     public Visibility MetadataVisibility => Visible(HasMainText);
     public Visibility TrackVisibility => Visible(ShowArtwork || HasMainText);
-    public Visibility MainRowVisibility => Visible(ShowArtwork || HasMainText ||
-        (ShowControls && (ShowPrevious || ShowPlayPause || ShowNext)));
-    public Visibility ControlsVisibility => Visible(ShowControls && (ShowPrevious || ShowPlayPause || ShowNext));
-    public Visibility PreviousVisibility => Visible(ShowPrevious);
-    public Visibility PlayVisibility => Visible(ShowPlayPause);
-    public Visibility NextVisibility => Visible(ShowNext);
+    public Visibility MainRowVisibility => Visible(ShowArtwork || HasMainText || ShowControls);
+    public Visibility ControlsVisibility => Visible(ShowControls);
     public Visibility BrandVisibility => Visible(ShowBrand);
-    public Visibility CloseVisibility => Visible(ShowCloseButton);
     public Visibility StatusVisibility => Visible(ShowPlaybackStatus);
     public Visibility LyricsButtonVisibility => Visible(ShowLyricsButton);
     public Visibility AudioOutputVisibility => Visible(ShowAudioOutput);

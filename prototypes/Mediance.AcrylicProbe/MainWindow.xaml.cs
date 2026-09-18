@@ -920,12 +920,6 @@ public sealed partial class MainWindow : Window
         storyboard.Children.Add(Animation(transform, "ScaleY", transform.ScaleY, scale, milliseconds, ease));
         storyboard.Begin();
     }
-    private async void Close_Click(object sender, RoutedEventArgs e)
-    {
-        if (Settings.CloseToTray) HideToTray();
-        else await ShutdownAsync();
-    }
-
     private async void Window_Closing(AppWindow sender, AppWindowClosingEventArgs args)
     {
         if (_allowClose) return;
@@ -1088,7 +1082,7 @@ public sealed partial class MainWindow : Window
             TransportControls.Visibility != Visibility.Collapsed || AudioOutputPanel.Visibility != Visibility.Collapsed ||
             AppWindow.ClientSize.Height >= expandedHeight)
             throw new InvalidOperationException("Hidden components did not collapse their layout.");
-        Settings.ShowTitle = Settings.ShowArtist = Settings.ShowSource = Settings.ShowBrand = Settings.ShowCloseButton = false;
+        Settings.ShowTitle = Settings.ShowArtist = Settings.ShowSource = Settings.ShowBrand = false;
         await Task.Delay(150);
         if (SettingsButton.Visibility != Visibility.Visible || SettingsButton.ActualWidth <= 0)
             throw new InvalidOperationException("Settings access was lost with content hidden.");
@@ -1107,13 +1101,26 @@ public sealed partial class MainWindow : Window
         if (CoverControlsSurface.Visibility != Visibility.Visible || Root.Visibility != Visibility.Collapsed ||
             AppWindow.ClientSize.Width >= 260 || AppWindow.ClientSize.Height >= 280)
             throw new InvalidOperationException("Artwork + controls mode did not settle into its compact layout.");
+        Settings.ShowControls = false;
+        await Task.Delay(100);
+        if (CoverTransportControls.Visibility != Visibility.Collapsed)
+            throw new InvalidOperationException("The single media-controls toggle did not hide cover controls.");
+        Settings.ShowControls = true;
         Settings.ViewMode = WidgetViewMode.VerticalLyrics;
         await Task.Delay(350);
         if (VerticalLyricsSurface.Visibility != Visibility.Visible || Root.Visibility != Visibility.Collapsed ||
             AppWindow.ClientSize.Width < 260 || AppWindow.ClientSize.Height < 450 || !Lyrics.IsVisible)
             throw new InvalidOperationException("Vertical lyrics mode did not open its lyrics layout.");
+        Settings.ShowControls = false;
+        await Task.Delay(100);
+        if (VerticalTransportControls.Visibility != Visibility.Collapsed)
+            throw new InvalidOperationException("The single media-controls toggle did not hide vertical controls.");
+        Settings.ShowControls = true;
         Settings.ViewMode = WidgetViewMode.Standard;
         await Task.Delay(300);
+        if (Settings.ControlOptions.Count != 1 || Settings.ContentOptions.Count != 5 ||
+            Settings.UtilityOptions.Count != 2)
+            throw new InvalidOperationException("The simplified Elements categories exposed legacy toggles.");
         var settingsWindow = OpenSettings();
         if (!ReferenceEquals(settingsWindow, OpenSettings())) throw new InvalidOperationException("Duplicate settings window.");
         if (!settingsWindow.IsHiddenFromShellAndActivatable)
