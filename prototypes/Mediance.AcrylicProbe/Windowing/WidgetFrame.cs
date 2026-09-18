@@ -56,7 +56,7 @@ internal sealed class WidgetFrame
         var scale = NativeWindowFeatures.DpiScale(_handle);
         var area = DisplayArea.GetFromWindowId(_window.Id, DisplayAreaFallback.Nearest).WorkArea;
         var size = new SizeInt32(Math.Min((int)Math.Ceiling(widthDip * scale), area.Width - 8),
-            Math.Min((int)Math.Ceiling(Math.Max(100, heightDip) * scale), area.Height - 8));
+            Math.Min((int)Math.Ceiling(Math.Max(64, heightDip) * scale), area.Height - 8));
         if (_window.ClientSize.Width != size.Width || _window.ClientSize.Height != size.Height)
         {
             _window.ResizeClient(size);

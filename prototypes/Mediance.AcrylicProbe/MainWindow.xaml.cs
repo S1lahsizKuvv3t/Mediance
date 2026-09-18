@@ -1049,8 +1049,8 @@ public sealed partial class MainWindow : Window
         EnterMicro_Click(this, new RoutedEventArgs());
         await Task.Delay(650);
         if (MicroSurface.Visibility != Visibility.Visible || Root.Visibility != Visibility.Collapsed ||
-            EnterMicroButton.Visibility != Visibility.Collapsed || AppWindow.ClientSize.Width >= 200 ||
-            AppWindow.ClientSize.Height >= 200 || Surface.Opacity > 0.12)
+            EnterMicroButton.Visibility != Visibility.Collapsed || AppWindow.ClientSize.Width != AppWindow.ClientSize.Height ||
+            AppWindow.ClientSize.Width >= 200 || Surface.Opacity > 0.12)
             throw new InvalidOperationException("Micro mode did not settle into its compact idle state.");
         Micro_Click(this, new RoutedEventArgs());
         await Task.Delay(300);
