@@ -29,11 +29,11 @@
                 </Border>
             </Grid>
             <Grid x:Name="MicroSurface" Margin="7" Visibility="{x:Bind Settings.MicroModeVisibility, Mode=OneWay}">
-                <Button x:Name="MicroButton" Padding="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                <Border x:Name="MicroButton" Padding="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                         Background="#E6050507" BorderBrush="#24FFFFFF" BorderThickness="1" CornerRadius="14"
-                        Click="Micro_Click" AutomationProperties.Name="Mediance">
+                        Tapped="Micro_Tapped" AutomationProperties.Name="Mediance">
                     <Image Source="Assets/Mediance-mark.png" Stretch="Uniform" />
-                </Button>
+                </Border>
             </Grid>
             <Grid x:Name="CoverControlsSurface" Margin="12" RowSpacing="10"
                   Visibility="{x:Bind Settings.CoverControlsModeVisibility, Mode=OneWay}">

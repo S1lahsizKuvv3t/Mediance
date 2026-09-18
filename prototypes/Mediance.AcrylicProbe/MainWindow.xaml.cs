@@ -304,7 +304,7 @@ public sealed partial class MainWindow : Window
     private async void Previous_Click(object sender, RoutedEventArgs e) => await Model.SendAsync(MediaCommand.Previous);
     private async void Play_Click(object sender, RoutedEventArgs e) => await Model.SendAsync(MediaCommand.Toggle);
     private async void Next_Click(object sender, RoutedEventArgs e) => await Model.SendAsync(MediaCommand.Next);
-    private void Micro_Click(object sender, RoutedEventArgs e) => Settings.ViewMode = WidgetViewMode.Standard;
+    private void Micro_Tapped(object sender, TappedRoutedEventArgs e) => Settings.ViewMode = WidgetViewMode.Standard;
     private void EnterMicro_Click(object sender, RoutedEventArgs e) => Settings.ViewMode = WidgetViewMode.Micro;
     private void Surface_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
@@ -1052,7 +1052,7 @@ public sealed partial class MainWindow : Window
             EnterMicroButton.Visibility != Visibility.Collapsed || AppWindow.ClientSize.Width != AppWindow.ClientSize.Height ||
             AppWindow.ClientSize.Width >= 200 || Surface.Opacity > 0.12)
             throw new InvalidOperationException("Micro mode did not settle into its compact idle state.");
-        Micro_Click(this, new RoutedEventArgs());
+        Settings.ViewMode = WidgetViewMode.Standard;
         await Task.Delay(300);
         if (MicroSurface.Visibility != Visibility.Collapsed || Root.Visibility != Visibility.Visible || Surface.Opacity < 0.99)
             throw new InvalidOperationException("Standard mode did not restore from micro mode.");
