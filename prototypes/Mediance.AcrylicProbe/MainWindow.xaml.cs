@@ -1037,8 +1037,6 @@ public sealed partial class MainWindow : Window
             TransportControls.Visibility != Visibility.Collapsed || AudioOutputPanel.Visibility != Visibility.Collapsed ||
             AppWindow.ClientSize.Height >= expandedHeight)
             throw new InvalidOperationException("Hidden components did not collapse their layout.");
-        Settings.ShowTitle = Settings.ShowArtist = Settings.ShowSource = Settings.ShowBrand = false;
-        await Task.Delay(150);
         if (SettingsButton.Visibility != Visibility.Visible || SettingsButton.ActualWidth <= 0)
             throw new InvalidOperationException("Settings access was lost with content hidden.");
         Settings.Reset();
@@ -1077,7 +1075,7 @@ public sealed partial class MainWindow : Window
         Settings.ViewMode = WidgetViewMode.Standard;
         await Task.Delay(300);
         if (Settings.WindowOptions.Count != 1 || Settings.ControlOptions.Count != 1 ||
-            Settings.ContentOptions.Count != 5 || Settings.UtilityOptions.Count != 2)
+            Settings.ContentOptions.Count != 2 || Settings.UtilityOptions.Count != 2)
             throw new InvalidOperationException("The simplified Elements categories exposed legacy toggles.");
         var settingsWindow = OpenSettings();
         if (!ReferenceEquals(settingsWindow, OpenSettings())) throw new InvalidOperationException("Duplicate settings window.");

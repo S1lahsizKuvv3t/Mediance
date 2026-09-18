@@ -111,11 +111,15 @@ public sealed class WindowAndSettingsTests
         Assert.Equal(100, settings.AlbumZoom);
         Assert.Equal(54, settings.AlbumDarkness);
         var retired = new WidgetSettings { SolidBackground = true, EnableAmbientGlow = true,
-            EnableWheelVolume = false, ShowBorder = false }.Normalize();
+            EnableWheelVolume = false, ShowBorder = false, ShowTitle = false, ShowArtist = false,
+            ShowSource = false }.Normalize();
         Assert.False(retired.SolidBackground);
         Assert.False(retired.EnableAmbientGlow);
         Assert.True(retired.EnableWheelVolume);
         Assert.True(retired.ShowBorder);
+        Assert.True(retired.ShowTitle);
+        Assert.True(retired.ShowArtist);
+        Assert.True(retired.ShowSource);
         Assert.Equal(ThemePreset.Album, new WidgetSettings { Theme = ThemePreset.Album }.Normalize().Theme);
         Assert.Equal(2, new WidgetSettings { LyricsLineCount = 2 }.Normalize().LyricsLineCount);
     }
@@ -161,6 +165,7 @@ public sealed class WindowAndSettingsTests
         using var folder = new TestFolder();
         var store = new JsonSettingsStore(folder.File);
         await store.SaveAsync(new() { ShowArtwork = false, ShowAudioOutput = false, ShowProgress = false,
+            ShowTitle = false, ShowArtist = false, ShowSource = false,
             EnableAmbientGlow = false, EnableWheelVolume = false, IsLocked = true, GlassIntensity = 23, ControlSize = 64,
             CloseToTray = true, LyricsOpen = true, LyricsLineCount = 2, EnableAutomaticLyricsSync = false,
             StartWithWindows = true,
@@ -173,6 +178,9 @@ public sealed class WindowAndSettingsTests
         Assert.False(saved.ShowArtwork);
         Assert.False(saved.ShowAudioOutput);
         Assert.False(saved.ShowProgress);
+        Assert.True(saved.ShowTitle);
+        Assert.True(saved.ShowArtist);
+        Assert.True(saved.ShowSource);
         Assert.False(saved.EnableAmbientGlow);
         Assert.True(saved.EnableWheelVolume);
         Assert.True(saved.CloseToTray);
@@ -243,11 +251,11 @@ public sealed class WindowAndSettingsTests
         using var folder = new TestFolder();
         var store = new JsonSettingsStore(folder.File);
         Assert.Equal(new WidgetSettings(), await store.LoadAsync());
-        await store.SaveAsync(new() { ShowTitle = false });
+        await store.SaveAsync(new() { ShowArtwork = false });
         using var token = new CancellationTokenSource();
         token.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => store.SaveAsync(new(), token.Token));
-        Assert.False((await store.LoadAsync()).ShowTitle);
+        Assert.False((await store.LoadAsync()).ShowArtwork);
     }
 
     [Fact]

@@ -102,15 +102,6 @@
   <data name="ShowArtwork">
     <value>Album artwork</value>
   </data>
-  <data name="ShowTitle">
-    <value>Track title</value>
-  </data>
-  <data name="ShowArtist">
-    <value>Artist</value>
-  </data>
-  <data name="ShowSource">
-    <value>Source app</value>
-  </data>
   <data name="ShowControls">
     <value>Media controls</value>
   </data>

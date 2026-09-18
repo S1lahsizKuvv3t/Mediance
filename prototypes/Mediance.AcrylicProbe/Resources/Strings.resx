@@ -102,15 +102,6 @@
   <data name="ShowArtwork">
     <value>Albüm kapağı</value>
   </data>
-  <data name="ShowTitle">
-    <value>Şarkı adı</value>
-  </data>
-  <data name="ShowArtist">
-    <value>Sanatçı</value>
-  </data>
-  <data name="ShowSource">
-    <value>Kaynak uygulama</value>
-  </data>
   <data name="ShowControls">
     <value>Medya kontrolleri</value>
   </data>

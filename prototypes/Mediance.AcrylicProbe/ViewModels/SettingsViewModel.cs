@@ -31,10 +31,7 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public IReadOnlyList<ToggleSetting> ContentOptions => _contentOptions ??=
     [
         new(Localization.TextCatalog.Get("ShowArtwork"), () => ShowArtwork, v => ShowArtwork = v),
-        new(Localization.TextCatalog.Get("ShowProgress"), () => ShowProgress, v => ShowProgress = v),
-        new(Localization.TextCatalog.Get("ShowTitle"), () => ShowTitle, v => ShowTitle = v),
-        new(Localization.TextCatalog.Get("ShowArtist"), () => ShowArtist, v => ShowArtist = v),
-        new(Localization.TextCatalog.Get("ShowSource"), () => ShowSource, v => ShowSource = v)
+        new(Localization.TextCatalog.Get("ShowProgress"), () => ShowProgress, v => ShowProgress = v)
     ];
     public IReadOnlyList<ToggleSetting> ControlOptions => _controlOptions ??=
     [
@@ -56,9 +53,6 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public bool ShowArtwork { get => _data.ShowArtwork; set => Change(_data with { ShowArtwork = value }); }
     public bool ShowProgress { get => _data.ShowProgress; set => Change(_data with { ShowProgress = value }); }
     public bool CloseToTray { get => _data.CloseToTray; set => Change(_data with { CloseToTray = value }); }
-    public bool ShowTitle { get => _data.ShowTitle; set => Change(_data with { ShowTitle = value }); }
-    public bool ShowArtist { get => _data.ShowArtist; set => Change(_data with { ShowArtist = value }); }
-    public bool ShowSource { get => _data.ShowSource; set => Change(_data with { ShowSource = value }); }
     public bool ShowControls { get => _data.ShowControls; set => Change(_data with { ShowControls = value }); }
     public bool ShowBrand { get => _data.ShowBrand; set => Change(_data with { ShowBrand = value }); }
     public bool ShowPlaybackStatus { get => _data.ShowPlaybackStatus; set => Change(_data with { ShowPlaybackStatus = value }); }
@@ -146,8 +140,7 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public double TransportIconSize => ControlSize * 0.39;
     public CornerRadius PlayCornerRadius => new(ControlSize / 2);
     public CornerRadius SurfaceCornerRadius => new(IsMicroMode ? 18 : ViewMode == WidgetViewMode.Standard ? 8 : 14);
-    public bool HasMetadata => ShowTitle || ShowArtist || ShowSource;
-    public bool HasMainText => HasMetadata || ShowBrand;
+    public bool HasMainText => true;
     public double ArtworkGap => ShowArtwork && HasMainText ? 18 : 0;
     public Visibility ArtworkVisibility => Visible(ShowArtwork);
     public Visibility ProgressVisibility => Visible(ShowProgress);
@@ -157,9 +150,9 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public Visibility MicroModeVisibility => Visible(IsMicroMode);
     public Visibility CoverControlsModeVisibility => Visible(IsCoverControlsMode);
     public Visibility VerticalLyricsModeVisibility => Visible(IsVerticalLyricsMode);
-    public Visibility TitleVisibility => Visible(ShowTitle);
-    public Visibility ArtistVisibility => Visible(ShowArtist);
-    public Visibility SourceVisibility => Visible(ShowSource);
+    public Visibility TitleVisibility => Visibility.Visible;
+    public Visibility ArtistVisibility => Visibility.Visible;
+    public Visibility SourceVisibility => Visibility.Visible;
     public Visibility MetadataVisibility => Visible(HasMainText);
     public Visibility TrackVisibility => Visible(ShowArtwork || HasMainText);
     public Visibility MainRowVisibility => Visible(ShowArtwork || HasMainText || ShowControls);
