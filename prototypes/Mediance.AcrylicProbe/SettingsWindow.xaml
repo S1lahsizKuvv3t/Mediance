@@ -15,6 +15,19 @@
                                       AutomationProperties.Name="{x:Bind Label}" />
                     </Grid>
                 </DataTemplate>
+                <DataTemplate x:Key="LyricsTimingRow" x:DataType="vm:LyricsTimingItem">
+                    <Grid Padding="0,7" ColumnSpacing="8">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{x:Bind Label}" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{x:Bind Detail}" FontSize="10" Opacity="0.58" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Width="30" Height="30" Padding="0" Background="Transparent" BorderThickness="0"
+                                Tag="{x:Bind Id}" Click="DeleteLyricsTiming_Click" AutomationProperties.Name="{x:Bind local:TextCatalog.DeleteTiming}">
+                            <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                        </Button>
+                    </Grid>
+                </DataTemplate>
             </Grid.Resources>
             <Grid.RowDefinitions><RowDefinition Height="32" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
             <Grid>
@@ -62,6 +75,32 @@
                                 </Grid>
                                 <Slider Minimum="10" Maximum="95" Value="{x:Bind Settings.GlassIntensity, Mode=TwoWay}" StepFrequency="1" IsEnabled="{x:Bind Settings.GlassEnabled, Mode=OneWay}"
                                         AutomationProperties.Name="{x:Bind local:TextCatalog.GlassStrength}" />
+                            </StackPanel>
+                            <Border Background="#0CFFFFFF" BorderBrush="#18FFFFFF" BorderThickness="1" CornerRadius="10" Padding="13,10">
+                                <StackPanel Spacing="9">
+                                    <TextBlock Text="{x:Bind local:TextCatalog.AlbumBackground}" FontSize="13" FontWeight="SemiBold" />
+                                    <StackPanel>
+                                        <Grid><TextBlock Text="{x:Bind local:TextCatalog.AlbumBlur}" FontSize="12" /><TextBlock Text="{x:Bind Settings.AlbumBlurValue, Mode=OneWay}" HorizontalAlignment="Right" FontSize="11" Opacity="0.62" /></Grid>
+                                        <Slider Minimum="0" Maximum="24" StepFrequency="1" Value="{x:Bind Settings.AlbumBlur, Mode=TwoWay}" IsEnabled="{x:Bind Settings.AlbumControlsEnabled, Mode=OneWay}" />
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <Grid><TextBlock Text="{x:Bind local:TextCatalog.AlbumZoom}" FontSize="12" /><TextBlock Text="{x:Bind Settings.AlbumZoomValue, Mode=OneWay}" HorizontalAlignment="Right" FontSize="11" Opacity="0.62" /></Grid>
+                                        <Slider Minimum="100" Maximum="140" StepFrequency="1" Value="{x:Bind Settings.AlbumZoom, Mode=TwoWay}" IsEnabled="{x:Bind Settings.AlbumControlsEnabled, Mode=OneWay}" />
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <Grid><TextBlock Text="{x:Bind local:TextCatalog.AlbumDarkness}" FontSize="12" /><TextBlock Text="{x:Bind Settings.AlbumDarknessValue, Mode=OneWay}" HorizontalAlignment="Right" FontSize="11" Opacity="0.62" /></Grid>
+                                        <Slider Minimum="0" Maximum="90" StepFrequency="1" Value="{x:Bind Settings.AlbumDarkness, Mode=TwoWay}" IsEnabled="{x:Bind Settings.AlbumControlsEnabled, Mode=OneWay}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                            <StackPanel Spacing="7">
+                                <TextBlock Text="{x:Bind local:TextCatalog.ThemeProfiles}" FontSize="13" FontWeight="SemiBold" />
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                    <Button Content="{x:Bind local:TextCatalog.ExportTheme}" HorizontalAlignment="Stretch" Click="ExportTheme_Click" />
+                                    <Button Grid.Column="1" Content="{x:Bind local:TextCatalog.ImportTheme}" HorizontalAlignment="Stretch" Click="ImportTheme_Click" />
+                                </Grid>
+                                <TextBlock Text="{x:Bind Settings.ThemeTransferStatus, Mode=OneWay}" FontSize="11" Opacity="0.62" TextWrapping="Wrap" />
                             </StackPanel>
                             <TextBlock Text="{x:Bind local:TextCatalog.DensityHint}" FontSize="12" Opacity="0.65" TextWrapping="Wrap" />
                         </StackPanel>
@@ -145,6 +184,38 @@
                         <TextBlock Text="{x:Bind Routing.Hint, Mode=OneWay}" FontSize="12" Opacity="0.65" TextWrapping="Wrap" />
                         <TextBlock Text="{x:Bind Routing.Error, Mode=OneWay}" FontSize="11" Foreground="#FFFFCC99" TextWrapping="Wrap" />
                     </StackPanel>
+                </PivotItem>
+                <PivotItem>
+                    <PivotItem.Header><TextBlock Text="{x:Bind local:TextCatalog.LyricsCenter}" FontSize="17" /></PivotItem.Header>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Spacing="14" Padding="0,10,8,0">
+                            <Border Background="#0CFFFFFF" BorderBrush="#18FFFFFF" BorderThickness="1" CornerRadius="10" Padding="13,11">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="{x:Bind local:TextCatalog.LyricsSyncProgress}" FontSize="13" FontWeight="SemiBold" />
+                                    <TextBlock Text="{x:Bind Lyrics.AutomaticSyncStageText, Mode=OneWay}" FontSize="11" Opacity="0.68" TextWrapping="Wrap" />
+                                    <ProgressBar Minimum="0" Maximum="100" Value="{x:Bind Lyrics.AutomaticSyncProgress, Mode=OneWay}"
+                                                 IsIndeterminate="{x:Bind Lyrics.AutomaticSyncIndeterminate, Mode=OneWay}"
+                                                 Visibility="{x:Bind Lyrics.AutomaticSyncProgressVisibility, Mode=OneWay}" />
+                                    <TextBlock Text="{x:Bind local:TextCatalog.LyricsSyncStages}" FontSize="10" Opacity="0.48" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                            <StackPanel Spacing="7">
+                                <Grid>
+                                    <StackPanel>
+                                        <TextBlock Text="{x:Bind local:TextCatalog.SavedLyricsTimings}" FontSize="13" FontWeight="SemiBold" />
+                                        <TextBlock Text="{x:Bind local:TextCatalog.SavedLyricsTimingsHint}" FontSize="10" Opacity="0.52" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <Button HorizontalAlignment="Right" Width="30" Height="30" Padding="0" Background="Transparent"
+                                            BorderThickness="0" Click="RefreshLyricsTimings_Click" AutomationProperties.Name="{x:Bind local:TextCatalog.Refresh}">
+                                        <FontIcon Glyph="&#xE72C;" FontSize="12" />
+                                    </Button>
+                                </Grid>
+                                <ItemsControl ItemsSource="{x:Bind LyricsSyncCenter.Timings}" ItemTemplate="{StaticResource LyricsTimingRow}" />
+                                <TextBlock Text="{x:Bind LyricsSyncCenter.Status, Mode=OneWay}" FontSize="11" Opacity="0.62" TextWrapping="Wrap" />
+                                <ProgressRing IsActive="{x:Bind LyricsSyncCenter.IsBusy, Mode=OneWay}" Width="18" Height="18" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
                 </PivotItem>
             </Pivot>
             <TextBlock Grid.Row="2" Text="{x:Bind Settings.Error, Mode=OneWay}" Foreground="#FFFFCC99" FontSize="11" TextWrapping="Wrap" />

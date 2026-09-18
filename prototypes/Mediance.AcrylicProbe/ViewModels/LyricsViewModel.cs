@@ -45,6 +45,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
     private bool _automaticBusy;
     private string? _automaticAttemptIdentity;
     private AutomaticLyricsSyncStage? _automaticStage;
+    private double? _automaticFraction;
     private DateTimeOffset _automaticCaptureStartedUtc;
     private TimeSpan _automaticCaptureOffset;
     private TimeSpan _lead = TimeSpan.FromMilliseconds(500);
@@ -99,6 +100,11 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
     public bool IsAuthoring => _authoring;
     private bool IsFlowing => _document.Kind == LyricsKind.Synced;
     public bool IsVisible => _visible;
+    public bool AutomaticSyncActive => _automaticBusy;
+    public string AutomaticSyncStageText => _automaticBusy ? _status : Localization.TextCatalog.Get("LyricsSyncIdle");
+    public double AutomaticSyncProgress => Math.Clamp((_automaticFraction ?? 0) * 100, 0, 100);
+    public bool AutomaticSyncIndeterminate => _automaticBusy && _automaticFraction is null;
+    public Visibility AutomaticSyncProgressVisibility => _automaticBusy ? Visibility.Visible : Visibility.Collapsed;
     public bool AutomaticSyncEnabled
     {
         get => _automaticSyncEnabled;
@@ -462,6 +468,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
         _automaticAttemptIdentity = identity;
         _automaticBusy = true;
         _automaticStage = AutomaticLyricsSyncStage.Capturing;
+        _automaticFraction = null;
         _automaticCaptureStartedUtc = DateTimeOffset.UtcNow;
         _automaticCaptureOffset = position;
         _automaticCancellation?.Cancel();
@@ -477,6 +484,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
         void ProgressChanged(object? sender, AutomaticLyricsSyncProgress progress)
         {
             _automaticStage = progress.Stage;
+            _automaticFraction = progress.Fraction;
             _dispatcher.TryEnqueue(() =>
             {
                 if (_disposed || identity != _player.TrackIdentity || _document.Kind != LyricsKind.Plain) return;
@@ -536,10 +544,11 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
         {
             _automaticLyrics.ProgressChanged -= ProgressChanged;
             _automaticStage = null;
+            _automaticFraction = null;
             _automaticBusy = false;
             if (token.IsCancellationRequested && identity == _player.TrackIdentity)
                 _automaticAttemptIdentity = null;
-            _dispatcher.TryEnqueue(TryStartAutomaticSync);
+            _dispatcher.TryEnqueue(() => { Raise(); TryStartAutomaticSync(); });
         }
     }
 

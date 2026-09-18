@@ -8,6 +8,8 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 using System.Runtime.InteropServices;
 using Windows.UI.ViewManagement;
+using Windows.Storage;
+using Windows.Storage.Pickers;
 
 namespace Mediance.AcrylicProbe;
 
@@ -19,12 +21,17 @@ public sealed partial class SettingsWindow : Window
     public SettingsViewModel Settings { get; }
     public AudioRoutingViewModel Routing { get; }
     public HotkeyViewModel Hotkey { get; }
+    public LyricsViewModel Lyrics { get; }
+    public LyricsSyncCenterViewModel LyricsSyncCenter { get; }
 
-    public SettingsWindow(SettingsViewModel settings, AudioRoutingViewModel routing, HotkeyViewModel hotkey, AppWindow owner)
+    public SettingsWindow(SettingsViewModel settings, AudioRoutingViewModel routing, HotkeyViewModel hotkey,
+        LyricsViewModel lyrics, LyricsSyncCenterViewModel lyricsSyncCenter, AppWindow owner)
     {
         Settings = settings;
         Routing = routing;
         Hotkey = hotkey;
+        Lyrics = lyrics;
+        LyricsSyncCenter = lyricsSyncCenter;
         InitializeComponent();
         Root.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler(Root_KeyDown), true);
         Title = $"Mediance · {TextCatalog.Settings}";
@@ -38,6 +45,7 @@ public sealed partial class SettingsWindow : Window
         Closed += Window_Closed;
         Root.Loaded += Root_Loaded;
         _ = Routing.RefreshAsync();
+        _ = LyricsSyncCenter.RefreshAsync();
     }
 
     private void Root_Loaded(object sender, RoutedEventArgs e)
@@ -119,6 +127,36 @@ public sealed partial class SettingsWindow : Window
     }
     private static bool IsDown(int virtualKey) => (GetKeyState(virtualKey) & 0x8000) != 0;
     private async void RefreshAudio_Click(object sender, RoutedEventArgs e) => await Routing.RefreshAsync();
+    private async void RefreshLyricsTimings_Click(object sender, RoutedEventArgs e) => await LyricsSyncCenter.RefreshAsync();
+    private async void DeleteLyricsTiming_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: string id }) await LyricsSyncCenter.DeleteAsync(id);
+    }
+    private async void ExportTheme_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var picker = new FileSavePicker { SuggestedFileName = "Mediance-theme" };
+            picker.FileTypeChoices.Add("Mediance theme", [".mediance-theme"]);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, WinRT.Interop.WindowNative.GetWindowHandle(this));
+            var file = await picker.PickSaveFileAsync();
+            if (file is not null) await FileIO.WriteTextAsync(file, Settings.ExportThemeJson());
+        }
+        catch (Exception ex) { ProbeLog.Write("ThemeExport", ex); Settings.ReportThemeTransferError(); }
+    }
+    private async void ImportTheme_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var picker = new FileOpenPicker();
+            picker.FileTypeFilter.Add(".mediance-theme");
+            picker.FileTypeFilter.Add(".json");
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, WinRT.Interop.WindowNative.GetWindowHandle(this));
+            var file = await picker.PickSingleFileAsync();
+            if (file is not null) Settings.ImportThemeJson(await FileIO.ReadTextAsync(file));
+        }
+        catch (Exception ex) { ProbeLog.Write("ThemeImport", ex); Settings.ReportThemeTransferError(); }
+    }
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
     private void Window_Closed(object sender, WindowEventArgs e)
     {

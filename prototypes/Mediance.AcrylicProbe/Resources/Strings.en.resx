@@ -214,6 +214,8 @@
   <data name="ViewMode"><value>View mode</value></data>
   <data name="ViewModeStandard"><value>Standard player</value></data>
   <data name="ViewModeMicro"><value>Micro · logo only</value></data>
+  <data name="ViewModeCoverControls"><value>Artwork + controls</value></data>
+  <data name="ViewModeVerticalLyrics"><value>Vertical lyrics</value></data>
   <data name="ViewModeHint"><value>Micro mode turns the window into a small logo tile. Click the logo to restore the standard view.</value></data>
   <data name="ElementsContent"><value>Content</value></data>
   <data name="ElementsContentHint"><value>Track and application information shown in the widget</value></data>
@@ -221,4 +223,27 @@
   <data name="ElementsControlsHint"><value>Playback buttons and the main control group</value></data>
   <data name="ElementsUtilities"><value>Utilities</value></data>
   <data name="ElementsUtilitiesHint"><value>Audio output, lyrics, and window actions</value></data>
+  <data name="AlbumBackground"><value>Album background</value></data>
+  <data name="AlbumBlur"><value>Blur</value></data>
+  <data name="AlbumZoom"><value>Zoom</value></data>
+  <data name="AlbumDarkness"><value>Darkening</value></data>
+  <data name="ThemeProfiles"><value>Theme profile</value></data>
+  <data name="ExportTheme"><value>Export</value></data>
+  <data name="ImportTheme"><value>Import</value></data>
+  <data name="ThemeExported"><value>Theme profile saved.</value></data>
+  <data name="ThemeImported"><value>Theme profile applied.</value></data>
+  <data name="ThemeTransferError"><value>The theme profile could not be read or saved.</value></data>
+  <data name="LyricsCenter"><value>Sync</value></data>
+  <data name="LyricsSyncProgress"><value>Automatic sync status</value></data>
+  <data name="LyricsSyncStages"><value>Capturing audio → preparing model → aligning → saving locally</value></data>
+  <data name="LyricsSyncIdle"><value>No automatic synchronization is currently running.</value></data>
+  <data name="SavedLyricsTimings"><value>Local timings</value></data>
+  <data name="SavedLyricsTimingsHint"><value>Track names are not stored for privacy. Each entry shows only an anonymous ID, line count, and date.</value></data>
+  <data name="LyricsTimingPrivateLabel"><value>Local timing · {0}</value></data>
+  <data name="LyricsTimingDetail"><value>{0} lines · {1}</value></data>
+  <data name="LyricsTimingEmpty"><value>No saved timings yet.</value></data>
+  <data name="LyricsTimingDeleted"><value>Timing deleted.</value></data>
+  <data name="LyricsTimingListError"><value>Timings could not be loaded.</value></data>
+  <data name="LyricsTimingDeleteError"><value>Timing could not be deleted.</value></data>
+  <data name="DeleteTiming"><value>Delete timing</value></data>
 </root>

@@ -131,6 +131,35 @@ public sealed class LyricsTests
     }
 
     [Fact]
+    public async Task LocalTimingsCanBeListedAndDeletedWithoutExposingTrackText()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "Mediance-lyrics-" + Guid.NewGuid().ToString("N"));
+        var path = Path.Combine(directory, "lyrics-timing.json");
+        var query = new LyricsQuery("Private Track", "Private Artist", null, TimeSpan.FromSeconds(60));
+        try
+        {
+            var store = new LocalLyricsTimingStore(path);
+            await store.SaveAsync(query, "First\nSecond", [TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(8)]);
+
+            var listed = await store.ListAsync();
+            Assert.Single(listed);
+            Assert.Equal(2, listed[0].LineCount);
+            Assert.DoesNotContain("Private", listed[0].Id, StringComparison.OrdinalIgnoreCase);
+
+            Assert.True(await store.DeleteAsync(listed[0].Id));
+            Assert.Empty(await store.ListAsync());
+            Assert.Null(await store.LoadAsync(query, "First\nSecond"));
+
+            await File.WriteAllTextAsync(path, "{interrupted");
+            Assert.Empty(await new LocalLyricsTimingStore(path).ListAsync());
+        }
+        finally
+        {
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
+    }
+
+    [Fact]
     public async Task SourceAuthoredTimingKeepsPriorityOverSavedManualTiming()
     {
         var directory = Path.Combine(Path.GetTempPath(), "Mediance-lyrics-" + Guid.NewGuid().ToString("N"));

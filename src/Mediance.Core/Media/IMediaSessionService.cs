@@ -6,6 +6,7 @@ public interface IMediaSessionService : IAsyncDisposable
     event EventHandler<MediaSnapshot>? SnapshotChanged;
     event EventHandler<string>? Diagnostic;
     Task StartAsync(CancellationToken cancellationToken = default);
+    Task RefreshAsync(bool reconnect = false, CancellationToken cancellationToken = default);
     Task PinAsync(string? sessionId, CancellationToken cancellationToken = default);
     Task<MediaCommandResult> ExecuteAsync(string sessionId, MediaCommand command,
         TimeSpan? position = null, CancellationToken cancellationToken = default);

@@ -95,7 +95,7 @@ public sealed class WindowAndSettingsTests
         var settings = (new WidgetSettings
         { WindowWidth = 99999, GlassIntensity = -5, TextScale = double.NaN, ShowArtwork = false, ShowControls = false,
           ShowAudioOutput = false, LyricsLeadMilliseconds = 9000, LyricsLineCount = 9, Theme = (ThemePreset)99,
-          ViewMode = (WidgetViewMode)99 }).Normalize();
+          ViewMode = (WidgetViewMode)99, AlbumBlur = 99, AlbumZoom = 2, AlbumDarkness = double.PositiveInfinity }).Normalize();
         Assert.Equal(720, settings.WindowWidth);
         Assert.Equal(420, new WidgetSettings { WindowWidth = 100 }.Normalize().WindowWidth);
         Assert.Equal(10, settings.GlassIntensity);
@@ -107,8 +107,32 @@ public sealed class WindowAndSettingsTests
         Assert.Equal(3, settings.LyricsLineCount);
         Assert.Equal(ThemePreset.Midnight, settings.Theme);
         Assert.Equal(WidgetViewMode.Standard, settings.ViewMode);
+        Assert.Equal(24, settings.AlbumBlur);
+        Assert.Equal(100, settings.AlbumZoom);
+        Assert.Equal(54, settings.AlbumDarkness);
         Assert.Equal(ThemePreset.Album, new WidgetSettings { Theme = ThemePreset.Album }.Normalize().Theme);
         Assert.Equal(2, new WidgetSettings { LyricsLineCount = 2 }.Normalize().LyricsLineCount);
+    }
+
+    [Fact]
+    public void ThemeProfileRoundTripsOnlyAppearanceValues()
+    {
+        var source = new WidgetSettings
+        {
+            Theme = ThemePreset.Album, SolidBackground = true, GlassIntensity = 71,
+            EnableAmbientGlow = false, ShowBorder = false, AlbumBlur = 12,
+            AlbumZoom = 124, AlbumDarkness = 66, WindowWidth = 700,
+            ShortcutVirtualKey = 0x58
+        };
+        var profile = ThemeProfile.Parse(ThemeProfile.FromSettings(source).ToJson());
+        var applied = profile.ApplyTo(new WidgetSettings { WindowWidth = 480, ShortcutVirtualKey = 0x4D });
+        Assert.Equal(ThemePreset.Album, applied.Theme);
+        Assert.True(applied.SolidBackground);
+        Assert.Equal(12, applied.AlbumBlur);
+        Assert.Equal(124, applied.AlbumZoom);
+        Assert.Equal(66, applied.AlbumDarkness);
+        Assert.Equal(480, applied.WindowWidth);
+        Assert.Equal((uint)0x4D, applied.ShortcutVirtualKey);
     }
 
     [Fact]

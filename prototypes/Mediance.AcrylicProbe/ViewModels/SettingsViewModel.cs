@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using Mediance.Core.Settings;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
+using Windows.UI;
 
 namespace Mediance.AcrylicProbe.ViewModels;
 
@@ -17,6 +19,7 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     private bool _loaded;
     private int _revision;
     private string _error = "";
+    private string _themeTransferStatus = "";
     private IReadOnlyList<ToggleSetting>? _windowOptions;
     private IReadOnlyList<ToggleSetting>? _contentOptions;
     private IReadOnlyList<ToggleSetting>? _controlOptions;
@@ -56,6 +59,7 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     ];
     public WidgetSettings Data => _data;
     public string Error => _error;
+    public string ThemeTransferStatus => _themeTransferStatus;
     public event PropertyChangedEventHandler? PropertyChanged;
     public event EventHandler? Changed;
     public bool AlwaysOnTop { get => _data.AlwaysOnTop; set => Change(_data with { AlwaysOnTop = value }); }
@@ -85,6 +89,9 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public bool StartWithWindows { get => _data.StartWithWindows; set => Change(_data with { StartWithWindows = value }); }
     public ThemePreset Theme { get => _data.Theme; set => Change(_data with { Theme = value }); }
     public WidgetViewMode ViewMode { get => _data.ViewMode; set => Change(_data with { ViewMode = value }); }
+    public double AlbumBlur { get => _data.AlbumBlur; set => Change(_data with { AlbumBlur = value }); }
+    public double AlbumZoom { get => _data.AlbumZoom; set => Change(_data with { AlbumZoom = value }); }
+    public double AlbumDarkness { get => _data.AlbumDarkness; set => Change(_data with { AlbumDarkness = value }); }
     public bool ShowAudioOutput { get => _data.ShowAudioOutput; set => Change(_data with { ShowAudioOutput = value }); }
     public double WindowWidth { get => _data.WindowWidth; set => Change(_data with { WindowWidth = value }); }
     public double ArtworkSize { get => _data.ArtworkSize; set => Change(_data with { ArtworkSize = value }); }
@@ -110,7 +117,9 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public IReadOnlyList<ViewModeOption> ViewModeOptions { get; } =
     [
         new(WidgetViewMode.Standard, Localization.TextCatalog.Get("ViewModeStandard")),
-        new(WidgetViewMode.Micro, Localization.TextCatalog.Get("ViewModeMicro"))
+        new(WidgetViewMode.Micro, Localization.TextCatalog.Get("ViewModeMicro")),
+        new(WidgetViewMode.CoverControls, Localization.TextCatalog.Get("ViewModeCoverControls")),
+        new(WidgetViewMode.VerticalLyrics, Localization.TextCatalog.Get("ViewModeVerticalLyrics"))
     ];
     public ViewModeOption SelectedViewMode
     {
@@ -128,8 +137,17 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
         set { if (value is not null) LyricsLineCount = value.Value; }
     }
     public bool GlassEnabled => !SolidBackground;
+    public bool AlbumControlsEnabled => Theme == ThemePreset.Album;
     public bool IsMicroMode => ViewMode == WidgetViewMode.Micro;
+    public bool IsCoverControlsMode => ViewMode == WidgetViewMode.CoverControls;
+    public bool IsVerticalLyricsMode => ViewMode == WidgetViewMode.VerticalLyrics;
     public string GlassValue => $"{GlassIntensity:0}%";
+    public string AlbumBlurValue => $"{AlbumBlur:0} px";
+    public string AlbumZoomValue => $"{AlbumZoom:0}%";
+    public string AlbumDarknessValue => $"{AlbumDarkness:0}%";
+    public double AlbumZoomScale => AlbumZoom / 100;
+    public Brush AlbumDarknessBrush => new SolidColorBrush(Color.FromArgb(
+        (byte)Math.Round(AlbumDarkness / 100 * 255), 5, 7, 11));
     public string WidthValue => $"{WindowWidth:0} px";
     public string LockGlyph => IsLocked ? "\uE72E" : "\uE785";
     public string LockLabel => Localization.TextCatalog.Get(IsLocked ? "UnlockPosition" : "LockPosition");
@@ -147,7 +165,7 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public double SourceFontSize => 11 * TextScale / 100;
     public double TransportIconSize => ControlSize * 0.39;
     public CornerRadius PlayCornerRadius => new(ControlSize / 2);
-    public CornerRadius SurfaceCornerRadius => new(IsMicroMode ? 18 : 8);
+    public CornerRadius SurfaceCornerRadius => new(IsMicroMode ? 18 : ViewMode == WidgetViewMode.Standard ? 8 : 14);
     public bool HasMetadata => ShowTitle || ShowArtist || ShowSource;
     public bool HasMainText => HasMetadata || ShowBrand;
     public double ArtworkGap => ShowArtwork && HasMainText ? 18 : 0;
@@ -155,8 +173,10 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public Visibility ProgressVisibility => Visible(ShowProgress);
     public Visibility AmbientGlowVisibility => Visible(!IsMicroMode && EnableAmbientGlow);
     public Visibility AlbumThemeVisibility => Visible(!IsMicroMode && Theme == ThemePreset.Album);
-    public Visibility StandardModeVisibility => Visible(!IsMicroMode);
+    public Visibility StandardModeVisibility => Visible(ViewMode == WidgetViewMode.Standard);
     public Visibility MicroModeVisibility => Visible(IsMicroMode);
+    public Visibility CoverControlsModeVisibility => Visible(IsCoverControlsMode);
+    public Visibility VerticalLyricsModeVisibility => Visible(IsVerticalLyricsMode);
     public Visibility TitleVisibility => Visible(ShowTitle);
     public Visibility ArtistVisibility => Visible(ShowArtist);
     public Visibility SourceVisibility => Visible(ShowSource);
@@ -235,6 +255,23 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
         Changed?.Invoke(this, EventArgs.Empty);
     }
     public void Reset() => Change(new());
+    public string ExportThemeJson()
+    {
+        _themeTransferStatus = Localization.TextCatalog.Get("ThemeExported");
+        PropertyChanged?.Invoke(this, new(nameof(ThemeTransferStatus)));
+        return ThemeProfile.FromSettings(_data).ToJson();
+    }
+    public void ImportThemeJson(string json)
+    {
+        Change(ThemeProfile.Parse(json).ApplyTo(_data));
+        _themeTransferStatus = Localization.TextCatalog.Get("ThemeImported");
+        PropertyChanged?.Invoke(this, new(nameof(ThemeTransferStatus)));
+    }
+    public void ReportThemeTransferError()
+    {
+        _themeTransferStatus = Localization.TextCatalog.Get("ThemeTransferError");
+        PropertyChanged?.Invoke(this, new(nameof(ThemeTransferStatus)));
+    }
     public void SetShortcut(HotkeyGesture gesture)
     {
         if (!gesture.IsValid) throw new ArgumentException("A shortcut requires a modifier and a main key.", nameof(gesture));

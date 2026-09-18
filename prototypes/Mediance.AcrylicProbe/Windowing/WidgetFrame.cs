@@ -57,7 +57,15 @@ internal sealed class WidgetFrame
         var area = DisplayArea.GetFromWindowId(_window.Id, DisplayAreaFallback.Nearest).WorkArea;
         var size = new SizeInt32(Math.Min((int)Math.Ceiling(widthDip * scale), area.Width - 8),
             Math.Min((int)Math.Ceiling(Math.Max(100, heightDip) * scale), area.Height - 8));
-        if (_window.ClientSize.Width != size.Width || _window.ClientSize.Height != size.Height) _window.ResizeClient(size);
+        if (_window.ClientSize.Width != size.Width || _window.ClientSize.Height != size.Height)
+        {
+            _window.ResizeClient(size);
+            var placement = WindowPlacement.Clamp(new(_window.Position.X, _window.Position.Y),
+                new(_window.Size.Width, _window.Size.Height),
+                new(area.X, area.Y, area.Width, area.Height));
+            if (placement.X != _window.Position.X || placement.Y != _window.Position.Y)
+                _window.Move(new PointInt32(placement.X, placement.Y));
+        }
     }
 
     internal void PlaceBeside(AppWindow owner)

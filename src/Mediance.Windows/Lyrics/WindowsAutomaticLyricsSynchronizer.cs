@@ -8,6 +8,7 @@ namespace Mediance.Windows.Lyrics;
 public sealed class WindowsAutomaticLyricsSynchronizer(string modelPath) : IAutomaticLyricsSynchronizer
 {
     private static readonly TimeSpan MaximumCaptureLength = TimeSpan.FromMinutes(10);
+    private const long ExpectedSmallModelBytes = 487_601_967;
     private readonly SemaphoreSlim _modelGate = new(1, 1);
 
     public event EventHandler<AutomaticLyricsSyncProgress>? ProgressChanged;
@@ -58,10 +59,27 @@ public sealed class WindowsAutomaticLyricsSynchronizer(string modelPath) : IAuto
                     .GetGgmlModelAsync(GgmlType.Small, cancellationToken: token);
                 await using var destination = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write,
                     FileShare.None, 81920, FileOptions.Asynchronous | FileOptions.SequentialScan);
-                await source.CopyToAsync(destination, token);
+                var buffer = new byte[128 * 1024];
+                long copied = 0;
+                var expected = source.CanSeek && source.Length > 0 ? source.Length : ExpectedSmallModelBytes;
+                double lastReported = -1;
+                int read;
+                while ((read = await source.ReadAsync(buffer, token)) > 0)
+                {
+                    await destination.WriteAsync(buffer.AsMemory(0, read), token);
+                    copied += read;
+                    var fraction = Math.Clamp((double)copied / expected, 0, 0.99);
+                    if (fraction - lastReported >= 0.005)
+                    {
+                        lastReported = fraction;
+                        ProgressChanged?.Invoke(this,
+                            new(AutomaticLyricsSyncStage.DownloadingModel, fraction));
+                    }
+                }
                 await destination.FlushAsync(token);
                 token.ThrowIfCancellationRequested();
                 File.Move(temporary, modelPath, true);
+                ProgressChanged?.Invoke(this, new(AutomaticLyricsSyncStage.DownloadingModel, 1));
             }
             finally
             {

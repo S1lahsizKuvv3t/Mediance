@@ -40,6 +40,13 @@ public static class TextCatalog
     public static string Theme => Get("Theme");
     public static string ViewMode => Get("ViewMode");
     public static string ViewModeHint => Get("ViewModeHint");
+    public static string AlbumBackground => Get("AlbumBackground");
+    public static string AlbumBlur => Get("AlbumBlur");
+    public static string AlbumZoom => Get("AlbumZoom");
+    public static string AlbumDarkness => Get("AlbumDarkness");
+    public static string ThemeProfiles => Get("ThemeProfiles");
+    public static string ExportTheme => Get("ExportTheme");
+    public static string ImportTheme => Get("ImportTheme");
     public static string ElementsContent => Get("ElementsContent");
     public static string ElementsContentHint => Get("ElementsContentHint");
     public static string ElementsControls => Get("ElementsControls");
@@ -53,4 +60,10 @@ public static class TextCatalog
     public static string LyricsManualRestart => Get("LyricsManualRestart");
     public static string LyricsManualCancel => Get("LyricsManualCancel");
     public static string LyricsManualRedo => Get("LyricsManualRedo");
+    public static string LyricsCenter => Get("LyricsCenter");
+    public static string LyricsSyncProgress => Get("LyricsSyncProgress");
+    public static string LyricsSyncStages => Get("LyricsSyncStages");
+    public static string SavedLyricsTimings => Get("SavedLyricsTimings");
+    public static string SavedLyricsTimingsHint => Get("SavedLyricsTimingsHint");
+    public static string DeleteTiming => Get("DeleteTiming");
 }
