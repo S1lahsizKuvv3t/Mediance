@@ -23,13 +23,7 @@ Open the lyrics panel and play 10-15 varied songs before rerunning the gate. Inc
 
 Mediance logs only attempt number, confidence, anchor count, line count, and outcome. The report never includes title, artist, lyric text, transcript, or audio. The gate stays **PENDING** until it finds the requested number of successful anonymous samples.
 
-Run the live acceptance sampler while Spotify or another Windows media-session source is playing:
-
-```powershell
-.\scripts\live-lyrics-acceptance.ps1 -Samples 12
-```
-
-The script changes tracks through the selected Windows media session and writes an anonymous Markdown report under `artifacts/lyrics-acceptance/<timestamp>`. For a controlled automatic-path run, start the release build once with `--force-plain-lyrics`; this test-only switch projects an otherwise verified synchronized document to plain text so the real process-loopback, Whisper, aligner, confidence, learning, and local-save chain is exercised without changing production behavior.
+The live acceptance harness and media-session probe are maintained as local-only diagnostic tools and are intentionally excluded from the public repository and release package. The anonymized result record remains public so the quality claim can be reviewed without publishing internal test executables.
 
 The current [acceptance baseline](acceptance/lyrics-2026-09-19.md) is 12/12 source-timed samples and 4/4 controlled automatic-path samples. Every automatic sample produced a confidence-checked local timing; no title, artist, lyric body, transcript, or captured audio was written to the report.
 

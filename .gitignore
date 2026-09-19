@@ -28,3 +28,12 @@ widget-settings.json
 # Local release archives
 Mediance-Backups/
 *.zip
+# Local-only diagnostic tools (not published)
+/Mediance-Cam-Testi.cmd
+/Mediance-Medya-Testi.cmd
+/Mediance.local.slnx
+/scripts/dev-local.ps1
+/scripts/live-lyrics-acceptance.ps1
+/prototypes/Mediance.AudioProbe/
+/prototypes/Mediance.LyricsProbe/
+/prototypes/Mediance.MediaProbe/

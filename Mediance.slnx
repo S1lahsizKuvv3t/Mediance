@@ -6,9 +6,6 @@
   </Folder>
   <Folder Name="/prototypes/">
     <Project Path="prototypes/Mediance.AcrylicProbe/Mediance.AcrylicProbe.csproj" />
-    <Project Path="prototypes/Mediance.AudioProbe/Mediance.AudioProbe.csproj" />
-    <Project Path="prototypes/Mediance.LyricsProbe/Mediance.LyricsProbe.csproj" />
-    <Project Path="prototypes/Mediance.MediaProbe/Mediance.MediaProbe.csproj" />
   </Folder>
   <Folder Name="/packaging/">
     <Project Path="packaging/Mediance.Launcher/Mediance.Launcher.csproj" />
