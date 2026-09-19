@@ -269,6 +269,19 @@ public sealed class WindowAndSettingsTests
         Assert.Empty(Directory.GetFiles(Path.GetDirectoryName(folder.File)!, "*.tmp"));
     }
 
+    [Theory]
+    [InlineData("0.9.0-beta.2", "0.9.0-beta.1", 1)]
+    [InlineData("0.9.0", "0.9.0-beta.9", 1)]
+    [InlineData("v1.0.0-beta.10", "1.0.0-beta.2", 1)]
+    [InlineData("0.8.9", "0.9.0", -1)]
+    public void ReleaseVersionsCompareStableAndPrereleaseBuilds(
+        string leftText, string rightText, int expectedSign)
+    {
+        Assert.True(ReleaseVersion.TryParse(leftText, out var left));
+        Assert.True(ReleaseVersion.TryParse(rightText, out var right));
+        Assert.Equal(expectedSign, Math.Sign(left.CompareTo(right)));
+    }
+
     private sealed class TestFolder : IDisposable
     {
         private readonly string _root = Path.Combine(AppContext.BaseDirectory, "settings-test-data");

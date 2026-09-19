@@ -9,7 +9,8 @@ public static class WindowsProcessLoopbackCapture
     public static readonly WaveFormat Format = new(16000, 16, 1);
 
     public static async Task<MemoryStream?> CaptureWaveAsync(
-        string sourceAppId, TimeSpan duration, CancellationToken token = default)
+        string sourceAppId, TimeSpan duration, CancellationToken token = default,
+        IProgress<double>? progress = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceAppId);
         if (duration <= TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(duration));
@@ -27,7 +28,11 @@ public static class WindowsProcessLoopbackCapture
                 try
                 {
                     await foreach (var buffer in recorder.CaptureAsync(captureLimit.Token))
+                    {
                         writer.Write(buffer.Data.Span);
+                        progress?.Report(Math.Clamp(
+                            (double)writer.Length / Format.AverageBytesPerSecond / duration.TotalSeconds, 0, 1));
+                    }
                 }
                 catch (OperationCanceledException) when (!token.IsCancellationRequested && captureLimit.IsCancellationRequested) { }
             }
@@ -38,6 +43,7 @@ public static class WindowsProcessLoopbackCapture
             throw;
         }
         stream.Position = 0;
+        progress?.Report(1);
         return stream;
     }
 

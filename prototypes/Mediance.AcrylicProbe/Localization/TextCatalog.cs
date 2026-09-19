@@ -60,4 +60,11 @@ public static class TextCatalog
     public static string LyricsManualCancel => Get("LyricsManualCancel");
     public static string LyricsManualRedo => Get("LyricsManualRedo");
     public static string EnterMicroMode => Get("EnterMicroMode");
+    public static string SettingsSearch => Get("SettingsSearch");
+    public static string LyricsCategory => Get("LyricsCategory");
+    public static string SystemCategory => Get("SystemCategory");
+    public static string UpdateChecker => Get("UpdateChecker");
+    public static string LocalTimings => Get("LocalTimings");
+    public static string LocalTimingsHint => Get("LocalTimingsHint");
+    public static string DeleteTiming => Get("DeleteTiming");
 }

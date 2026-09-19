@@ -219,4 +219,27 @@
   <data name="ThemeTransferError"><value>The theme profile could not be read or saved.</value></data>
   <data name="LyricsSyncIdle"><value>No automatic synchronization is currently running.</value></data>
   <data name="EnterMicroMode"><value>Enter Micro mode</value></data>
+  <data name="LyricsAutoAttempt"><value>attempt {0}/{1}</value></data>
+  <data name="LyricsAutoCaptureProgress"><value>Capturing audio &#xB7; {0}/{1} sec &#xB7; {2}</value></data>
+  <data name="LyricsAutoDownloadProgress"><value>Downloading model &#xB7; {0}% &#xB7; {1}</value></data>
+  <data name="SettingsSearch"><value>Search settings...</value></data>
+  <data name="SettingsSearchResult"><value>Opened the {0} category.</value></data>
+  <data name="SettingsSearchNone"><value>No matching setting was found.</value></data>
+  <data name="LyricsCategory"><value>Lyrics</value></data>
+  <data name="SystemCategory"><value>System</value></data>
+  <data name="UpdateChecker"><value>Updates</value></data>
+  <data name="UpdateNotChecked"><value>Not checked yet.</value></data>
+  <data name="CheckUpdates"><value>Check for updates</value></data>
+  <data name="OpenRelease"><value>Open release page</value></data>
+  <data name="UpdateAvailable"><value>A new version is ready: {0}</value></data>
+  <data name="UpToDate"><value>Mediance is up to date.</value></data>
+  <data name="UpdateCheckFailed"><value>Update information could not be retrieved.</value></data>
+  <data name="LocalTimings"><value>Local timings</value></data>
+  <data name="LocalTimingsHint"><value>Track names are not stored for privacy. Entries use date and line count.</value></data>
+  <data name="DeleteTiming"><value>Delete selected</value></data>
+  <data name="LocalTimingEntry"><value>{0} lines &#xB7; {1:g}</value></data>
+  <data name="LocalTimingCount"><value>{0} local timing entries</value></data>
+  <data name="NoLocalTimings"><value>No local timings yet.</value></data>
+  <data name="LocalTimingDeleted"><value>Local timing deleted.</value></data>
+  <data name="LocalTimingError"><value>Local timings could not be read.</value></data>
 </root>

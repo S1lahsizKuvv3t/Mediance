@@ -26,8 +26,11 @@ public sealed class WindowsAutomaticLyricsSynchronizer(string modelPath) : IAuto
         var duration = RemainingDuration(request.Query.Duration, captureOffset);
         if (duration < TimeSpan.FromSeconds(20)) return null;
 
-        ProgressChanged?.Invoke(this, new(AutomaticLyricsSyncStage.Capturing));
-        using var audio = await WindowsProcessLoopbackCapture.CaptureWaveAsync(request.SourceAppId, duration, token);
+        ProgressChanged?.Invoke(this, new(AutomaticLyricsSyncStage.Capturing, 0));
+        var captureProgress = new Progress<double>(fraction =>
+            ProgressChanged?.Invoke(this, new(AutomaticLyricsSyncStage.Capturing, fraction)));
+        using var audio = await WindowsProcessLoopbackCapture.CaptureWaveAsync(
+            request.SourceAppId, duration, token, captureProgress);
         if (audio is null || audio.Length < WindowsProcessLoopbackCapture.Format.AverageBytesPerSecond * 8L) return null;
 
         ProgressChanged?.Invoke(this, new(AutomaticLyricsSyncStage.Transcribing));

@@ -1,6 +1,6 @@
 # Gizlilik
 
-Son güncelleme: 17 Eylül 2026
+Son güncelleme: 19 Eylül 2026
 
 Mediance hesap gerektirmeden çalışır. Uygulamada reklam, kullanıcı profili, dinleme geçmişi veya telemetri sistemi bulunmaz.
 
@@ -57,6 +57,14 @@ Bu dosya şunları içermez:
 - söz metni.
 
 Eşleştirme için SHA-256 tabanlı şarkı, söz ve satır parmak izleri; şarkı süresi; satır zamanları ve güncelleme tarihi saklanır. Dosya yereldir ve Mediance tarafından bir sunucuya yüklenmez.
+
+## Otomatik senkron öğrenme belleği
+
+Güven eşiğine ulaşmayan otomatik denemelerden yalnızca satır numarası, zaman çıpası, genel hata nedeni ve deneme sayısı `%LOCALAPPDATA%\Mediance\lyrics-learning.json` dosyasına yazılır. Şarkı adı, sanatçı, söz metni, transcript ve ses bu dosyada tutulmaz. Farklı dinleme bölümlerinden gelen çıpalar yerel olarak birleştirilir. Üç başarısız denemeden sonra aynı pahalı işlemi sürekli tekrarlamamak için 30 dakikalık bekleme uygulanır. Güvenilir tam zaman çizelgesi kaydedildiğinde ilgili geçici öğrenme kaydı silinir.
+
+## Güncelleme denetimi
+
+Mediance açıldığında GitHub Releases API'sinden deponun yayın listesini okuyabilir. Bu istek dinlediğiniz şarkıyı, ayarları veya cihazdaki dosyaları içermez. Uygulama güncellemeyi otomatik indirmez veya kurmaz. Release sayfası yalnızca kullanıcı ilgili düğmeye bastığında tarayıcıda açılır.
 
 ## Ayarlar
 

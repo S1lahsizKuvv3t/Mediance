@@ -649,6 +649,39 @@ public sealed class LyricsTests
         }
     }
 
+    [Fact]
+    public async Task AutomaticLearningMergesAnonymousAnchorsAndAddsCooldown()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "Mediance-learning-" + Guid.NewGuid().ToString("N"));
+        var path = Path.Combine(directory, "learning.json");
+        var query = new LyricsQuery("Private Track", "Private Artist", null, TimeSpan.FromSeconds(60));
+        const string lyrics = "Secret one\nSecret two\nSecret three\nSecret four";
+        try
+        {
+            var store = new AutomaticLyricsLearningStore(path);
+            await store.RecordAsync(query, lyrics, "low-confidence",
+                [new(0, TimeSpan.FromSeconds(2)), new(1, TimeSpan.FromSeconds(8))], true);
+            await store.RecordAsync(query, lyrics, "low-confidence",
+                [new(2, TimeSpan.FromSeconds(14)), new(3, TimeSpan.FromSeconds(20))], true);
+            var learned = await store.LoadAsync(query, lyrics);
+            Assert.Equal(2, learned.FailureCount);
+            Assert.Equal(4, learned.Anchors.Count);
+            Assert.True(AutomaticLyricsAligner.FromAnchors(
+                lyrics, learned.Anchors, query.Duration).IsReliable(4));
+
+            learned = await store.RecordAsync(query, lyrics, "empty", [], true);
+            Assert.NotNull(learned.RetryAfterUtc);
+            var json = await File.ReadAllTextAsync(path);
+            Assert.DoesNotContain("Private Track", json, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("Private Artist", json, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("Secret one", json, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
+    }
+
     private sealed class FixedProvider(LyricsDocument result) : ILyricsProvider
     {
         public Task<LyricsDocument> FindAsync(LyricsQuery query, CancellationToken token = default) =>

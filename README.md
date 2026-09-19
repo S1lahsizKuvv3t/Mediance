@@ -13,7 +13,8 @@
   <a href="README.tr.md">Türkçe</a> ·
   <a href="docs/INSTALLATION.md">Install</a> ·
   <a href="docs/WALKTHROUGH.md">Walkthrough</a> ·
-  <a href="docs/FAQ.md">FAQ</a>
+  <a href="docs/FAQ.md">FAQ</a> &middot;
+  <a href="docs/BETA_QUALITY.md">Beta quality</a>
 </p>
 
 > The latest public beta is available from [GitHub Releases](https://github.com/S1lahsizKuvv3t/Mediance/releases/tag/v0.9.0-beta.2). Signed installers and automatic updates are still on the release checklist.
@@ -81,6 +82,7 @@ The repository also contains a development helper:
 .\scripts\dev.ps1 build
 .\scripts\dev.ps1 test
 .\scripts\dev.ps1 glass-test
+.\scripts\beta-check.ps1
 ```
 
 Build output is written under `artifacts/` by the helper and is intentionally excluded from Git.
@@ -99,7 +101,7 @@ More detail is available in [Architecture](docs/ARCHITECTURE.md).
 
 ## Current status
 
-The current build passes 91 automated tests and the native window smoke test. Spotify playback controls and per-app output routing have also been checked on real hardware. Process-specific capture and first-use model behavior still require a live acceptance pass before release. The remaining work before a signed 1.0 release is tracked in the [roadmap](docs/ROADMAP.md).
+The current build passes 96 automated tests and the native window smoke test. Spotify playback controls and per-app output routing have also been checked on real hardware. The repeatable beta gate records live lyrics samples, source coverage, multi-monitor checks, sleep/wake recovery, and optional soak runs without marking unavailable hardware as passed. The remaining work before a signed 1.0 release is tracked in the [roadmap](docs/ROADMAP.md).
 
 Please use the issue templates for reproducible bugs and feature requests. For security reports, follow [SECURITY.md](SECURITY.md) rather than opening a public issue.
 

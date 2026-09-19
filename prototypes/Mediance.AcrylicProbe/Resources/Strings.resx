@@ -219,4 +219,27 @@
   <data name="ThemeTransferError"><value>Tema profili okunamadı veya kaydedilemedi.</value></data>
   <data name="LyricsSyncIdle"><value>Şu anda çalışan bir otomatik senkron yok.</value></data>
   <data name="EnterMicroMode"><value>Micro moda geç</value></data>
+  <data name="LyricsAutoAttempt"><value>deneme {0}/{1}</value></data>
+  <data name="LyricsAutoCaptureProgress"><value>Ses yakalan&#x131;yor &#xB7; {0}/{1} sn &#xB7; {2}</value></data>
+  <data name="LyricsAutoDownloadProgress"><value>Model indiriliyor &#xB7; %{0} &#xB7; {1}</value></data>
+  <data name="SettingsSearch"><value>Ayarlarda ara...</value></data>
+  <data name="SettingsSearchResult"><value>{0} kategorisine ge&#xE7;ildi.</value></data>
+  <data name="SettingsSearchNone"><value>Bu ayar bulunamad&#x131;.</value></data>
+  <data name="LyricsCategory"><value>Lyrics</value></data>
+  <data name="SystemCategory"><value>Sistem</value></data>
+  <data name="UpdateChecker"><value>G&#xFC;ncellemeler</value></data>
+  <data name="UpdateNotChecked"><value>Hen&#xFC;z kontrol edilmedi.</value></data>
+  <data name="CheckUpdates"><value>G&#xFC;ncellemeleri denetle</value></data>
+  <data name="OpenRelease"><value>Release sayfas&#x131;n&#x131; a&#xE7;</value></data>
+  <data name="UpdateAvailable"><value>Yeni s&#xFC;r&#xFC;m haz&#x131;r: {0}</value></data>
+  <data name="UpToDate"><value>Mediance g&#xFC;ncel.</value></data>
+  <data name="UpdateCheckFailed"><value>G&#xFC;ncelleme bilgisi al&#x131;namad&#x131;.</value></data>
+  <data name="LocalTimings"><value>Yerel zamanlamalar</value></data>
+  <data name="LocalTimingsHint"><value>Gizlilik i&#xE7;in par&#xE7;a adlar&#x131; saklanmaz. Kay&#x131;tlar tarih ve sat&#x131;r say&#x131;s&#x131;yla g&#xF6;sterilir.</value></data>
+  <data name="DeleteTiming"><value>Se&#xE7;ili kayd&#x131; sil</value></data>
+  <data name="LocalTimingEntry"><value>{0} sat&#x131;r &#xB7; {1:g}</value></data>
+  <data name="LocalTimingCount"><value>{0} yerel zamanlama</value></data>
+  <data name="NoLocalTimings"><value>Hen&#xFC;z yerel zamanlama yok.</value></data>
+  <data name="LocalTimingDeleted"><value>Yerel zamanlama silindi.</value></data>
+  <data name="LocalTimingError"><value>Yerel zamanlamalar okunamad&#x131;.</value></data>
 </root>

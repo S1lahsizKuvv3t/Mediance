@@ -223,10 +223,23 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="{x:Bind Lyrics.Status, Mode=OneWay}" FontSize="12" Opacity="0.65"
+                    <Border Grid.Row="0" Margin="0,0,0,10" Padding="11,9" CornerRadius="9"
+                            Background="#1200A8FF" BorderBrush="#3000B7FF" BorderThickness="1"
+                            Visibility="{x:Bind Lyrics.AutomaticSyncProgressVisibility, Mode=OneWay}">
+                        <StackPanel Spacing="7">
+                            <TextBlock Text="{x:Bind Lyrics.AutomaticSyncStageText, Mode=OneWay}"
+                                       FontSize="11" TextWrapping="Wrap" />
+                            <ProgressBar Minimum="0" Maximum="100"
+                                         Value="{x:Bind Lyrics.AutomaticSyncProgress, Mode=OneWay}"
+                                         IsIndeterminate="{x:Bind Lyrics.AutomaticSyncIndeterminate, Mode=OneWay}"
+                                         Height="3" />
+                        </StackPanel>
+                    </Border>
+                    <TextBlock Grid.Row="1" Text="{x:Bind Lyrics.Status, Mode=OneWay}" FontSize="12" Opacity="0.65"
                                TextAlignment="Center" TextWrapping="Wrap" Visibility="{x:Bind Lyrics.MessageVisibility, Mode=OneWay}" />
-                    <StackPanel Grid.Row="1" Margin="0,10,0,0" Spacing="7"
+                    <StackPanel Grid.Row="2" Margin="0,10,0,0" Spacing="7"
                                 Visibility="{x:Bind Lyrics.AuthorVisibility, Mode=OneWay}">
                         <TextBlock Text="{x:Bind Lyrics.AuthorPreviousLine, Mode=OneWay}" Height="28" MaxLines="1"
                                    FontSize="11" Opacity="0.35" TextAlignment="Left" TextTrimming="CharacterEllipsis" />
@@ -250,7 +263,7 @@
                             <Button Content="{x:Bind local:TextCatalog.LyricsManualCancel}" Padding="12,5" Click="LyricsSyncCancel_Click" />
                         </StackPanel>
                     </StackPanel>
-                    <Grid Grid.Row="1" Visibility="{x:Bind Lyrics.SyncedVisibility, Mode=OneWay}">
+                    <Grid Grid.Row="2" Visibility="{x:Bind Lyrics.SyncedVisibility, Mode=OneWay}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -302,9 +315,14 @@
                         Background="Transparent" BorderThickness="0" Padding="6,2" MinHeight="22" Click="Lyrics_Click"
                         Visibility="{x:Bind Settings.LyricsButtonVisibility, Mode=OneWay}"
                         AutomationProperties.Name="{x:Bind Lyrics.ToggleLabel, Mode=OneWay}" />
-                <Button x:Name="SettingsButton" Grid.Column="4" Content="{x:Bind local:TextCatalog.Settings}" FontSize="11" Foreground="#FF9C9EA5"
-                        Background="Transparent" BorderThickness="0" Padding="6,2" MinHeight="22" Click="Settings_Click"
-                        AutomationProperties.Name="{x:Bind local:TextCatalog.Settings}" />
+                <Grid Grid.Column="4">
+                    <Button x:Name="SettingsButton" Content="{x:Bind local:TextCatalog.Settings}" FontSize="11" Foreground="#FF9C9EA5"
+                            Background="Transparent" BorderThickness="0" Padding="6,2" MinHeight="22" Click="Settings_Click"
+                            AutomationProperties.Name="{x:Bind local:TextCatalog.Settings}" />
+                    <Ellipse Width="6" Height="6" Fill="#FF46C8FF" HorizontalAlignment="Right" VerticalAlignment="Top"
+                             Margin="0,2,1,0" IsHitTestVisible="False"
+                             Visibility="{x:Bind Update.UpdateVisibility, Mode=OneWay}" />
+                </Grid>
             </Grid>
             </Grid>
             <Button x:Name="EnterMicroButton" Canvas.ZIndex="24" HorizontalAlignment="Right" VerticalAlignment="Top"

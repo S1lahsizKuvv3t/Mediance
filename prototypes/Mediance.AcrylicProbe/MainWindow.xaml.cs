@@ -26,7 +26,9 @@ public sealed partial class MainWindow : Window
     private readonly WindowAppearance _appearance;
     private readonly SystemTrayIcon? _tray = null;
     private readonly HttpClient _lyricsClient;
+    private readonly HttpClient _updateClient;
     private readonly LocalLyricsTimingStore _lyricsTimingStore;
+    private readonly AutomaticLyricsLearningStore _lyricsLearningStore;
     private SettingsWindow? _settingsWindow;
     private Storyboard? _lyricsTransition;
     private Storyboard? _progressTransition;
@@ -61,6 +63,8 @@ public sealed partial class MainWindow : Window
     public AudioRoutingViewModel Routing { get; }
     public LyricsViewModel Lyrics { get; }
     public HotkeyViewModel Hotkey { get; }
+    public UpdateViewModel Update { get; }
+    public LocalLyricsLibraryViewModel LocalTimings { get; }
 
     public MainWindow()
     {
@@ -68,7 +72,11 @@ public sealed partial class MainWindow : Window
         Model = new(new WindowsMediaSessionService(), DispatcherQueue);
         Routing = new(new WindowsAudioRoutingService(), Model);
         _lyricsClient = new();
+        _updateClient = new() { Timeout = TimeSpan.FromSeconds(8) };
+        Update = new(_updateClient);
         _lyricsTimingStore = new(GetLyricsTimingPath());
+        LocalTimings = new(_lyricsTimingStore);
+        _lyricsLearningStore = new(GetLyricsLearningPath());
         Lyrics = new(new LyricsService(new MemoryLyricsCacheProvider(new FallbackLyricsProvider(
             new TimeoutLyricsProvider(new LrcLibLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(4)),
             new TimeoutLyricsProvider(new BetterLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)),
@@ -80,7 +88,7 @@ public sealed partial class MainWindow : Window
                 new TimeoutLyricsProvider(new GeniusLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)),
                 new TimeoutLyricsProvider(new BbsLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3))))),
             _lyricsTimingStore, TimeSpan.FromSeconds(20)), Model, DispatcherQueue,
-            new WindowsAutomaticLyricsSynchronizer(GetLyricsModelPath()));
+            new WindowsAutomaticLyricsSynchronizer(GetLyricsModelPath()), _lyricsLearningStore);
         Lyrics.LinesChanged += Lyrics_LinesChanged;
         Settings = new(_smoke ? null : new JsonSettingsStore(GetSettingsPath()));
         InitializeComponent();
@@ -157,6 +165,7 @@ public sealed partial class MainWindow : Window
         await Model.StartAsync();
         if (Settings.LyricsOpen) _ = Lyrics.SetVisibleAsync(true);
         await Routing.RefreshAsync();
+        _ = Update.CheckAsync(false);
         Root.UpdateLayout();
         ResizeForCurrentMode();
         RestoreSavedPosition();
@@ -237,6 +246,12 @@ public sealed partial class MainWindow : Window
             ResizeForCurrentMode();
         });
     }
+
+    private static string GetLyricsLearningPath()
+    {
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return Path.Combine(localAppData, "Mediance", "lyrics-learning.json");
+    }
     private void ResizeForCurrentMode()
     {
         switch (Settings.ViewMode)
@@ -276,7 +291,7 @@ public sealed partial class MainWindow : Window
     {
         if (_settingsWindow is null)
         {
-            _settingsWindow = new(Settings, Routing, Hotkey, AppWindow);
+            _settingsWindow = new(Settings, Routing, Hotkey, Update, LocalTimings, AppWindow);
             _settingsWindow.Closed += (_, _) => _settingsWindow = null;
         }
         _settingsWindow.Activate();
@@ -920,6 +935,7 @@ public sealed partial class MainWindow : Window
         Routing.Dispose();
         Lyrics.Dispose();
         _lyricsClient.Dispose();
+        _updateClient.Dispose();
         await Model.DisposeAsync();
         await Settings.DisposeAsync();
         _appearance.Dispose();
@@ -978,7 +994,7 @@ public sealed partial class MainWindow : Window
         AnimateLyrics(new("Earlier", "Current", "Next", true));
         await Task.Delay(60);
         AnimateLyrics(new("Later", "Current", "Earlier", false));
-        await Task.Delay(500);
+        await Task.Delay(750);
         if (OutgoingLyricsLines.Visibility != Visibility.Collapsed ||
             Math.Abs(SyncedLyricsLines.Opacity - 1) > 0.01 || Math.Abs(SyncedLyricsTranslate.Y) > 0.01)
             throw new InvalidOperationException("Lyrics transition did not settle after interruption.");
@@ -1099,9 +1115,8 @@ public sealed partial class MainWindow : Window
             }
             await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-appearance.png"), 0);
             await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-elements.png"), 1);
-            await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-sizes.png"), 2);
-            await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-audio.png"), 3);
-            await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-sync.png"), 4);
+            await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-lyrics.png"), 2);
+            await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-system.png"), 3);
             Settings.ViewMode = WidgetViewMode.Micro;
             await Task.Delay(650);
             await WindowPreview.SaveAsync(Surface, Path.Combine(directory, "widget-micro-idle.png"));

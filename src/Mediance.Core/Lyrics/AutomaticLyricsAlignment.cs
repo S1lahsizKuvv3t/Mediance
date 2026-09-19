@@ -5,10 +5,13 @@ namespace Mediance.Core.Lyrics;
 
 public sealed record TimedSpeechSegment(TimeSpan Start, TimeSpan End, string Text);
 
+public sealed record AutomaticLyricsAnchor(int LineIndex, TimeSpan Start);
+
 public sealed record AutomaticLyricsAlignment(
     IReadOnlyList<TimeSpan> LineStarts,
     double Confidence,
-    int AnchoredLines)
+    int AnchoredLines,
+    IReadOnlyList<AutomaticLyricsAnchor> Anchors)
 {
     public bool IsReliable(int lineCount) =>
         lineCount > 0 && LineStarts.Count == lineCount && Confidence >= 0.58 &&
@@ -45,12 +48,12 @@ public static class AutomaticLyricsAligner
         var lines = PlainLyricsTimeline.Clean(plainText).Split('\n',
             StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         if (lines.Length == 0 || transcript.Count == 0)
-            return new([], 0, 0);
+            return new([], 0, 0, []);
 
         var lyricTokens = TokenizeLines(lines);
         var speechTokens = TokenizeTranscript(transcript, captureOffset);
         if (lyricTokens.Count == 0 || speechTokens.Count == 0)
-            return new([], 0, 0);
+            return new([], 0, 0, []);
 
         var matches = AlignTokens(lyricTokens, speechTokens);
         var anchors = new TimeSpan?[lines.Length];
@@ -63,7 +66,7 @@ public static class AutomaticLyricsAligner
         }
 
         var anchoredLines = anchors.Count(value => value is not null);
-        if (anchoredLines == 0) return new([], 0, 0);
+        if (anchoredLines == 0) return new([], 0, 0, []);
 
         var starts = FillMissingStarts(lines, anchors, lyricTokens, captureOffset, trackDuration);
         var matchedWeight = matches.Sum(match => match.Score);
@@ -75,7 +78,39 @@ public static class AutomaticLyricsAligner
         var confidence = Math.Clamp(tokenCoverage * 0.76 + lineCoverage * 0.24, 0, 1);
         confidence *= PositionConsistency(matches, lyricTokens, speechTokens, lines.Length, trackDuration);
         if (!ordered) confidence *= 0.35;
-        return new(starts, confidence, anchoredLines);
+        var stableAnchors = anchors.Select((value, index) => (value, index))
+            .Where(item => item.value is not null)
+            .Select(item => new AutomaticLyricsAnchor(item.index, item.value!.Value))
+            .ToArray();
+        return new(starts, confidence, anchoredLines, stableAnchors);
+    }
+
+    public static AutomaticLyricsAlignment FromAnchors(
+        string plainText,
+        IReadOnlyList<AutomaticLyricsAnchor> learnedAnchors,
+        TimeSpan? trackDuration = null)
+    {
+        var lines = PlainLyricsTimeline.Clean(plainText).Split('\n',
+            StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        if (lines.Length == 0 || learnedAnchors.Count == 0) return new([], 0, 0, []);
+        var anchors = new TimeSpan?[lines.Length];
+        foreach (var group in learnedAnchors
+                     .Where(value => value.LineIndex >= 0 && value.LineIndex < lines.Length && value.Start >= TimeSpan.Zero)
+                     .GroupBy(value => value.LineIndex))
+        {
+            var ordered = group.Select(value => value.Start.Ticks).Order().ToArray();
+            anchors[group.Key] = TimeSpan.FromTicks(ordered[ordered.Length / 2]);
+        }
+        var stable = anchors.Select((value, index) => (value, index))
+            .Where(item => item.value is not null)
+            .Select(item => new AutomaticLyricsAnchor(item.index, item.value!.Value))
+            .OrderBy(item => item.LineIndex)
+            .ToArray();
+        if (stable.Length == 0) return new([], 0, 0, []);
+        var starts = FillMissingStarts(lines, anchors, TokenizeLines(lines), TimeSpan.Zero, trackDuration);
+        var coverage = Math.Min(1, stable.Length / Math.Max(3d, Math.Min(12, lines.Length * 0.22)));
+        var confidence = StartsAreStrictlyIncreasing(starts) ? 0.54 + 0.4 * coverage : 0.2;
+        return new(starts, Math.Min(0.94, confidence), stable.Length, stable);
     }
 
     private static List<LyricToken> TokenizeLines(IReadOnlyList<string> lines)
