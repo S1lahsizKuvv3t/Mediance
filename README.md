@@ -18,7 +18,7 @@
   <a href="docs/MARKETING.md">Marketing kit</a>
 </p>
 
-> The latest public beta is available from [GitHub Releases](https://github.com/S1lahsizKuvv3t/Mediance/releases/tag/v0.9.0-beta.2). Signed installers and automatic updates are still on the release checklist.
+> The latest public beta is available from [GitHub Releases](https://github.com/S1lahsizKuvv3t/Mediance/releases/tag/v0.9.0-beta.3). Signed installers and automatic updates are still on the release checklist.
 
 <p align="center">
   <img src="assets/marketing/Mediance-feature-tour.gif" width="760" alt="Mediance feature tour">
@@ -118,7 +118,7 @@ More detail is available in [Architecture](docs/ARCHITECTURE.md).
 
 ## Current status
 
-The current build passes 97 automated tests and the native window smoke test. The live lyrics acceptance set has also passed 12 of 12 source-timed samples and 4 of 4 forced automatic-path samples on Spotify. Spotify playback controls and per-app output routing have also been checked on real hardware. The repeatable beta gate records live lyrics samples, source coverage, multi-monitor checks, sleep/wake recovery, and optional soak runs without marking unavailable hardware as passed. The remaining work before a signed 1.0 release is tracked in the [roadmap](docs/ROADMAP.md). Preview the upcoming changes in the [next beta release notes](docs/RELEASE_NOTES_NEXT.md).
+The current build passes 97 automated tests and the native window smoke test. The live lyrics acceptance set has also passed 12 of 12 source-timed samples and 4 of 4 forced automatic-path samples on Spotify. Spotify playback controls and per-app output routing have also been checked on real hardware. The repeatable beta gate records live lyrics samples, source coverage, multi-monitor checks, sleep/wake recovery, and optional soak runs without marking unavailable hardware as passed. The remaining work before a signed 1.0 release is tracked in the [roadmap](docs/ROADMAP.md). Read the full [Beta 3 release notes](docs/RELEASE_NOTES_0.9.0-beta.3.md).
 
 Please use the issue templates for reproducible bugs and feature requests. For security reports, follow [SECURITY.md](SECURITY.md) rather than opening a public issue.
 
