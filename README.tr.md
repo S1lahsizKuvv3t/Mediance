@@ -13,10 +13,28 @@
   <a href="README.md">English</a> ·
   <a href="docs/INSTALLATION.md">Kurulum</a> ·
   <a href="docs/WALKTHROUGH.md">Kullanım rehberi</a> ·
-  <a href="docs/FAQ.md">SSS</a>
+  <a href="docs/FAQ.md">SSS</a> ·
+  <a href="docs/BETA_QUALITY.md">Beta kalitesi</a> ·
+  <a href="docs/MARKETING.md">Tanıtım paketi</a>
 </p>
 
-> En yeni genel beta sürümünü [GitHub Releases](https://github.com/S1lahsizKuvv3t/Mediance/releases/tag/v0.9.0-beta.2) sayfasından indirebilirsiniz. İmzalı kurulum paketi ve otomatik güncelleme henüz yayın kontrol listesindedir.
+> En yeni genel beta sürümünü [GitHub Releases](https://github.com/S1lahsizKuvv3t/Mediance/releases/tag/v0.9.0-beta.3) sayfasından indirebilirsiniz. İmzalı kurulum paketi ve otomatik güncelleme henüz yayın kontrol listesindedir.
+
+<p align="center">
+  <img src="assets/marketing/Mediance-feature-tour.gif" width="760" alt="Mediance özellik turu">
+</p>
+
+## Özellik özeti
+
+| Alan | Mediance ne sunar? |
+|---|---|
+| Medya | Tercihli oturum seçimi, oynat/duraklat, önceki/sonraki, seek ve donmuş oturum kurtarma |
+| Lyrics | Kaynak senkronu, cihaz üzerinde otomatik eşleştirme, yerel öğrenme, timing offset ve iki/üç satır görünümü |
+| Ses | Uygulamaya özel çıkış cihazı ve fare tekerleğiyle uygulama sesi |
+| Görünümler | Standart, Micro, kapak + kontroller, dikey lyrics ve sadeleştirilebilir düzen |
+| Görünüm | Acrylic cam, ortalanmış Album teması, blur, zoom, karartma, genişlik ve yoğunluk ayarları |
+| Masaüstü | Çoklu monitör hizalama, konum kilidi, üstte tutma, sistem tepsisi ve değiştirilebilir global kısayol |
+| Gizlilik | Hesap, telemetri, dinleme geçmişi, kayıtlı ses veya bulut konuşma çözümleme yok |
 
 ## Mediance ne yapar?
 
@@ -59,7 +77,7 @@ Uyumlu bir uygulamada müzik başlatın ve Mediance'ı açın. Widget tercih edi
 
 Ses çıkışı seçicisi yalnızca seçilen medya uygulamasını etkiler. **Varsayılan** seçimi uygulamayı yeniden Windows'un genel çıkışına bağlar. Tarayıcı yönlendirmesi tek bir sekmeye değil tarayıcı işlemine uygulanır.
 
-`lyrics` düğmesi mevcut şarkı için söz aramasını başlatır. Kaynağında zaman kodu bulunan sözler her zaman önceliklidir. Yalnızca doğrulanmış düz söz bulunursa isteğe bağlı yerel senkron sistemi seçili medya uygulamasını şarkının başından bir kez dinler, bağımsız ses çözümlemesini sözlerle eşleştirir ve yalnızca güvenilir sonucu saklar. Manuel zamanlama seçeneği de korunur. Çok dilli model ilk kullanımda bir kez indirilir; yakalanan ses arşivlenmez.
+`lyrics` düğmesi mevcut şarkı için söz aramasını başlatır. Kaynağında zaman kodu bulunan sözler her zaman önceliklidir. Yalnızca doğrulanmış düz söz bulunursa isteğe bağlı yerel senkron sistemi seçili medya uygulamasının sesini en fazla 75 saniyelik bölümlerde cihaz üzerinde çözümler, sözlerin muhtemel bölümünü eşleştirir ve yalnızca güvenilir sonucu saklar. Şarkının ortasından başlayabilir ve düşük güvenli bir bölümden sonra ileride yeniden deneyebilir. Manuel zamanlama seçeneği de korunur. Çok dilli model ilk kullanımda bir kez indirilir; yakalanan ses arşivlenmez.
 
 Bütün kontroller [Kullanım rehberinde](docs/WALKTHROUGH.md), sık karşılaşılan sorular ise [SSS](docs/FAQ.md) sayfasında anlatılmıştır.
 
@@ -86,7 +104,7 @@ Projede geliştirme için kısa komutlar da bulunur:
 
 ## Güncel durum
 
-Mevcut sürüm 96 otomatik testi ve native pencere smoke testini geçmektedir. Spotify kontrolleri ve uygulamaya özel ses yönlendirmesi gerçek cihazlarda da doğrulanmıştır. Tekrarlanabilir beta kapısı; canlı lyrics örneklerini, kaynak matrisini, çoklu monitör durumunu, uyku dönüşünü ve isteğe bağlı uzun çalışma testini raporlar. Donanım veya canlı medya gerektiren bir adım çalıştırılmadığında başarılı sayılmaz; raporda bekliyor olarak kalır. İmzalı 1.0 sürümünden önce kalan işler [Yol haritasında](docs/ROADMAP.md) tutulur.
+Mevcut sürüm 97 otomatik testi ve native pencere smoke testini geçmektedir. Canlı lyrics kabul setinde 12/12 kaynak senkronlu ve 4/4 kontrollü otomatik senkron örneği başarıyla tamamlanmıştır. Spotify kontrolleri ve uygulamaya özel ses yönlendirmesi gerçek cihazlarda da doğrulanmıştır. Tekrarlanabilir beta kapısı; canlı lyrics örneklerini, kaynak matrisini, çoklu monitör durumunu, uyku dönüşünü ve isteğe bağlı uzun çalışma testini raporlar. Donanım veya canlı medya gerektiren bir adım çalıştırılmadığında başarılı sayılmaz; raporda bekliyor olarak kalır. İmzalı 1.0 sürümünden önce kalan işler [Yol haritasında](docs/ROADMAP.md) tutulur.
 
 Hata ve özellik talepleri için GitHub issue şablonlarını kullanabilirsiniz. Güvenlik sorunları herkese açık issue olarak paylaşılmamalıdır; bunun için [SECURITY.md](SECURITY.md) belgesini izleyin.
 

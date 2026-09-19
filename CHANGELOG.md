@@ -4,22 +4,29 @@ Notable user-visible changes are recorded here. Mediance follows semantic versio
 
 ## [Unreleased]
 
+## [0.9.0-beta.3] — 2026-09-19
+
 ### Added
 
 - Album theme uses the current artwork as a smoothly animated widget background.
 - Plain-only lyrics can now be synchronized automatically on-device. Mediance captures only the selected media process, transcribes it with a local Whisper model, aligns the independent transcript to the verified lyric text, rejects low-confidence matches, and keeps accepted timings locally.
 - Settings includes a persistent automatic lyrics sync switch. The multilingual model downloads on first use instead of increasing the release archive size.
+- Added Micro, cover-and-controls, and vertical lyrics layouts.
+- Added settings search, local timing management, automatic-sync progress, anonymous learning, and repeatable beta acceptance tools.
+- Added a media-state watchdog for stale sessions, application restarts, and recovery after sleep.
 
 ### Changed
 
 - Crop Album theme artwork from its center to fill the full widget surface at both compact and expanded sizes without a visible square seam.
 - The widget no longer takes foreground activation from games and other applications.
 - Mediance windows are hidden from the Windows taskbar and Alt+Tab switcher.
+- Simplified the Elements settings into focused categories and removed switches for behavior that is now always enabled or always visible.
 
 ### Fixed
 
 - Plain lyrics no longer stay cached for hours after a synchronized provider temporarily misses. The open lyrics panel automatically retries and upgrades to source-authored timing when it becomes available.
 - Rapid track and timeline changes no longer leave the widget frozen on the previous song. Coherent snapshots are published during notification bursts, and an unexpected refresh failure no longer stops later media updates.
+- Process-loopback capture now shuts down asynchronously, preventing a completed automatic lyric capture from being discarded before transcription.
 
 ## [0.9.0-beta.2] — 2026-09-09
 

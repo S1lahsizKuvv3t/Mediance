@@ -26,7 +26,7 @@ Paketin en üstünde yalnızca `Mediance.exe` bulunur. Gerekli DLL, dil ve çal�
 PowerShell ile SHA-256 kontrolü:
 
 ```powershell
-Get-FileHash .\Mediance-0.9.0-beta.2-win-x64.zip -Algorithm SHA256
+Get-FileHash .\Mediance-0.9.0-beta.3-win-x64.zip -Algorithm SHA256
 ```
 
 ## İlk çalıştırma

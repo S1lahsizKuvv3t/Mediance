@@ -1,4 +1,4 @@
-# Mediance - next beta
+# Mediance 0.9.0 Beta 3
 
 This beta focuses on reliability, automatic lyric timing, and a cleaner daily-use experience.
 
