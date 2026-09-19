@@ -3,6 +3,7 @@ using Mediance.AcrylicProbe.Localization;
 using Mediance.AcrylicProbe.ViewModels;
 using Mediance.AcrylicProbe.Windowing;
 using Mediance.Core.Media;
+using Mediance.Core.Lyrics;
 using Mediance.Core.Settings;
 using Mediance.Windows.Media;
 using Mediance.Windows.Audio;
@@ -77,7 +78,7 @@ public sealed partial class MainWindow : Window
         _lyricsTimingStore = new(GetLyricsTimingPath());
         LocalTimings = new(_lyricsTimingStore);
         _lyricsLearningStore = new(GetLyricsLearningPath());
-        Lyrics = new(new LyricsService(new MemoryLyricsCacheProvider(new FallbackLyricsProvider(
+        ILyricsProvider lyricsProvider = new MemoryLyricsCacheProvider(new FallbackLyricsProvider(
             new TimeoutLyricsProvider(new LrcLibLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(4)),
             new TimeoutLyricsProvider(new BetterLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)),
             new TimeoutLyricsProvider(new AmllLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)),
@@ -86,8 +87,10 @@ public sealed partial class MainWindow : Window
                 new TimeoutLyricsProvider(new SarkiAnaliziLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)),
                 new TimeoutLyricsProvider(new SozMuzikLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)),
                 new TimeoutLyricsProvider(new GeniusLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)),
-                new TimeoutLyricsProvider(new BbsLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3))))),
-            _lyricsTimingStore, TimeSpan.FromSeconds(20)), Model, DispatcherQueue,
+                new TimeoutLyricsProvider(new BbsLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)))));
+        if (Environment.GetCommandLineArgs().Contains("--force-plain-lyrics"))
+            lyricsProvider = new PlainProjectionLyricsProvider(lyricsProvider);
+        Lyrics = new(new LyricsService(lyricsProvider, _lyricsTimingStore, TimeSpan.FromSeconds(20)), Model, DispatcherQueue,
             new WindowsAutomaticLyricsSynchronizer(GetLyricsModelPath()), _lyricsLearningStore);
         Lyrics.LinesChanged += Lyrics_LinesChanged;
         Settings = new(_smoke ? null : new JsonSettingsStore(GetSettingsPath()));
@@ -1059,7 +1062,7 @@ public sealed partial class MainWindow : Window
         if (EnterMicroButton.Visibility != Visibility.Visible)
             throw new InvalidOperationException("The top-right Micro button was not visible in the full widget.");
         EnterMicro_Click(this, new RoutedEventArgs());
-        await Task.Delay(650);
+        await Task.Delay(950);
         if (MicroSurface.Visibility != Visibility.Visible || Root.Visibility != Visibility.Collapsed ||
             EnterMicroButton.Visibility != Visibility.Collapsed || AppWindow.ClientSize.Width != AppWindow.ClientSize.Height ||
             AppWindow.ClientSize.Width >= 200 || Surface.Opacity > 0.12)
@@ -1106,6 +1109,11 @@ public sealed partial class MainWindow : Window
             if (Environment.GetCommandLineArgs().Contains("--narrow-preview")) Settings.WindowWidth = 420;
             await Task.Delay(300);
             await WindowPreview.SaveAsync(Surface, Path.Combine(directory, "widget.png"));
+            Settings.Theme = ThemePreset.Album;
+            await Task.Delay(520);
+            await WindowPreview.SaveAsync(Surface, Path.Combine(directory, "widget-album.png"));
+            Settings.Theme = ThemePreset.Prism;
+            await Task.Delay(300);
             if (Environment.GetCommandLineArgs().Contains("--lyrics-preview"))
             {
                 await Lyrics.ToggleAsync();
@@ -1119,7 +1127,9 @@ public sealed partial class MainWindow : Window
             await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-system.png"), 3);
             Settings.ViewMode = WidgetViewMode.Micro;
             await Task.Delay(650);
+            MicroSurface.Opacity = 0.1;
             await WindowPreview.SaveAsync(Surface, Path.Combine(directory, "widget-micro-idle.png"));
+            MicroSurface.Opacity = 1;
             Surface.Opacity = 1;
             await WindowPreview.SaveAsync(Surface, Path.Combine(directory, "widget-micro-hover.png"));
             Settings.ViewMode = WidgetViewMode.Standard;

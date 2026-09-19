@@ -682,6 +682,18 @@ public sealed class LyricsTests
         }
     }
 
+    [Fact]
+    public async Task PlainProjectionForcesTheAutomaticPathOnlyWhenExplicitlyWrapped()
+    {
+        var synced = new LyricsDocument(LyricsKind.Synced,
+            [new(TimeSpan.FromSeconds(1), "First"), new(TimeSpan.FromSeconds(5), "Second")]);
+        var projected = await new PlainProjectionLyricsProvider(new FixedProvider(synced))
+            .FindAsync(new("Title", "Artist", null, TimeSpan.FromSeconds(30)));
+        Assert.Equal(LyricsKind.Plain, projected.Kind);
+        Assert.Equal("First\nSecond", projected.PlainText);
+        Assert.Empty(projected.Lines);
+    }
+
     private sealed class FixedProvider(LyricsDocument result) : ILyricsProvider
     {
         public Task<LyricsDocument> FindAsync(LyricsQuery query, CancellationToken token = default) =>

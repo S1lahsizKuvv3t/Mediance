@@ -17,7 +17,7 @@ public static class WindowsProcessLoopbackCapture
         var processes = await Task.Run(() => WindowsAudioProcessResolver.Find(sourceAppId, token), token);
         if (processes.Count == 0) return null;
 
-        using var recorder = await BuildRecorderAsync(processes, token);
+        await using var recorder = await BuildRecorderAsync(processes, token);
         var stream = new MemoryStream();
         try
         {

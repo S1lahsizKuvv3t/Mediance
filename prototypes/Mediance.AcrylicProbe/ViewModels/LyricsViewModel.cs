@@ -1,4 +1,6 @@
 using System.ComponentModel;
+using System.Security.Cryptography;
+using System.Text;
 using Mediance.Core.Lyrics;
 using Mediance.Lyrics;
 using Microsoft.UI.Dispatching;
@@ -29,6 +31,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
     private CancellationTokenSource? _automaticCancellation;
     private LyricsDocument _document = LyricsDocument.Unavailable;
     private string? _trackIdentity;
+    private string? _lastLoggedDocumentSignature;
     private string _status = "";
     private string _previous = "";
     private string _current = "";
@@ -253,6 +256,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
     {
         if (document.Kind != LyricsKind.Plain) _automaticCancellation?.Cancel();
         _document = document;
+        LogDocumentResult(document);
         _authorLines = document.Kind == LyricsKind.Plain
             ? PlainLyricsTimeline.Clean(document.PlainText).Split('\n',
                 StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
@@ -274,6 +278,17 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
         Raise();
     }
 
+    private void LogDocumentResult(LyricsDocument document)
+    {
+        var identity = _player.TrackIdentity;
+        if (string.IsNullOrWhiteSpace(identity)) return;
+        var signature = $"{identity}|{document.Kind}|{document.IsUserTimed}";
+        if (signature == _lastLoggedDocumentSignature) return;
+        _lastLoggedDocumentSignature = signature;
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(identity)))[..12];
+        ProbeLog.Write($"LyricsLoadResult: sample={hash}, kind={document.Kind}, local={document.IsUserTimed}");
+    }
+
     private void Player_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(PlayerViewModel.EstimatedPosition) or nameof(PlayerViewModel.IsPlaying) or null)
@@ -283,6 +298,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
         if (_automaticBusy && _automaticStage != AutomaticLyricsSyncStage.DownloadingModel)
             _automaticCancellation?.Cancel();
         _automaticAttemptIdentity = null;
+        _lastLoggedDocumentSignature = null;
         _automaticAttemptCount = 0;
         _automaticRetryAfterUtc = default;
         CancelAuthoring(false);
@@ -588,7 +604,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception ex)
         {
-            ProbeLog.Write($"LyricsAutoSync: {ex.GetType().Name} (0x{ex.HResult:X8})");
+            ProbeLog.Write($"LyricsAutoSync: stage={_automaticStage?.ToString() ?? "Preparing"}, {ex.GetType().FullName} (0x{ex.HResult:X8}), message={ex.Message.Replace(Environment.NewLine, " ")}");
             await RecordLearningAsync(request, "capture-error", [], true, CancellationToken.None);
             shouldRetry = true;
             QueueAutomaticFailureStatus(identity, false);
