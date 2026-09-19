@@ -3,6 +3,7 @@ using Mediance.AcrylicProbe.Localization;
 using Mediance.AcrylicProbe.ViewModels;
 using Mediance.AcrylicProbe.Windowing;
 using Mediance.Core.Media;
+using Mediance.Core.Lyrics;
 using Mediance.Core.Settings;
 using Mediance.Windows.Media;
 using Mediance.Windows.Audio;
@@ -15,7 +16,6 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
-using Windows.UI;
 using Windows.UI.ViewManagement;
 
 namespace Mediance.AcrylicProbe;
@@ -27,9 +27,11 @@ public sealed partial class MainWindow : Window
     private readonly WindowAppearance _appearance;
     private readonly SystemTrayIcon? _tray = null;
     private readonly HttpClient _lyricsClient;
+    private readonly HttpClient _updateClient;
+    private readonly LocalLyricsTimingStore _lyricsTimingStore;
+    private readonly AutomaticLyricsLearningStore _lyricsLearningStore;
     private SettingsWindow? _settingsWindow;
     private Storyboard? _lyricsTransition;
-    private Storyboard? _ambientTransition;
     private Storyboard? _progressTransition;
     private Storyboard? _progressValueTransition;
     private Storyboard? _volumeHudTransition;
@@ -38,6 +40,7 @@ public sealed partial class MainWindow : Window
     private Storyboard? _artworkTransition;
     private Storyboard? _albumBackgroundTransition;
     private Storyboard? _lyricsPanelTransition;
+    private Storyboard? _microOpacityTransition;
     private CancellationTokenSource? _volumeHudCancellation;
     private ButtonBase? _pressedButton;
     private string? _lastTrackIdentity;
@@ -52,20 +55,30 @@ public sealed partial class MainWindow : Window
     private bool _allowClose;
     private bool _resizeQueued;
     private bool _lyricsToggleBusy;
+    private bool _pointerInsideSurface;
+    private bool _lyricsOpenedForVerticalMode;
     private ThemePreset? _appliedTheme;
+    private WidgetViewMode? _appliedViewMode;
     public PlayerViewModel Model { get; }
     public SettingsViewModel Settings { get; }
     public AudioRoutingViewModel Routing { get; }
     public LyricsViewModel Lyrics { get; }
     public HotkeyViewModel Hotkey { get; }
+    public UpdateViewModel Update { get; }
+    public LocalLyricsLibraryViewModel LocalTimings { get; }
 
     public MainWindow()
     {
         _smoke = Environment.GetCommandLineArgs().Contains("--smoke-test");
-        Model = new(new WindowsMediaSessionService(), new WindowsArtworkPaletteService(), DispatcherQueue);
+        Model = new(new WindowsMediaSessionService(), DispatcherQueue);
         Routing = new(new WindowsAudioRoutingService(), Model);
         _lyricsClient = new();
-        Lyrics = new(new LyricsService(new MemoryLyricsCacheProvider(new FallbackLyricsProvider(
+        _updateClient = new() { Timeout = TimeSpan.FromSeconds(8) };
+        Update = new(_updateClient);
+        _lyricsTimingStore = new(GetLyricsTimingPath());
+        LocalTimings = new(_lyricsTimingStore);
+        _lyricsLearningStore = new(GetLyricsLearningPath());
+        ILyricsProvider lyricsProvider = new MemoryLyricsCacheProvider(new FallbackLyricsProvider(
             new TimeoutLyricsProvider(new LrcLibLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(4)),
             new TimeoutLyricsProvider(new BetterLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)),
             new TimeoutLyricsProvider(new AmllLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)),
@@ -74,9 +87,11 @@ public sealed partial class MainWindow : Window
                 new TimeoutLyricsProvider(new SarkiAnaliziLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)),
                 new TimeoutLyricsProvider(new SozMuzikLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)),
                 new TimeoutLyricsProvider(new GeniusLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)),
-                new TimeoutLyricsProvider(new BbsLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3))))),
-            new LocalLyricsTimingStore(GetLyricsTimingPath()), TimeSpan.FromSeconds(20)), Model, DispatcherQueue,
-            new WindowsAutomaticLyricsSynchronizer(GetLyricsModelPath()));
+                new TimeoutLyricsProvider(new BbsLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)))));
+        if (Environment.GetCommandLineArgs().Contains("--force-plain-lyrics"))
+            lyricsProvider = new PlainProjectionLyricsProvider(lyricsProvider);
+        Lyrics = new(new LyricsService(lyricsProvider, _lyricsTimingStore, TimeSpan.FromSeconds(20)), Model, DispatcherQueue,
+            new WindowsAutomaticLyricsSynchronizer(GetLyricsModelPath()), _lyricsLearningStore);
         Lyrics.LinesChanged += Lyrics_LinesChanged;
         Settings = new(_smoke ? null : new JsonSettingsStore(GetSettingsPath()));
         InitializeComponent();
@@ -153,8 +168,9 @@ public sealed partial class MainWindow : Window
         await Model.StartAsync();
         if (Settings.LyricsOpen) _ = Lyrics.SetVisibleAsync(true);
         await Routing.RefreshAsync();
+        _ = Update.CheckAsync(false);
         Root.UpdateLayout();
-        _frame.ResizeContent(Settings.WindowWidth, Root.ActualHeight + 26);
+        ResizeForCurrentMode();
         RestoreSavedPosition();
         QueueResize();
         if (Environment.GetCommandLineArgs().Contains("--background")) _frame.Hide();
@@ -170,7 +186,9 @@ public sealed partial class MainWindow : Window
     private void Settings_Changed(object? sender, EventArgs e)
     {
         var themeChanged = _appliedTheme != Settings.Theme;
+        var viewModeChanged = _appliedViewMode != Settings.ViewMode;
         _appliedTheme = Settings.Theme;
+        _appliedViewMode = Settings.ViewMode;
         _appearance.Apply(Settings.Data);
         _frame.SetTopmost(Settings.AlwaysOnTop);
         if (themeChanged)
@@ -182,12 +200,20 @@ public sealed partial class MainWindow : Window
                 _albumBackgroundTransition?.Stop();
                 _albumBackgroundTransition = null;
                 AlbumArtworkLayer.Opacity = 0;
-                AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1.025;
+                AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = Settings.AlbumZoomScale;
             }
         }
+        else if (Settings.Theme == ThemePreset.Album && _albumBackgroundTransition is null)
+            AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = Settings.AlbumZoomScale;
         Lyrics.Lead = TimeSpan.FromMilliseconds(Settings.LyricsLeadMilliseconds);
         Lyrics.AutomaticSyncEnabled = Settings.EnableAutomaticLyricsSync;
+        Model.SetAlbumBlur(Settings.AlbumBlur);
         if (_settingsLoaded) ApplyStartupSetting();
+        if (viewModeChanged)
+        {
+            AnimateMicroOpacity(Settings.IsMicroMode && !_pointerInsideSurface ? 0.1 : 1, Settings.IsMicroMode ? 520 : 220);
+            _ = ApplyViewModeLyricsAsync(Settings.ViewMode);
+        }
         QueueResize();
     }
     private void ApplyStartupSetting()
@@ -219,15 +245,56 @@ public sealed partial class MainWindow : Window
         DispatcherQueue.TryEnqueue(() =>
         {
             _resizeQueued = false;
-            if (!_closing && Root.ActualHeight > 0) _frame.ResizeContent(Settings.WindowWidth, Root.ActualHeight + 26);
+            if (_closing) return;
+            ResizeForCurrentMode();
         });
+    }
+
+    private static string GetLyricsLearningPath()
+    {
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return Path.Combine(localAppData, "Mediance", "lyrics-learning.json");
+    }
+    private void ResizeForCurrentMode()
+    {
+        switch (Settings.ViewMode)
+        {
+            case WidgetViewMode.Micro:
+                _frame.ResizeContent(76, 76);
+                break;
+            case WidgetViewMode.CoverControls:
+                _frame.ResizeContent(180, 190);
+                break;
+            case WidgetViewMode.VerticalLyrics:
+                _frame.ResizeContent(300, 520);
+                break;
+            default:
+                if (Root.ActualHeight > 0) _frame.ResizeContent(Settings.WindowWidth, Root.ActualHeight + 26);
+                break;
+        }
+    }
+
+    private async Task ApplyViewModeLyricsAsync(WidgetViewMode mode)
+    {
+        if (mode == WidgetViewMode.VerticalLyrics)
+        {
+            if (!Lyrics.IsVisible)
+            {
+                _lyricsOpenedForVerticalMode = true;
+                await Lyrics.SetVisibleAsync(true);
+            }
+            return;
+        }
+        if (!_lyricsOpenedForVerticalMode) return;
+        _lyricsOpenedForVerticalMode = false;
+        await Lyrics.SetVisibleAsync(false);
     }
 
     private SettingsWindow OpenSettings()
     {
         if (_settingsWindow is null)
         {
-            _settingsWindow = new(Settings, Routing, Hotkey, AppWindow);
+            _settingsWindow = new(Settings, Routing, Hotkey, Update, LocalTimings, AppWindow);
             _settingsWindow.Closed += (_, _) => _settingsWindow = null;
         }
         _settingsWindow.Activate();
@@ -253,6 +320,40 @@ public sealed partial class MainWindow : Window
     private async void Previous_Click(object sender, RoutedEventArgs e) => await Model.SendAsync(MediaCommand.Previous);
     private async void Play_Click(object sender, RoutedEventArgs e) => await Model.SendAsync(MediaCommand.Toggle);
     private async void Next_Click(object sender, RoutedEventArgs e) => await Model.SendAsync(MediaCommand.Next);
+    private void Micro_Tapped(object sender, TappedRoutedEventArgs e) => Settings.ViewMode = WidgetViewMode.Standard;
+    private void EnterMicro_Click(object sender, RoutedEventArgs e) => Settings.ViewMode = WidgetViewMode.Micro;
+    private void Surface_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        _pointerInsideSurface = true;
+        if (Settings.IsMicroMode) AnimateMicroOpacity(1, 180);
+    }
+    private void Surface_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        _pointerInsideSurface = false;
+        if (Settings.IsMicroMode) AnimateMicroOpacity(0.1, 420);
+    }
+    private void AnimateMicroOpacity(double target, int milliseconds)
+    {
+        _microOpacityTransition?.Stop();
+        _microOpacityTransition = null;
+        if (!_animationsEnabled)
+        {
+            Surface.Opacity = target;
+            return;
+        }
+        var storyboard = new Storyboard();
+        storyboard.Children.Add(Animation(Surface, "Opacity", Surface.Opacity, target, milliseconds,
+            new QuinticEase { EasingMode = EasingMode.EaseOut }));
+        storyboard.Completed += (_, _) =>
+        {
+            if (!ReferenceEquals(_microOpacityTransition, storyboard)) return;
+            Surface.Opacity = target;
+            storyboard.Stop();
+            _microOpacityTransition = null;
+        };
+        _microOpacityTransition = storyboard;
+        storyboard.Begin();
+    }
     private async void RefreshAudio_Click(object sender, RoutedEventArgs e) => await Routing.RefreshAsync();
     private async void Lyrics_Click(object sender, RoutedEventArgs e)
     {
@@ -294,7 +395,6 @@ public sealed partial class MainWindow : Window
 
     private void Model_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is null or nameof(PlayerViewModel.AmbientColor)) AnimateAmbientGlow(Model.AmbientColor);
         if (!_seeking && (e.PropertyName is null or nameof(PlayerViewModel.Progress))) UpdateProgressVisual();
         if (e.PropertyName == nameof(PlayerViewModel.Artwork))
         {
@@ -385,28 +485,28 @@ public sealed partial class MainWindow : Window
         if (Settings.Theme != ThemePreset.Album || Model.Artwork is null)
         {
             AlbumArtworkLayer.Opacity = 0;
-            AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1.025;
+            AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = Settings.AlbumZoomScale;
             return;
         }
         if (!_animationsEnabled || !Root.IsLoaded)
         {
             AlbumArtworkLayer.Opacity = 1;
-            AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1;
+            AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = Settings.AlbumZoomScale;
             return;
         }
 
         AlbumArtworkLayer.Opacity = 0;
-        AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1.025;
+        AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = Settings.AlbumZoomScale + 0.025;
         var storyboard = new Storyboard();
         var ease = new QuinticEase { EasingMode = EasingMode.EaseOut };
         storyboard.Children.Add(Animation(AlbumArtworkLayer, "Opacity", 0, 1, 620, ease));
-        storyboard.Children.Add(Animation(AlbumBackgroundTransform, "ScaleX", 1.025, 1, 1100, ease));
-        storyboard.Children.Add(Animation(AlbumBackgroundTransform, "ScaleY", 1.025, 1, 1100, ease));
+        storyboard.Children.Add(Animation(AlbumBackgroundTransform, "ScaleX", Settings.AlbumZoomScale + 0.025, Settings.AlbumZoomScale, 1100, ease));
+        storyboard.Children.Add(Animation(AlbumBackgroundTransform, "ScaleY", Settings.AlbumZoomScale + 0.025, Settings.AlbumZoomScale, 1100, ease));
         storyboard.Completed += (_, _) =>
         {
             if (!ReferenceEquals(_albumBackgroundTransition, storyboard)) return;
             AlbumArtworkLayer.Opacity = 1;
-            AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = 1;
+            AlbumBackgroundTransform.ScaleX = AlbumBackgroundTransform.ScaleY = Settings.AlbumZoomScale;
             storyboard.Stop();
             _albumBackgroundTransition = null;
         };
@@ -503,43 +603,6 @@ public sealed partial class MainWindow : Window
             _artworkTransition = null;
         };
         _artworkTransition = storyboard;
-        storyboard.Begin();
-    }
-
-    private void AnimateAmbientGlow(Color color)
-    {
-        if (_closing || AmbientColorStop.Color == color) return;
-        _ambientTransition?.SkipToFill();
-        _ambientTransition?.Stop();
-        var storyboard = new Storyboard();
-        var animation = new ColorAnimation
-        {
-            From = AmbientColorStop.Color,
-            To = color,
-            Duration = new Duration(TimeSpan.FromMilliseconds(_animationsEnabled ? 1100 : 1)),
-            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
-        };
-        Storyboard.SetTarget(animation, AmbientColorStop);
-        Storyboard.SetTargetProperty(animation, "Color");
-        storyboard.Children.Add(animation);
-        if (_animationsEnabled)
-        {
-            AmbientGlow.Opacity = 0.12;
-            AmbientGlowTransform.ScaleX = AmbientGlowTransform.ScaleY = 1.06;
-            storyboard.Children.Add(Animation(AmbientGlow, "Opacity", 0.12, 0.2, 900, new SineEase { EasingMode = EasingMode.EaseOut }));
-            storyboard.Children.Add(Animation(AmbientGlowTransform, "ScaleX", 1.06, 1, 1150, new QuinticEase { EasingMode = EasingMode.EaseOut }));
-            storyboard.Children.Add(Animation(AmbientGlowTransform, "ScaleY", 1.06, 1, 1150, new QuinticEase { EasingMode = EasingMode.EaseOut }));
-        }
-        storyboard.Completed += (_, _) =>
-        {
-            if (!ReferenceEquals(_ambientTransition, storyboard)) return;
-            AmbientColorStop.Color = color;
-            AmbientGlow.Opacity = 0.2;
-            AmbientGlowTransform.ScaleX = AmbientGlowTransform.ScaleY = 1;
-            storyboard.Stop();
-            _ambientTransition = null;
-        };
-        _ambientTransition = storyboard;
         storyboard.Begin();
     }
 
@@ -640,7 +703,7 @@ public sealed partial class MainWindow : Window
 
     private async void Surface_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
     {
-        if (_closing || !Settings.EnableWheelVolume) return;
+        if (_closing) return;
         if (IsDescendantOf(e.OriginalSource as DependencyObject, LyricsPanel)) return;
         var delta = e.GetCurrentPoint(Surface).Properties.MouseWheelDelta;
         if (delta == 0) return;
@@ -834,12 +897,6 @@ public sealed partial class MainWindow : Window
         storyboard.Children.Add(Animation(transform, "ScaleY", transform.ScaleY, scale, milliseconds, ease));
         storyboard.Begin();
     }
-    private async void Close_Click(object sender, RoutedEventArgs e)
-    {
-        if (Settings.CloseToTray) HideToTray();
-        else await ShutdownAsync();
-    }
-
     private async void Window_Closing(AppWindow sender, AppWindowClosingEventArgs args)
     {
         if (_allowClose) return;
@@ -858,7 +915,6 @@ public sealed partial class MainWindow : Window
         Model.PropertyChanged -= Model_PropertyChanged;
         Lyrics.LinesChanged -= Lyrics_LinesChanged;
         _lyricsTransition?.Stop();
-        _ambientTransition?.Stop();
         _progressTransition?.Stop();
         _progressValueTransition?.Stop();
         _volumeHudTransition?.Stop();
@@ -882,6 +938,7 @@ public sealed partial class MainWindow : Window
         Routing.Dispose();
         Lyrics.Dispose();
         _lyricsClient.Dispose();
+        _updateClient.Dispose();
         await Model.DisposeAsync();
         await Settings.DisposeAsync();
         _appearance.Dispose();
@@ -940,7 +997,7 @@ public sealed partial class MainWindow : Window
         AnimateLyrics(new("Earlier", "Current", "Next", true));
         await Task.Delay(60);
         AnimateLyrics(new("Later", "Current", "Earlier", false));
-        await Task.Delay(500);
+        await Task.Delay(750);
         if (OutgoingLyricsLines.Visibility != Visibility.Collapsed ||
             Math.Abs(SyncedLyricsLines.Opacity - 1) > 0.01 || Math.Abs(SyncedLyricsTranslate.Y) > 0.01)
             throw new InvalidOperationException("Lyrics transition did not settle after interruption.");
@@ -953,10 +1010,8 @@ public sealed partial class MainWindow : Window
         var lowAlpha = _appearance.OverlayAlpha;
         Settings.GlassIntensity = 95;
         if (_appearance.OverlayAlpha - lowAlpha < 200) throw new InvalidOperationException("Density did not change the rendered tint layer.");
-        Settings.SolidBackground = true;
-        if (!_appearance.IsSolid) throw new InvalidOperationException("Solid mode failed.");
-        Settings.SolidBackground = false;
-        if (_appearance.IsSolid) throw new InvalidOperationException("Acrylic reconnection failed.");
+        if (_appearance.IsSolid && _appearance.NativeState == "Active")
+            throw new InvalidOperationException("The always-glass mode unexpectedly disconnected Acrylic.");
         Settings.Theme = ThemePreset.Album;
         await Task.Delay(80);
         if (AlbumBackdrop.Visibility != Visibility.Visible)
@@ -981,10 +1036,9 @@ public sealed partial class MainWindow : Window
             throw new InvalidOperationException("Three-line lyrics mode did not restore the previous line.");
         Settings.Reset();
         Settings.ShowProgress = false;
-        Settings.EnableAmbientGlow = false;
         await Task.Delay(80);
-        if (ProgressHost.Visibility != Visibility.Collapsed || AmbientGlow.Visibility != Visibility.Collapsed)
-            throw new InvalidOperationException("Phase 2 visual settings did not collapse their elements.");
+        if (ProgressHost.Visibility != Visibility.Collapsed)
+            throw new InvalidOperationException("The progress setting did not collapse its element.");
         ShowVolumeHud(75, false);
         if (VolumeHud.Visibility != Visibility.Visible || !VolumeHudText.Text.Contains("75%", StringComparison.Ordinal))
             throw new InvalidOperationException("Application volume HUD did not appear.");
@@ -1002,11 +1056,46 @@ public sealed partial class MainWindow : Window
             TransportControls.Visibility != Visibility.Collapsed || AudioOutputPanel.Visibility != Visibility.Collapsed ||
             AppWindow.ClientSize.Height >= expandedHeight)
             throw new InvalidOperationException("Hidden components did not collapse their layout.");
-        Settings.ShowTitle = Settings.ShowArtist = Settings.ShowSource = Settings.ShowBrand = Settings.ShowCloseButton = false;
-        await Task.Delay(150);
         if (SettingsButton.Visibility != Visibility.Visible || SettingsButton.ActualWidth <= 0)
             throw new InvalidOperationException("Settings access was lost with content hidden.");
         Settings.Reset();
+        if (EnterMicroButton.Visibility != Visibility.Visible)
+            throw new InvalidOperationException("The top-right Micro button was not visible in the full widget.");
+        EnterMicro_Click(this, new RoutedEventArgs());
+        await Task.Delay(950);
+        if (MicroSurface.Visibility != Visibility.Visible || Root.Visibility != Visibility.Collapsed ||
+            EnterMicroButton.Visibility != Visibility.Collapsed || AppWindow.ClientSize.Width != AppWindow.ClientSize.Height ||
+            AppWindow.ClientSize.Width >= 200 || Surface.Opacity > 0.12)
+            throw new InvalidOperationException("Micro mode did not settle into its compact idle state.");
+        Settings.ViewMode = WidgetViewMode.Standard;
+        await Task.Delay(300);
+        if (MicroSurface.Visibility != Visibility.Collapsed || Root.Visibility != Visibility.Visible || Surface.Opacity < 0.99)
+            throw new InvalidOperationException("Standard mode did not restore from micro mode.");
+        Settings.ViewMode = WidgetViewMode.CoverControls;
+        await Task.Delay(300);
+        if (CoverControlsSurface.Visibility != Visibility.Visible || Root.Visibility != Visibility.Collapsed ||
+            AppWindow.ClientSize.Width >= 260 || AppWindow.ClientSize.Height >= 280)
+            throw new InvalidOperationException("Artwork + controls mode did not settle into its compact layout.");
+        Settings.ShowControls = false;
+        await Task.Delay(100);
+        if (CoverTransportControls.Visibility != Visibility.Collapsed)
+            throw new InvalidOperationException("The single media-controls toggle did not hide cover controls.");
+        Settings.ShowControls = true;
+        Settings.ViewMode = WidgetViewMode.VerticalLyrics;
+        await Task.Delay(350);
+        if (VerticalLyricsSurface.Visibility != Visibility.Visible || Root.Visibility != Visibility.Collapsed ||
+            AppWindow.ClientSize.Width < 260 || AppWindow.ClientSize.Height < 450 || !Lyrics.IsVisible)
+            throw new InvalidOperationException("Vertical lyrics mode did not open its lyrics layout.");
+        Settings.ShowControls = false;
+        await Task.Delay(100);
+        if (VerticalTransportControls.Visibility != Visibility.Collapsed)
+            throw new InvalidOperationException("The single media-controls toggle did not hide vertical controls.");
+        Settings.ShowControls = true;
+        Settings.ViewMode = WidgetViewMode.Standard;
+        await Task.Delay(300);
+        if (Settings.WindowOptions.Count != 1 || Settings.ControlOptions.Count != 1 ||
+            Settings.ContentOptions.Count != 2 || Settings.UtilityOptions.Count != 2)
+            throw new InvalidOperationException("The simplified Elements categories exposed legacy toggles.");
         var settingsWindow = OpenSettings();
         if (!ReferenceEquals(settingsWindow, OpenSettings())) throw new InvalidOperationException("Duplicate settings window.");
         if (!settingsWindow.IsHiddenFromShellAndActivatable)
@@ -1017,10 +1106,14 @@ public sealed partial class MainWindow : Window
         if (previewArg is not null)
         {
             var directory = previewArg["--preview-dir=".Length..];
-            Settings.SolidBackground = true;
             if (Environment.GetCommandLineArgs().Contains("--narrow-preview")) Settings.WindowWidth = 420;
             await Task.Delay(300);
             await WindowPreview.SaveAsync(Surface, Path.Combine(directory, "widget.png"));
+            Settings.Theme = ThemePreset.Album;
+            await Task.Delay(520);
+            await WindowPreview.SaveAsync(Surface, Path.Combine(directory, "widget-album.png"));
+            Settings.Theme = ThemePreset.Prism;
+            await Task.Delay(300);
             if (Environment.GetCommandLineArgs().Contains("--lyrics-preview"))
             {
                 await Lyrics.ToggleAsync();
@@ -1030,8 +1123,17 @@ public sealed partial class MainWindow : Window
             }
             await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-appearance.png"), 0);
             await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-elements.png"), 1);
-            await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-sizes.png"), 2);
-            await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-audio.png"), 3);
+            await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-lyrics.png"), 2);
+            await settingsWindow.SavePreviewAsync(Path.Combine(directory, "settings-system.png"), 3);
+            Settings.ViewMode = WidgetViewMode.Micro;
+            await Task.Delay(650);
+            MicroSurface.Opacity = 0.1;
+            await WindowPreview.SaveAsync(Surface, Path.Combine(directory, "widget-micro-idle.png"));
+            MicroSurface.Opacity = 1;
+            Surface.Opacity = 1;
+            await WindowPreview.SaveAsync(Surface, Path.Combine(directory, "widget-micro-hover.png"));
+            Settings.ViewMode = WidgetViewMode.Standard;
+            await Task.Delay(300);
             Settings.ShowArtwork = false;
             Settings.ShowControls = false;
             Settings.ShowAudioOutput = false;

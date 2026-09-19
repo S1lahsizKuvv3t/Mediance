@@ -12,9 +12,9 @@ Implemented:
 - binary-search active-line selection that immediately follows seeks;
 - persisted two-line (current/next) or three-line (previous/current/next) synchronized layouts, instrumental and unavailable states;
 - plain-text-only results are never shown as synchronized lyrics by themselves. When automatic sync is enabled, an independently recognized local transcript must pass the alignment confidence gate before derived timestamps are accepted;
-- automatic sync starts only near the beginning of a continuously playing track, captures only the selected application's process-loopback audio, cancels on pause/seek/source change, and keeps captured audio in memory;
-- Whisper runs locally with a multilingual model downloaded on first use. The transcript is aligned to verified plain text with monotonic token matching; at least 58% combined confidence and 45% anchored lines are required before the complete timeline is saved;
-- a rejected or failed automatic attempt remains plain and keeps the manual timing workflow available;
+- automatic sync can start at the current playback position, captures at most 75 seconds from only the selected application's process-loopback audio, cancels on pause/seek/source change, and keeps captured audio in memory;
+- Whisper runs locally with a multilingual model downloaded on first use. A nearby excerpt of the verified lyrics guides recognition, and semi-global token alignment maps the transcript to a contiguous lyric region instead of requiring a whole-song recording;
+- acceptance requires at least 58% combined confidence, position consistency and a line-anchor floor that scales from three to eight lines. Empty, transient and low-confidence results retry on later sections up to three times; rejected results remain plain and keep manual timing available;
 - when every synchronized source misses but an identity-validated plain lyric is available, the panel offers manual timing: playback seeks to the beginning and each line is marked with the main button or Space;
 - restart and cancel controls keep incomplete attempts out of storage. The final mark saves immediately and switches to the normal synchronized renderer;
 - user-timed results expose `Synchronize again`; cancelling a redo restores the previous working timing, while completing it atomically replaces that entry;

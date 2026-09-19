@@ -21,9 +21,6 @@
   <data name="Topmost" xml:space="preserve">
     <value>Üstte tut</value>
   </data>
-  <data name="Solid" xml:space="preserve">
-    <value>Mat görünüm</value>
-  </data>
   <data name="GlassStrength" xml:space="preserve">
     <value>Cam yoğunluğu</value>
   </data>
@@ -105,15 +102,6 @@
   <data name="ShowArtwork">
     <value>Albüm kapağı</value>
   </data>
-  <data name="ShowTitle">
-    <value>Şarkı adı</value>
-  </data>
-  <data name="ShowArtist">
-    <value>Sanatçı</value>
-  </data>
-  <data name="ShowSource">
-    <value>Kaynak uygulama</value>
-  </data>
   <data name="ShowControls">
     <value>Medya kontrolleri</value>
   </data>
@@ -131,9 +119,6 @@
   </data>
   <data name="ShowCloseButton">
     <value>Kapat düğmesi</value>
-  </data>
-  <data name="ShowBorder">
-    <value>İnce kenarlık</value>
   </data>
   <data name="ShowPlaybackStatus">
     <value>Çalma durumu</value>
@@ -174,8 +159,6 @@
   <data name="PlaybackProgress"><value>Oynatma konumu</value></data>
   <data name="AudioVolumeError"><value>Uygulama sesi değiştirilemedi.</value></data>
   <data name="ShowProgress"><value>Oynatma çubuğu</value></data>
-  <data name="AmbientGlow"><value>Kapak rengi ışığı</value></data>
-  <data name="WheelVolume"><value>Fare tekerleğiyle uygulama sesi</value></data>
   <data name="CloseToTray"><value>Kapatıldığında tepsiye küçült</value></data>
   <data name="ShowWidget"><value>Mediance'ı göster</value></data>
   <data name="HideWidget"><value>Mediance'ı gizle</value></data>
@@ -204,11 +187,59 @@
   <data name="LyricsManualSaveError"><value>Zamanlama yerel olarak kaydedilemedi. Tekrar deneyebilirsin.</value></data>
   <data name="AutomaticLyricsSync"><value>Otomatik şarkı sözü senkronu</value></data>
   <data name="AutomaticLyricsSyncHint"><value>Senkronlu kaynak bulunamazsa yalnızca seçili uygulamanın sesini cihazında analiz eder. İlk kullanımda yerel model indirilir.</value></data>
-  <data name="LyricsAutoWaiting"><value>Otomatik senkron, şarkı baştan çaldığında başlayacak. İstersen manuel olarak da zamanlayabilirsin.</value></data>
+  <data name="LyricsAutoWaiting"><value>Otomatik senkron, yeterli ses yakalandığında başlayacak.</value></data>
   <data name="LyricsAutoCapturing"><value>Otomatik senkron hazırlanıyor · şarkıyı dinliyor…</value></data>
   <data name="LyricsAutoDownloading"><value>Yerel ses modeli bir kez indiriliyor…</value></data>
   <data name="LyricsAutoTranscribing"><value>Şarkı cihazında analiz ediliyor…</value></data>
   <data name="LyricsAutoAligning"><value>Sözler sesle eşleştiriliyor…</value></data>
+  <data name="LyricsAutoRetrying"><value>İlk eşleşme yeterli değildi; şarkının başka bir bölümüyle yeniden denenecek…</value></data>
   <data name="LyricsAutoLowConfidence"><value>Otomatik eşleşme yeterince güvenilir değildi. Manuel zamanlamayı kullanabilirsin.</value></data>
   <data name="LyricsAutoError"><value>Otomatik senkron bu parçada tamamlanamadı. Manuel zamanlamayı kullanabilirsin.</value></data>
+  <data name="ViewMode"><value>Görünüm modu</value></data>
+  <data name="ViewModeStandard"><value>Standart oynatıcı</value></data>
+  <data name="ViewModeMicro"><value>Micro · yalnızca logo</value></data>
+  <data name="ViewModeCoverControls"><value>Kapak + kontroller</value></data>
+  <data name="ViewModeVerticalLyrics"><value>Dikey lyrics</value></data>
+  <data name="ViewModeHint"><value>Micro mod, pencereyi küçük bir logo karesine dönüştürür. Logoya tıklayınca standart görünüm geri gelir.</value></data>
+  <data name="ElementsContent"><value>İçerik</value></data>
+  <data name="ElementsContentHint"><value>Şarkı ve uygulama bilgisinde görünen parçalar</value></data>
+  <data name="ElementsControls"><value>Medya kontrolleri</value></data>
+  <data name="ElementsControlsHint"><value>Oynatma düğmeleri ve ana kontrol grubu</value></data>
+  <data name="ElementsUtilities"><value>Araçlar</value></data>
+  <data name="ElementsUtilitiesHint"><value>Ses çıkışı, lyrics ve pencere düğmeleri</value></data>
+  <data name="AlbumBackground"><value>Album arka planı</value></data>
+  <data name="AlbumBlur"><value>Blur</value></data>
+  <data name="AlbumZoom"><value>Yakınlaştırma</value></data>
+  <data name="AlbumDarkness"><value>Karartma</value></data>
+  <data name="ThemeProfiles"><value>Tema profili</value></data>
+  <data name="ExportTheme"><value>Dışa aktar</value></data>
+  <data name="ImportTheme"><value>İçe aktar</value></data>
+  <data name="ThemeExported"><value>Tema profili kaydedildi.</value></data>
+  <data name="ThemeImported"><value>Tema profili uygulandı.</value></data>
+  <data name="ThemeTransferError"><value>Tema profili okunamadı veya kaydedilemedi.</value></data>
+  <data name="LyricsSyncIdle"><value>Şu anda çalışan bir otomatik senkron yok.</value></data>
+  <data name="EnterMicroMode"><value>Micro moda geç</value></data>
+  <data name="LyricsAutoAttempt"><value>deneme {0}/{1}</value></data>
+  <data name="LyricsAutoCaptureProgress"><value>Ses yakalan&#x131;yor &#xB7; {0}/{1} sn &#xB7; {2}</value></data>
+  <data name="LyricsAutoDownloadProgress"><value>Model indiriliyor &#xB7; %{0} &#xB7; {1}</value></data>
+  <data name="SettingsSearch"><value>Ayarlarda ara...</value></data>
+  <data name="SettingsSearchResult"><value>{0} kategorisine ge&#xE7;ildi.</value></data>
+  <data name="SettingsSearchNone"><value>Bu ayar bulunamad&#x131;.</value></data>
+  <data name="LyricsCategory"><value>Lyrics</value></data>
+  <data name="SystemCategory"><value>Sistem</value></data>
+  <data name="UpdateChecker"><value>G&#xFC;ncellemeler</value></data>
+  <data name="UpdateNotChecked"><value>Hen&#xFC;z kontrol edilmedi.</value></data>
+  <data name="CheckUpdates"><value>G&#xFC;ncellemeleri denetle</value></data>
+  <data name="OpenRelease"><value>Release sayfas&#x131;n&#x131; a&#xE7;</value></data>
+  <data name="UpdateAvailable"><value>Yeni s&#xFC;r&#xFC;m haz&#x131;r: {0}</value></data>
+  <data name="UpToDate"><value>Mediance g&#xFC;ncel.</value></data>
+  <data name="UpdateCheckFailed"><value>G&#xFC;ncelleme bilgisi al&#x131;namad&#x131;.</value></data>
+  <data name="LocalTimings"><value>Yerel zamanlamalar</value></data>
+  <data name="LocalTimingsHint"><value>Gizlilik i&#xE7;in par&#xE7;a adlar&#x131; saklanmaz. Kay&#x131;tlar tarih ve sat&#x131;r say&#x131;s&#x131;yla g&#xF6;sterilir.</value></data>
+  <data name="DeleteTiming"><value>Se&#xE7;ili kayd&#x131; sil</value></data>
+  <data name="LocalTimingEntry"><value>{0} sat&#x131;r &#xB7; {1:g}</value></data>
+  <data name="LocalTimingCount"><value>{0} yerel zamanlama</value></data>
+  <data name="NoLocalTimings"><value>Hen&#xFC;z yerel zamanlama yok.</value></data>
+  <data name="LocalTimingDeleted"><value>Yerel zamanlama silindi.</value></data>
+  <data name="LocalTimingError"><value>Yerel zamanlamalar okunamad&#x131;.</value></data>
 </root>

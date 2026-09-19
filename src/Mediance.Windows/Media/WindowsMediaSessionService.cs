@@ -54,6 +54,14 @@ public sealed class WindowsMediaSessionService : IMediaSessionService
         }
     }
 
+    public async Task RefreshAsync(bool reconnect = false, CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (reconnect) await ResetManagerAsync();
+        await EnsureManagerAsync(cancellationToken);
+        await RefreshAsync(cancellationToken);
+    }
+
     private void Signal()
     {
         Interlocked.Increment(ref _revision);

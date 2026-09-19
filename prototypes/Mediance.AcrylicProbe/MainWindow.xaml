@@ -2,7 +2,9 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="using:Mediance.AcrylicProbe.Localization">
-    <Border x:Name="Surface" CornerRadius="8" BorderThickness="1" Background="Transparent" PointerWheelChanged="Surface_PointerWheelChanged">
+    <Border x:Name="Surface" CornerRadius="{x:Bind Settings.SurfaceCornerRadius, Mode=OneWay}" BorderThickness="1" Background="Transparent"
+            PointerEntered="Surface_PointerEntered" PointerExited="Surface_PointerExited"
+            PointerWheelChanged="Surface_PointerWheelChanged">
         <Grid>
             <Grid x:Name="AlbumBackdrop" IsHitTestVisible="False"
                   Visibility="{x:Bind Settings.AlbumThemeVisibility, Mode=OneWay}">
@@ -11,33 +13,113 @@
                         <CompositeTransform x:Name="AlbumBackgroundTransform" ScaleX="1.06" ScaleY="1.06" />
                     </Border.RenderTransform>
                     <Border.Background>
-                        <ImageBrush ImageSource="{x:Bind Model.Artwork, Mode=OneWay}"
+                        <ImageBrush ImageSource="{x:Bind Model.AlbumArtwork, Mode=OneWay}"
                                     Stretch="UniformToFill" AlignmentX="Center" AlignmentY="Center" />
                     </Border.Background>
                 </Border>
-                <Border Background="#8A0A0D13" />
+                <Border x:Name="AlbumDarknessLayer" Background="{x:Bind Settings.AlbumDarknessBrush, Mode=OneWay}" />
                 <Border>
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#52101620" Offset="0" />
-                            <GradientStop Color="#870A0C12" Offset="0.58" />
-                            <GradientStop Color="#B0080A0F" Offset="1" />
+                            <GradientStop Color="#24101620" Offset="0" />
+                            <GradientStop Color="#420A0C12" Offset="0.58" />
+                            <GradientStop Color="#66080A0F" Offset="1" />
                         </LinearGradientBrush>
                     </Border.Background>
                 </Border>
             </Grid>
-            <Border x:Name="AmbientGlow" IsHitTestVisible="False" Opacity="0.2" RenderTransformOrigin="0.5,0.5"
-                    Visibility="{x:Bind Settings.AmbientGlowVisibility, Mode=OneWay}">
-                <Border.RenderTransform><CompositeTransform x:Name="AmbientGlowTransform" /></Border.RenderTransform>
-                <Border.Background>
-                    <RadialGradientBrush Center="0.2,0.15" GradientOrigin="0.2,0.15" RadiusX="0.85" RadiusY="1.15">
-                        <GradientStop x:Name="AmbientColorStop" Color="#FF305274" Offset="0" />
-                        <GradientStop Color="#00305274" Offset="1" />
-                    </RadialGradientBrush>
-                </Border.Background>
-            </Border>
+            <Grid x:Name="MicroSurface" Margin="7" Visibility="{x:Bind Settings.MicroModeVisibility, Mode=OneWay}">
+                <Border x:Name="MicroButton" Padding="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                        Background="#E6050507" BorderBrush="#24FFFFFF" BorderThickness="1" CornerRadius="14"
+                        Tapped="Micro_Tapped" AutomationProperties.Name="Mediance">
+                    <Image Source="Assets/Mediance-mark.png" Stretch="Uniform" />
+                </Border>
+            </Grid>
+            <Grid x:Name="CoverControlsSurface" Margin="12" RowSpacing="10"
+                  Visibility="{x:Bind Settings.CoverControlsModeVisibility, Mode=OneWay}">
+                <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                <Button HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,38,0" Width="28" Height="28" Padding="0"
+                        Background="#66050507" BorderThickness="0" CornerRadius="14" Canvas.ZIndex="4"
+                        Click="Settings_Click" AutomationProperties.Name="{x:Bind local:TextCatalog.Settings}">
+                    <FontIcon Glyph="&#xE713;" FontSize="11" />
+                </Button>
+                <Border Grid.Row="0" CornerRadius="14" Background="#18FFFFFF">
+                    <Grid>
+                        <FontIcon Glyph="&#xE8D6;" FontSize="38" Opacity="0.28" />
+                        <Image Source="{x:Bind Model.Artwork, Mode=OneWay}" Stretch="UniformToFill" />
+                    </Grid>
+                </Border>
+                <StackPanel x:Name="CoverTransportControls" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8"
+                            Visibility="{x:Bind Settings.ControlsVisibility, Mode=OneWay}">
+                    <Button Width="36" Height="36" Padding="0" Background="Transparent" BorderThickness="0"
+                            IsEnabled="{x:Bind Model.CanPrevious, Mode=OneWay}" Click="Previous_Click">
+                        <FontIcon Glyph="&#xE892;" FontSize="15" />
+                    </Button>
+                    <Button Width="44" Height="44" Padding="0" CornerRadius="22" Background="#FFF0F3F6" Foreground="#FF18202B"
+                            IsEnabled="{x:Bind Model.CanToggle, Mode=OneWay}" Click="Play_Click">
+                        <FontIcon Glyph="{x:Bind Model.PlayGlyph, Mode=OneWay}" FontSize="17" />
+                    </Button>
+                    <Button Width="36" Height="36" Padding="0" Background="Transparent" BorderThickness="0"
+                            IsEnabled="{x:Bind Model.CanNext, Mode=OneWay}" Click="Next_Click">
+                        <FontIcon Glyph="&#xE893;" FontSize="15" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+            <Grid x:Name="VerticalLyricsSurface" Margin="14,12" RowSpacing="10"
+                  Visibility="{x:Bind Settings.VerticalLyricsModeVisibility, Mode=OneWay}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" /><RowDefinition Height="220" /><RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" /><RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                        <Image Source="Assets/Mediance-mark.png" Width="15" Height="15" />
+                        <TextBlock Text="{x:Bind local:TextCatalog.AppName}" FontSize="12" FontWeight="SemiBold" Opacity="0.72" />
+                    </StackPanel>
+                    <Button HorizontalAlignment="Right" Margin="0,0,38,0" Width="30" Height="30" Padding="0" Background="Transparent" BorderThickness="0"
+                            Click="Settings_Click" AutomationProperties.Name="{x:Bind local:TextCatalog.Settings}">
+                        <FontIcon Glyph="&#xE713;" FontSize="12" />
+                    </Button>
+                </Grid>
+                <Border Grid.Row="1" CornerRadius="16" Background="#18FFFFFF">
+                    <Grid>
+                        <FontIcon Glyph="&#xE8D6;" FontSize="46" Opacity="0.24" />
+                        <Image Source="{x:Bind Model.Artwork, Mode=OneWay}" Stretch="UniformToFill" />
+                    </Grid>
+                </Border>
+                <StackPanel Grid.Row="2" Spacing="3">
+                    <TextBlock Text="{x:Bind Model.Title, Mode=OneWay}" FontSize="19" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{x:Bind Model.Artist, Mode=OneWay}" FontSize="12" Opacity="0.62" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <Border Grid.Row="3" Background="#0EFFFFFF" BorderBrush="#18FFFFFF" BorderThickness="1" CornerRadius="14" Padding="14,12">
+                    <StackPanel VerticalAlignment="Center" Spacing="10">
+                        <TextBlock Text="{x:Bind Lyrics.PreviousLine, Mode=OneWay}" FontSize="11" Opacity="0.34" TextWrapping="Wrap"
+                                   Visibility="{x:Bind Settings.PreviousLyricVisibility, Mode=OneWay}" />
+                        <TextBlock Text="{x:Bind Lyrics.CurrentLine, Mode=OneWay}" FontSize="17" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock Text="{x:Bind Lyrics.NextLine, Mode=OneWay}" FontSize="12" Opacity="0.5" TextWrapping="Wrap" />
+                        <TextBlock Text="{x:Bind Lyrics.Status, Mode=OneWay}" FontSize="11" Opacity="0.55" TextAlignment="Center" TextWrapping="Wrap"
+                                   Visibility="{x:Bind Lyrics.MessageVisibility, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+                <StackPanel x:Name="VerticalTransportControls" Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12"
+                            Visibility="{x:Bind Settings.ControlsVisibility, Mode=OneWay}">
+                    <Button Width="38" Height="38" Padding="0" Background="Transparent" BorderThickness="0"
+                            IsEnabled="{x:Bind Model.CanPrevious, Mode=OneWay}" Click="Previous_Click">
+                        <FontIcon Glyph="&#xE892;" FontSize="16" />
+                    </Button>
+                    <Button Width="48" Height="48" Padding="0" CornerRadius="24" Background="#FFF0F3F6" Foreground="#FF18202B"
+                            IsEnabled="{x:Bind Model.CanToggle, Mode=OneWay}" Click="Play_Click">
+                        <FontIcon Glyph="{x:Bind Model.PlayGlyph, Mode=OneWay}" FontSize="18" />
+                    </Button>
+                    <Button Width="38" Height="38" Padding="0" Background="Transparent" BorderThickness="0"
+                            IsEnabled="{x:Bind Model.CanNext, Mode=OneWay}" Click="Next_Click">
+                        <FontIcon Glyph="&#xE893;" FontSize="16" />
+                    </Button>
+                </StackPanel>
+            </Grid>
             <Grid x:Name="Root" Margin="16,12,16,10" VerticalAlignment="Top" RequestedTheme="Dark"
-                  RenderTransformOrigin="0.5,0.5" SizeChanged="Root_SizeChanged">
+                  RenderTransformOrigin="0.5,0.5" SizeChanged="Root_SizeChanged"
+                  Visibility="{x:Bind Settings.StandardModeVisibility, Mode=OneWay}">
             <Grid.RenderTransform><CompositeTransform x:Name="RootTransform" /></Grid.RenderTransform>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -46,12 +128,6 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <Button Grid.Row="0" Canvas.ZIndex="20" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-7,-7,0"
-                    Width="30" Height="30" Padding="0" Background="Transparent" BorderThickness="0"
-                    Visibility="{x:Bind Settings.CloseVisibility, Mode=OneWay}"
-                    AutomationProperties.Name="{x:Bind local:TextCatalog.Close}" ToolTipService.ToolTip="{x:Bind local:TextCatalog.Close}" Click="Close_Click">
-                <FontIcon Glyph="&#xE8BB;" FontSize="10" />
-            </Button>
             <Grid x:Name="TrackPanel" Grid.Row="0" Margin="0,0,30,12" ColumnSpacing="12" RenderTransformOrigin="0.5,0.5"
                   Visibility="{x:Bind Settings.MainRowVisibility, Mode=OneWay}">
                 <Grid.RenderTransform><CompositeTransform x:Name="TrackPanelTransform" /></Grid.RenderTransform>
@@ -77,18 +153,18 @@
                 </StackPanel>
                 <StackPanel x:Name="TransportControls" Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Spacing="6" Visibility="{x:Bind Settings.ControlsVisibility, Mode=OneWay}">
                 <Button Width="{x:Bind Settings.ControlSize, Mode=OneWay}" Height="{x:Bind Settings.ControlSize, Mode=OneWay}" Padding="0" Background="Transparent" BorderThickness="0"
-                        Visibility="{x:Bind Settings.PreviousVisibility, Mode=OneWay}" IsEnabled="{x:Bind Model.CanPrevious, Mode=OneWay}" Click="Previous_Click"
+                        IsEnabled="{x:Bind Model.CanPrevious, Mode=OneWay}" Click="Previous_Click"
                         AutomationProperties.Name="{x:Bind local:TextCatalog.Previous}" ToolTipService.ToolTip="{x:Bind local:TextCatalog.Previous}">
                     <FontIcon Glyph="&#xE892;" FontSize="{x:Bind Settings.TransportIconSize, Mode=OneWay}" />
                 </Button>
                 <Button Width="{x:Bind Settings.ControlSize, Mode=OneWay}" Height="{x:Bind Settings.ControlSize, Mode=OneWay}" CornerRadius="{x:Bind Settings.PlayCornerRadius, Mode=OneWay}"
-                        Padding="0" Background="#FFF0F3F6" Foreground="#FF18202B" Visibility="{x:Bind Settings.PlayVisibility, Mode=OneWay}"
+                        Padding="0" Background="#FFF0F3F6" Foreground="#FF18202B"
                         IsEnabled="{x:Bind Model.CanToggle, Mode=OneWay}" Click="Play_Click"
                         AutomationProperties.Name="{x:Bind Model.PlayLabel, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind Model.PlayLabel, Mode=OneWay}">
                     <FontIcon Glyph="{x:Bind Model.PlayGlyph, Mode=OneWay}" FontSize="{x:Bind Settings.TransportIconSize, Mode=OneWay}" />
                 </Button>
                 <Button Width="{x:Bind Settings.ControlSize, Mode=OneWay}" Height="{x:Bind Settings.ControlSize, Mode=OneWay}" Padding="0" Background="Transparent" BorderThickness="0"
-                        Visibility="{x:Bind Settings.NextVisibility, Mode=OneWay}" IsEnabled="{x:Bind Model.CanNext, Mode=OneWay}" Click="Next_Click"
+                        IsEnabled="{x:Bind Model.CanNext, Mode=OneWay}" Click="Next_Click"
                         AutomationProperties.Name="{x:Bind local:TextCatalog.Next}" ToolTipService.ToolTip="{x:Bind local:TextCatalog.Next}">
                     <FontIcon Glyph="&#xE893;" FontSize="{x:Bind Settings.TransportIconSize, Mode=OneWay}" />
                 </Button>
@@ -147,10 +223,23 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="{x:Bind Lyrics.Status, Mode=OneWay}" FontSize="12" Opacity="0.65"
+                    <Border Grid.Row="0" Margin="0,0,0,10" Padding="11,9" CornerRadius="9"
+                            Background="#1200A8FF" BorderBrush="#3000B7FF" BorderThickness="1"
+                            Visibility="{x:Bind Lyrics.AutomaticSyncProgressVisibility, Mode=OneWay}">
+                        <StackPanel Spacing="7">
+                            <TextBlock Text="{x:Bind Lyrics.AutomaticSyncStageText, Mode=OneWay}"
+                                       FontSize="11" TextWrapping="Wrap" />
+                            <ProgressBar Minimum="0" Maximum="100"
+                                         Value="{x:Bind Lyrics.AutomaticSyncProgress, Mode=OneWay}"
+                                         IsIndeterminate="{x:Bind Lyrics.AutomaticSyncIndeterminate, Mode=OneWay}"
+                                         Height="3" />
+                        </StackPanel>
+                    </Border>
+                    <TextBlock Grid.Row="1" Text="{x:Bind Lyrics.Status, Mode=OneWay}" FontSize="12" Opacity="0.65"
                                TextAlignment="Center" TextWrapping="Wrap" Visibility="{x:Bind Lyrics.MessageVisibility, Mode=OneWay}" />
-                    <StackPanel Grid.Row="1" Margin="0,10,0,0" Spacing="7"
+                    <StackPanel Grid.Row="2" Margin="0,10,0,0" Spacing="7"
                                 Visibility="{x:Bind Lyrics.AuthorVisibility, Mode=OneWay}">
                         <TextBlock Text="{x:Bind Lyrics.AuthorPreviousLine, Mode=OneWay}" Height="28" MaxLines="1"
                                    FontSize="11" Opacity="0.35" TextAlignment="Left" TextTrimming="CharacterEllipsis" />
@@ -174,7 +263,7 @@
                             <Button Content="{x:Bind local:TextCatalog.LyricsManualCancel}" Padding="12,5" Click="LyricsSyncCancel_Click" />
                         </StackPanel>
                     </StackPanel>
-                    <Grid Grid.Row="1" Visibility="{x:Bind Lyrics.SyncedVisibility, Mode=OneWay}">
+                    <Grid Grid.Row="2" Visibility="{x:Bind Lyrics.SyncedVisibility, Mode=OneWay}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -226,11 +315,22 @@
                         Background="Transparent" BorderThickness="0" Padding="6,2" MinHeight="22" Click="Lyrics_Click"
                         Visibility="{x:Bind Settings.LyricsButtonVisibility, Mode=OneWay}"
                         AutomationProperties.Name="{x:Bind Lyrics.ToggleLabel, Mode=OneWay}" />
-                <Button x:Name="SettingsButton" Grid.Column="4" Content="{x:Bind local:TextCatalog.Settings}" FontSize="11" Foreground="#FF9C9EA5"
-                        Background="Transparent" BorderThickness="0" Padding="6,2" MinHeight="22" Click="Settings_Click"
-                        AutomationProperties.Name="{x:Bind local:TextCatalog.Settings}" />
+                <Grid Grid.Column="4">
+                    <Button x:Name="SettingsButton" Content="{x:Bind local:TextCatalog.Settings}" FontSize="11" Foreground="#FF9C9EA5"
+                            Background="Transparent" BorderThickness="0" Padding="6,2" MinHeight="22" Click="Settings_Click"
+                            AutomationProperties.Name="{x:Bind local:TextCatalog.Settings}" />
+                    <Ellipse Width="6" Height="6" Fill="#FF46C8FF" HorizontalAlignment="Right" VerticalAlignment="Top"
+                             Margin="0,2,1,0" IsHitTestVisible="False"
+                             Visibility="{x:Bind Update.UpdateVisibility, Mode=OneWay}" />
+                </Grid>
             </Grid>
             </Grid>
+            <Button x:Name="EnterMicroButton" Canvas.ZIndex="24" HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Margin="0,7,7,0" Width="28" Height="28" Padding="0" Background="Transparent" BorderThickness="0"
+                    Visibility="{x:Bind Settings.NonMicroModeVisibility, Mode=OneWay}" Click="EnterMicro_Click"
+                    AutomationProperties.Name="{x:Bind local:TextCatalog.EnterMicroMode}" ToolTipService.ToolTip="{x:Bind local:TextCatalog.EnterMicroMode}">
+                <Border Width="11" Height="1.5" CornerRadius="1" Background="#CFFFFFFF" />
+            </Button>
             <Border x:Name="VolumeHud" Canvas.ZIndex="30" HorizontalAlignment="Center" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5"
                     Margin="0,10,0,0" Padding="12,6" CornerRadius="10" Background="#E020252C"
                     BorderBrush="#24FFFFFF" BorderThickness="1" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False">

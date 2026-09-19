@@ -54,13 +54,13 @@ Zaman kodlu söz bulunduğunda aktif satır çalan bölüme göre ilerler. Ayarl
 
 Bir satıra tıklamak şarkıyı o satırın başlangıcına götürür. Lyrics alanında fare tekerleğiyle yakın satırlara bakabilirsiniz; birkaç saniye işlem yapılmadığında görünüm yeniden çalan satıra döner.
 
-Sözler kaynaktan erken veya geç geliyorsa **Settings → Boyutlar → Şarkı sözü zamanlaması** ayarı kullanılabilir. Varsayılan değer satırı yarım saniye erken gösterir ve ±2 saniye aralığında değiştirilebilir.
+Sözler kaynaktan erken veya geç geliyorsa **Settings → Lyrics → Şarkı sözü zamanlaması** ayarı kullanılabilir. Varsayılan değer satırı yarım saniye erken gösterir ve ±2 saniye aralığında değiştirilebilir.
 
 ## Manuel lyrics zamanlama
 
-Bazen doğru söz metni bulunur fakat kaynağında zaman kodu yoktur. **Otomatik şarkı sözü senkronu** açıksa Mediance, yalnızca seçili medya uygulamasının sesini parça baştan ve kesintisiz çalarken yakalar. Çok dilli Whisper modeli cihazda bağımsız bir konuşma çözümlemesi üretir; bu çözümleme doğrulanmış sözlerle sırayla eşleştirilir. Yeterince çok satır ve kelime eşleşmedikçe sonuç senkronlu kabul edilmez.
+Bazen doğru söz metni bulunur fakat kaynağında zaman kodu yoktur. **Otomatik şarkı sözü senkronu** açıksa Mediance, yalnızca seçili medya uygulamasının sesinden mevcut konumda en fazla 75 saniyelik bir örnek yakalar. Çok dilli Whisper modeli cihazda bağımsız bir konuşma çözümlemesi üretir; bu çözümleme doğrulanmış sözlerin o konuma en yakın bölümüyle sırayla eşleştirilir. Yeterince çok satır ve kelime eşleşmedikçe sonuç senkronlu kabul edilmez; sistem şarkının ilerleyen bölümlerinde üç denemeye kadar devam eder.
 
-İlk kullanımda yerel model bir kez indirilir. Yakalanan ses bellekte işlenir ve arşivlenmez. İlk çalım bir öğrenme geçişidir; güvenilir zaman çizelgesi tamamlandıktan sonra sonraki çalımlarda doğrudan yüklenir. Şarkıyı duraklatmak, ileri geri sarmak veya uygulamayı değiştirmek yakalamayı iptal eder. Ayarı **Settings → Boyutlar** altından kapatabilirsiniz.
+İlk kullanımda yerel model bir kez indirilir. Yakalanan ses bellekte işlenir ve arşivlenmez. Güvenilir zaman çizelgesi tamamlandıktan sonra sonraki çalımlarda doğrudan yüklenir. Şarkıyı duraklatmak, ileri geri sarmak veya uygulamayı değiştirmek aktif yakalamayı iptal eder. Ayarı **Settings → Lyrics** altından kapatabilirsiniz.
 
 Otomatik eşleşme tamamlanamazsa manuel zamanlama seçeneği gösterilmeye devam eder.
 
@@ -75,34 +75,25 @@ Kabul edilen otomatik ve tamamlanan manuel zamanlamalar `%LOCALAPPDATA%\Mediance
 
 ## Settings penceresi
 
-Settings ayrı, yarı saydam bir pencere olarak widget'ın yanında açılır. Değişiklikler anında uygulanır ve otomatik kaydedilir.
+Settings ayrı, yarı saydam bir pencere olarak widget'ın yanında açılır. Değişiklikler anında uygulanır, otomatik kaydedilir ve kısa bir “kaydedildi” vurgusu görünür. Üstteki arama alanı yazdığınız ayarı içeren kategoriye doğrudan geçer.
 
 ### Görünüm
 
-- Pencere konumunu kilitleme
-- Her zaman üstte tutma
-- Albüm kapağına göre ambient ışık
-- Fare tekerleğiyle uygulama sesi
-- Kapatıldığında sistem tepsisine küçültme
-- Windows ile sessizce başlatma
-- Mat arka plan ve kenarlık
-- Cam yoğunluğu
-- Midnight, Prism, Clear Glass ve çalan parçanın kapağını yumuşak geçişli arka plana dönüştüren Album teması
-- Global kısayol seçimi
-
-Global kısayolu değiştirmek için **Kısayol seç** düğmesine basıp istediğiniz kombinasyonu yapın. Kombinasyonda en az bir Ctrl, Alt, Shift veya Windows tuşu bulunmalıdır. Windows kombinasyonu başka bir uygulamaya ayırmışsa mevcut kısayol korunur.
+Tema, görünüm modu, cam yoğunluğu ve Album temasının blur, yakınlaştırma ve karartma ayarları burada bulunur. Tema profilleri dışa aktarılabilir ve daha sonra yeniden içe alınabilir.
 
 ### Öğeler
 
-Albüm kapağı, ilerleme çizgisi, başlık, sanatçı, kaynak, kontroller, ses çıkışı seçicisi, tek tek medya düğmeleri, marka, kapatma düğmesi, oynatma durumu ve lyrics düğmesi ayrı ayrı gösterilip gizlenebilir. Gizlenen öğenin kapladığı alan da kapanır.
+Albüm kapağı, oynatma çizgisi, medya kontrol grubu, ses çıkışı seçicisi ve lyrics düğmesi buradan açılıp kapatılır. Widget genişliği, kapak boyutu, yazı ölçeği ve kontrol boyutu aynı kategoridedir. Şarkı adı, sanatçı ve kaynak her zaman görünür; temel kontroller tek bir anahtarla yönetilir.
 
-### Boyutlar
+### Lyrics
 
-Widget genişliği, kapak boyutu, yazı ölçeği ve kontrol boyutu burada ayarlanır. Aynı sayfada iki/üç satırlı lyrics görünümü ve lyrics zaman farkı bulunur.
+İki/üç satırlı söz görünümü, ±2 saniyelik zaman farkı ve cihaz üzerinde otomatik senkron seçeneği burada bulunur. Otomatik senkron çalışırken lyrics paneli model indirme yüzdesini, dinlenen saniyeyi, analiz/eşleştirme aşamasını ve üç denemeden hangisinin çalıştığını gösterir.
 
-### Ses
+### Sistem
 
-Seçili medya uygulaması, aktif çıkış cihazları ve uygulamanın kayıtlı çıkış tercihi gösterilir. Ana widget'taki seçici kapalı olsa bile ses yönlendirmesi bu sayfadan yönetilebilir.
+Kapatıldığında tepsiye küçültme, Windows ile sessiz başlangıç, global kısayol, uygulamaya özel ses çıkışı ve güncelleme denetimi burada bulunur. Güncelleme denetimi yalnızca GitHub Releases bilgisini okur. Yeni sürüm varsa bildirim gösterir; indirme veya kurulum başlatmaz. Release sayfası yalnızca kullanıcı düğmeye bastığında açılır.
+
+Global kısayolu değiştirmek için **Kısayol seç** düğmesine basıp istediğiniz kombinasyonu yapın. Kombinasyonda en az bir Ctrl, Alt, Shift veya Windows tuşu bulunmalıdır. Windows kombinasyonu başka bir uygulamaya ayırmışsa mevcut kısayol korunur.
 
 ## Sistem tepsisi ve kapatma
 
@@ -117,6 +108,7 @@ Mediance kullanıcı dosyalarını `%LOCALAPPDATA%\Mediance` altında tutar:
 - `widget-settings.json`: görünüm, kısayol ve pencere tercihleri;
 - `widget-settings.json.bak`: son sağlam ayar yedeği;
 - `lyrics-timing.json`: kabul edilen otomatik ve tamamlanan manuel zamanlamalar;
+- `lyrics-learning.json`: başarısız denemelerin anonim sayaçları ve birleşen geçici satır çıpaları;
 - `Models\ggml-small.bin`: ilk otomatik senkron kullanımında indirilen yerel konuşma modeli;
 - `lyrics-timing.json.bak`: son sağlam zamanlama yedeği;
 - `prototypes\acrylic.log`: içerik barındırmayan yerel hata günlüğü.

@@ -38,7 +38,7 @@ Hayır. Seçili medya uygulamasının sesi Windows process-loopback ile yakalan�
 
 ## Otomatik senkron neden vazgeçti?
 
-Şarkı duraklatılır, ileri geri sarılır veya kaynak değişirse hatalı zaman üretmemek için o yakalama iptal edilir; şarkı daha sonra baştan ve kesintisiz çaldığında yeniden denenir. Ses çözümlemesi sözlerle yeterince uyuşmazsa sonuç senkronlu diye gösterilmez ve manuel seçenek korunur.
+Şarkı duraklatılır, ileri geri sarılır veya kaynak değişirse hatalı zaman üretmemek için o yakalama iptal edilir. Sistem şarkının başına dönmeyi beklemeden mevcut konumdan en fazla 75 saniyelik örnek alabilir ve eşleşme zayıfsa ilerleyen bölümlerde üç denemeye kadar devam eder. Ses çözümlemesi sözlerle yeterince uyuşmazsa sonuç senkronlu diye gösterilmez ve manuel seçenek korunur.
 
 ## Yerel zamanlamam uygulamayı kapatınca kaybolur mu?
 

@@ -1,5 +1,8 @@
 using System.ComponentModel;
+using System.Security.Cryptography;
+using System.Text;
 using Mediance.Core.Lyrics;
+using Mediance.Lyrics;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 
@@ -14,9 +17,12 @@ public sealed record LyricsLinesChangedEventArgs(
 public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
 {
     private static readonly TimeSpan AutomaticSyncRetryDelay = TimeSpan.FromSeconds(12);
+    private static readonly TimeSpan AutomaticAttemptRetryDelay = TimeSpan.FromSeconds(5);
+    private const int MaximumAutomaticAttempts = 3;
     private readonly ILyricsService _lyrics;
     private readonly IEditableLyricsService? _editableLyrics;
     private readonly IAutomaticLyricsSynchronizer? _automaticLyrics;
+    private readonly AutomaticLyricsLearningStore? _learningStore;
     private readonly PlayerViewModel _player;
     private readonly DispatcherQueue _dispatcher;
     private readonly DispatcherQueueTimer _timer;
@@ -25,6 +31,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
     private CancellationTokenSource? _automaticCancellation;
     private LyricsDocument _document = LyricsDocument.Unavailable;
     private string? _trackIdentity;
+    private string? _lastLoggedDocumentSignature;
     private string _status = "";
     private string _previous = "";
     private string _current = "";
@@ -44,17 +51,22 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
     private bool _automaticSyncEnabled = true;
     private bool _automaticBusy;
     private string? _automaticAttemptIdentity;
+    private int _automaticAttemptCount;
+    private DateTimeOffset _automaticRetryAfterUtc;
     private AutomaticLyricsSyncStage? _automaticStage;
+    private double? _automaticFraction;
     private DateTimeOffset _automaticCaptureStartedUtc;
     private TimeSpan _automaticCaptureOffset;
     private TimeSpan _lead = TimeSpan.FromMilliseconds(500);
 
     public LyricsViewModel(ILyricsService lyrics, PlayerViewModel player, DispatcherQueue dispatcher,
-        IAutomaticLyricsSynchronizer? automaticLyrics = null)
+        IAutomaticLyricsSynchronizer? automaticLyrics = null,
+        AutomaticLyricsLearningStore? learningStore = null)
     {
         _lyrics = lyrics;
         _editableLyrics = lyrics as IEditableLyricsService;
         _automaticLyrics = automaticLyrics;
+        _learningStore = learningStore;
         _player = player;
         _dispatcher = dispatcher;
         _trackIdentity = player.TrackIdentity;
@@ -99,6 +111,26 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
     public bool IsAuthoring => _authoring;
     private bool IsFlowing => _document.Kind == LyricsKind.Synced;
     public bool IsVisible => _visible;
+    public bool AutomaticSyncActive => _automaticBusy;
+    public string AutomaticSyncStageText
+    {
+        get
+        {
+            if (!_automaticBusy) return Localization.TextCatalog.Get("LyricsSyncIdle");
+            var attempt = string.Format(Localization.TextCatalog.Get("LyricsAutoAttempt"),
+                _automaticAttemptCount, MaximumAutomaticAttempts);
+            if (_automaticStage == AutomaticLyricsSyncStage.Capturing && _automaticFraction is { } fraction)
+                return string.Format(Localization.TextCatalog.Get("LyricsAutoCaptureProgress"),
+                    Math.Min(75, (int)Math.Round(fraction * 75)), 75, attempt);
+            if (_automaticStage == AutomaticLyricsSyncStage.DownloadingModel && _automaticFraction is { } download)
+                return string.Format(Localization.TextCatalog.Get("LyricsAutoDownloadProgress"),
+                    (int)Math.Round(download * 100), attempt);
+            return $"{_status} \u00B7 {attempt}";
+        }
+    }
+    public double AutomaticSyncProgress => Math.Clamp((_automaticFraction ?? 0) * 100, 0, 100);
+    public bool AutomaticSyncIndeterminate => _automaticBusy && _automaticFraction is null;
+    public Visibility AutomaticSyncProgressVisibility => _automaticBusy ? Visibility.Visible : Visibility.Collapsed;
     public bool AutomaticSyncEnabled
     {
         get => _automaticSyncEnabled;
@@ -224,6 +256,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
     {
         if (document.Kind != LyricsKind.Plain) _automaticCancellation?.Cancel();
         _document = document;
+        LogDocumentResult(document);
         _authorLines = document.Kind == LyricsKind.Plain
             ? PlainLyricsTimeline.Clean(document.PlainText).Split('\n',
                 StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
@@ -245,14 +278,29 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
         Raise();
     }
 
+    private void LogDocumentResult(LyricsDocument document)
+    {
+        var identity = _player.TrackIdentity;
+        if (string.IsNullOrWhiteSpace(identity)) return;
+        var signature = $"{identity}|{document.Kind}|{document.IsUserTimed}";
+        if (signature == _lastLoggedDocumentSignature) return;
+        _lastLoggedDocumentSignature = signature;
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(identity)))[..12];
+        ProbeLog.Write($"LyricsLoadResult: sample={hash}, kind={document.Kind}, local={document.IsUserTimed}");
+    }
+
     private void Player_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(PlayerViewModel.EstimatedPosition) or nameof(PlayerViewModel.IsPlaying) or null)
             TryStartAutomaticSync();
         if (e.PropertyName is not null and not nameof(PlayerViewModel.TrackIdentity)) return;
         if (_trackIdentity == _player.TrackIdentity) return;
-        if (_automaticStage == AutomaticLyricsSyncStage.Capturing) _automaticCancellation?.Cancel();
+        if (_automaticBusy && _automaticStage != AutomaticLyricsSyncStage.DownloadingModel)
+            _automaticCancellation?.Cancel();
         _automaticAttemptIdentity = null;
+        _lastLoggedDocumentSignature = null;
+        _automaticAttemptCount = 0;
+        _automaticRetryAfterUtc = default;
         CancelAuthoring(false);
         _trackIdentity = _player.TrackIdentity;
         if (_visible) _ = ReloadAsync();
@@ -260,6 +308,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
     private void Timer_Tick(DispatcherQueueTimer sender, object args)
     {
         ValidateAutomaticCapture();
+        TryStartAutomaticSync();
         UpdateLines();
     }
     private void FollowTimer_Tick(DispatcherQueueTimer sender, object args)
@@ -451,17 +500,21 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
         var query = _player.LyricsQuery;
         var source = _player.SourceAppId;
         if (identity is null || query is null || string.IsNullOrWhiteSpace(source) ||
-            _automaticAttemptIdentity == identity) return;
+            _automaticAttemptIdentity == identity || _automaticAttemptCount >= MaximumAutomaticAttempts ||
+            DateTimeOffset.UtcNow < _automaticRetryAfterUtc) return;
         var position = _player.EstimatedPosition;
-        if (!_player.IsPlaying || position < TimeSpan.Zero || position > TimeSpan.FromSeconds(8))
+        TimeSpan? remaining = query.Duration is { TotalSeconds: > 0 } duration ? duration - position : null;
+        if (!_player.IsPlaying || position < TimeSpan.Zero || remaining is { TotalSeconds: < 20 })
         {
             _status = Localization.TextCatalog.Get("LyricsAutoWaiting");
             return;
         }
 
         _automaticAttemptIdentity = identity;
+        _automaticAttemptCount++;
         _automaticBusy = true;
-        _automaticStage = AutomaticLyricsSyncStage.Capturing;
+        _automaticStage = null;
+        _automaticFraction = null;
         _automaticCaptureStartedUtc = DateTimeOffset.UtcNow;
         _automaticCaptureOffset = position;
         _automaticCancellation?.Cancel();
@@ -474,9 +527,13 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
     private async Task RunAutomaticSyncAsync(
         AutomaticLyricsSyncRequest request, string identity, CancellationToken token)
     {
+        var shouldRetry = false;
         void ProgressChanged(object? sender, AutomaticLyricsSyncProgress progress)
         {
             _automaticStage = progress.Stage;
+            _automaticFraction = progress.Fraction;
+            if (progress.Stage != AutomaticLyricsSyncStage.DownloadingModel && identity != _player.TrackIdentity)
+                _automaticCancellation?.Cancel();
             _dispatcher.TryEnqueue(() =>
             {
                 if (_disposed || identity != _player.TrackIdentity || _document.Kind != LyricsKind.Plain) return;
@@ -494,53 +551,144 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
         _automaticLyrics!.ProgressChanged += ProgressChanged;
         try
         {
+            if (_learningStore is not null)
+            {
+                var learned = await _learningStore.LoadAsync(request.Query, request.PlainText, token);
+                if (learned.RetryAfterUtc is { } retryAfter && retryAfter > DateTimeOffset.UtcNow)
+                {
+                    QueueAutomaticFailureStatus(identity, true);
+                    return;
+                }
+                var learnedAlignment = AutomaticLyricsAligner.FromAnchors(
+                    request.PlainText, learned.Anchors, request.Query.Duration);
+                if (learnedAlignment.IsReliable(LineCount(request.PlainText)))
+                {
+                    await SaveAutomaticAlignmentAsync(request, identity, learnedAlignment, token);
+                    return;
+                }
+            }
             var alignment = await _automaticLyrics.SynchronizeAsync(request, token);
-            if (token.IsCancellationRequested || alignment is null) return;
-            var lineCount = PlainLyricsTimeline.Clean(request.PlainText).Split('\n',
-                StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Length;
+            if (token.IsCancellationRequested) return;
+            if (alignment is null)
+            {
+                ProbeLog.Write($"LyricsAutoSyncResult: attempt={_automaticAttemptCount}, result=empty");
+                await RecordLearningAsync(request, "empty", [], true, token);
+                shouldRetry = true;
+                QueueAutomaticFailureStatus(identity, true);
+                return;
+            }
+            var lineCount = LineCount(request.PlainText);
+            ProbeLog.Write($"LyricsAutoSyncResult: attempt={_automaticAttemptCount}, confidence={alignment.Confidence:F3}, anchors={alignment.AnchoredLines}, lines={lineCount}");
             if (!alignment.IsReliable(lineCount))
             {
-                _dispatcher.TryEnqueue(() =>
+                var learned = await RecordLearningAsync(
+                    request, "low-confidence", alignment.Anchors, true, token);
+                if (learned is not null)
                 {
-                    if (!_disposed && identity == _player.TrackIdentity && _document.Kind == LyricsKind.Plain)
+                    var combined = AutomaticLyricsAligner.FromAnchors(
+                        request.PlainText, learned.Anchors, request.Query.Duration);
+                    if (combined.IsReliable(lineCount))
                     {
-                        _status = Localization.TextCatalog.Get("LyricsAutoLowConfidence");
-                        Raise();
+                        ProbeLog.Write($"LyricsAutoSyncLearned: anchors={combined.AnchoredLines}, confidence={combined.Confidence:F3}");
+                        await SaveAutomaticAlignmentAsync(request, identity, combined, token);
+                        return;
                     }
-                });
+                }
+                shouldRetry = true;
+                QueueAutomaticFailureStatus(identity, true);
                 return;
             }
 
-            var saved = await _editableLyrics!.SaveTimingAsync(request.Query, request.PlainText,
-                alignment.LineStarts, token);
-            _dispatcher.TryEnqueue(() =>
-            {
-                if (!_disposed && identity == _player.TrackIdentity && _document.Kind == LyricsKind.Plain)
-                    ApplyDocument(saved);
-            });
+            await SaveAutomaticAlignmentAsync(request, identity, alignment, token);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception ex)
         {
-            ProbeLog.Write($"LyricsAutoSync: {ex.GetType().Name} (0x{ex.HResult:X8})");
-            _dispatcher.TryEnqueue(() =>
-            {
-                if (!_disposed && identity == _player.TrackIdentity && _document.Kind == LyricsKind.Plain)
-                {
-                    _status = Localization.TextCatalog.Get("LyricsAutoError");
-                    Raise();
-                }
-            });
+            ProbeLog.Write($"LyricsAutoSync: stage={_automaticStage?.ToString() ?? "Preparing"}, {ex.GetType().FullName} (0x{ex.HResult:X8}), message={ex.Message.Replace(Environment.NewLine, " ")}");
+            await RecordLearningAsync(request, "capture-error", [], true, CancellationToken.None);
+            shouldRetry = true;
+            QueueAutomaticFailureStatus(identity, false);
         }
         finally
         {
             _automaticLyrics.ProgressChanged -= ProgressChanged;
             _automaticStage = null;
+            _automaticFraction = null;
             _automaticBusy = false;
-            if (token.IsCancellationRequested && identity == _player.TrackIdentity)
-                _automaticAttemptIdentity = null;
-            _dispatcher.TryEnqueue(TryStartAutomaticSync);
+            if (identity == _player.TrackIdentity && _document.Kind == LyricsKind.Plain)
+            {
+                if (token.IsCancellationRequested)
+                {
+                    _automaticAttemptCount = Math.Max(0, _automaticAttemptCount - 1);
+                    _automaticRetryAfterUtc = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(1);
+                    _automaticAttemptIdentity = null;
+                }
+                else if (shouldRetry && _automaticAttemptCount < MaximumAutomaticAttempts)
+                {
+                    _automaticRetryAfterUtc = DateTimeOffset.UtcNow + AutomaticAttemptRetryDelay;
+                    _automaticAttemptIdentity = null;
+                }
+            }
+            _dispatcher.TryEnqueue(() => { Raise(); TryStartAutomaticSync(); });
         }
+    }
+
+    private static int LineCount(string plainText) =>
+        PlainLyricsTimeline.Clean(plainText).Split('\n',
+            StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Length;
+
+    private async Task SaveAutomaticAlignmentAsync(
+        AutomaticLyricsSyncRequest request,
+        string identity,
+        AutomaticLyricsAlignment alignment,
+        CancellationToken token)
+    {
+        ProbeLog.Write($"LyricsAutoSyncSaved: confidence={alignment.Confidence:F3}, anchors={alignment.AnchoredLines}, lines={alignment.LineStarts.Count}");
+        var saved = await _editableLyrics!.SaveTimingAsync(
+            request.Query, request.PlainText, alignment.LineStarts, token);
+        if (_learningStore is not null)
+        {
+            try { await _learningStore.ClearAsync(request.Query, request.PlainText, token); }
+            catch (Exception ex) { ProbeLog.Write($"LyricsLearningClear: {ex.GetType().Name}"); }
+        }
+        _dispatcher.TryEnqueue(() =>
+        {
+            if (!_disposed && identity == _player.TrackIdentity && _document.Kind == LyricsKind.Plain)
+                ApplyDocument(saved);
+        });
+    }
+
+    private async Task<AutomaticLyricsLearningSnapshot?> RecordLearningAsync(
+        AutomaticLyricsSyncRequest request,
+        string reason,
+        IReadOnlyList<AutomaticLyricsAnchor> anchors,
+        bool failed,
+        CancellationToken token)
+    {
+        if (_learningStore is null) return null;
+        try
+        {
+            return await _learningStore.RecordAsync(
+                request.Query, request.PlainText, reason, anchors, failed, token);
+        }
+        catch (Exception ex)
+        {
+            ProbeLog.Write($"LyricsLearning: {ex.GetType().Name} (0x{ex.HResult:X8})");
+            return null;
+        }
+    }
+
+    private void QueueAutomaticFailureStatus(string identity, bool lowConfidence)
+    {
+        _dispatcher.TryEnqueue(() =>
+        {
+            if (_disposed || identity != _player.TrackIdentity || _document.Kind != LyricsKind.Plain) return;
+            var willRetry = _automaticAttemptCount < MaximumAutomaticAttempts;
+            _status = Localization.TextCatalog.Get(willRetry
+                ? "LyricsAutoRetrying"
+                : lowConfidence ? "LyricsAutoLowConfidence" : "LyricsAutoError");
+            Raise();
+        });
     }
 
     private void ValidateAutomaticCapture()

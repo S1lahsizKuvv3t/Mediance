@@ -5,20 +5,21 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Windows.Graphics.Imaging;
 using Windows.Storage.Streams;
-using Windows.UI;
 
 namespace Mediance.AcrylicProbe.ViewModels;
 
 public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
 {
     private readonly IMediaSessionService _media;
-    private readonly IArtworkPaletteService _palette;
     private readonly DispatcherQueue _dispatcher;
     private readonly DispatcherQueueTimer _timelineTimer;
+    private readonly DispatcherQueueTimer _watchdogTimer;
     private readonly CancellationTokenSource _lifetime = new();
     private readonly TimelineClock _timeline = new();
     private CancellationTokenSource? _artworkCancellation;
+    private CancellationTokenSource? _albumArtworkCancellation;
     private Task? _artworkLoadTask;
     private MediaSessionInfo? _selected;
     private (string Id, TrackMetadata Track)? _artworkKey;
@@ -28,13 +29,17 @@ public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
     private DateTimeOffset _lastArtworkAttempt;
     private Task? _startTask;
     private ImageSource? _artwork;
-    private Color _ambientColor = Color.FromArgb(255, 48, 82, 116);
+    private ImageSource? _albumArtwork;
+    private ArtworkData? _artworkData;
+    private double _albumBlur;
     private string _error = "";
+    private DateTimeOffset _lastSnapshotUtc = DateTimeOffset.UtcNow;
+    private bool _watchdogBusy;
+    private int _watchdogFailures;
 
-    public PlayerViewModel(IMediaSessionService media, IArtworkPaletteService palette, DispatcherQueue dispatcher)
+    public PlayerViewModel(IMediaSessionService media, DispatcherQueue dispatcher)
     {
         _media = media;
-        _palette = palette;
         _dispatcher = dispatcher;
         _media.SnapshotChanged += OnSnapshotChanged;
         _media.Diagnostic += OnDiagnostic;
@@ -43,6 +48,11 @@ public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
         _timelineTimer.IsRepeating = true;
         _timelineTimer.Tick += TimelineTimer_Tick;
         _timelineTimer.Start();
+        _watchdogTimer = dispatcher.CreateTimer();
+        _watchdogTimer.Interval = TimeSpan.FromSeconds(8);
+        _watchdogTimer.IsRepeating = true;
+        _watchdogTimer.Tick += WatchdogTimer_Tick;
+        _watchdogTimer.Start();
     }
 
     public string Title => _selected is null ? TextCatalog.Get("IdleTitle") :
@@ -69,7 +79,7 @@ public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
         _selected.Timeline.End > _selected.Timeline.Start ? Visibility.Visible : Visibility.Collapsed;
     public string Status => _selected is null ? "" : TextCatalog.Get(_selected.Status == PlaybackStatus.Playing ? "Playing" : "Paused");
     public ImageSource? Artwork => _artwork;
-    public Color AmbientColor => _ambientColor;
+    public ImageSource? AlbumArtwork => _albumArtwork ?? _artwork;
     public string Error => _error;
     public bool CanPrevious => !_busy && _selected?.Capabilities.CanPrevious == true;
     public bool CanNext => !_busy && _selected?.Capabilities.CanNext == true;
@@ -90,8 +100,11 @@ public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
         catch (Exception ex) { ProbeLog.Write("MediaStart", ex); _error = TextCatalog.Get("MediaError"); Raise(); }
     }
 
-    private void OnSnapshotChanged(object? sender, MediaSnapshot snapshot) =>
+    private void OnSnapshotChanged(object? sender, MediaSnapshot snapshot)
+    {
+        _lastSnapshotUtc = DateTimeOffset.UtcNow;
         _dispatcher.TryEnqueue(() => { if (!_disposed) Apply(snapshot.Selected); });
+    }
     private void OnDiagnostic(object? sender, string diagnostic) => ProbeLog.Write(diagnostic);
 
     private void Apply(MediaSessionInfo? selected)
@@ -108,7 +121,11 @@ public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
             _artworkCancellation = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
             var version = ++_artworkVersion;
             _artwork = null;
-            _ambientColor = Color.FromArgb(255, 48, 82, 116);
+            _artworkData = null;
+            _albumArtwork = null;
+            _albumArtworkCancellation?.Cancel();
+            _albumArtworkCancellation?.Dispose();
+            _albumArtworkCancellation = null;
             _error = "";
             if (selected?.HasArtwork == true) StartArtworkLoad(selected.Id, version, _artworkCancellation.Token);
         }
@@ -151,14 +168,114 @@ public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
             await bitmap.SetSourceAsync(stream).AsTask(token);
             if (token.IsCancellationRequested || _disposed || version != _artworkVersion) return;
             _artwork = bitmap;
+            _artworkData = data;
             PropertyChanged?.Invoke(this, new(nameof(Artwork)));
-            var color = await _palette.ExtractAsync(data, token);
-            if (color is null || token.IsCancellationRequested || _disposed || version != _artworkVersion) return;
-            _ambientColor = Color.FromArgb(255, color.Value.Red, color.Value.Green, color.Value.Blue);
-            PropertyChanged?.Invoke(this, new(nameof(AmbientColor)));
+            StartAlbumArtworkLoad();
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception ex) { ProbeLog.Write("Artwork", ex); }
+    }
+
+    public void SetAlbumBlur(double radius)
+    {
+        radius = Math.Clamp(radius, 0, 24);
+        if (Math.Abs(_albumBlur - radius) < 0.1) return;
+        _albumBlur = radius;
+        StartAlbumArtworkLoad();
+    }
+
+    private void StartAlbumArtworkLoad()
+    {
+        var data = _artworkData;
+        if (data is null || _disposed) return;
+        _albumArtworkCancellation?.Cancel();
+        _albumArtworkCancellation?.Dispose();
+        _albumArtworkCancellation = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
+        _ = RebuildAlbumArtworkAsync(data, _artworkVersion, _albumBlur, _albumArtworkCancellation.Token);
+    }
+
+    private async Task RebuildAlbumArtworkAsync(ArtworkData data, int version, double blur, CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(100, token);
+            using var input = new InMemoryRandomAccessStream();
+            using (var writer = new DataWriter(input.GetOutputStreamAt(0)))
+            {
+                writer.WriteBytes(data.Bytes);
+                await writer.StoreAsync().AsTask(token);
+            }
+            input.Seek(0);
+            var decoder = await BitmapDecoder.CreateAsync(input).AsTask(token);
+            const uint size = 320;
+            var transform = new BitmapTransform
+            {
+                ScaledWidth = size,
+                ScaledHeight = size,
+                InterpolationMode = BitmapInterpolationMode.Fant
+            };
+            var provider = await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied,
+                transform, ExifOrientationMode.RespectExifOrientation, ColorManagementMode.ColorManageToSRgb).AsTask(token);
+            var pixels = provider.DetachPixelData();
+            var radius = (int)Math.Round(blur);
+            if (radius > 0) pixels = await Task.Run(() => BoxBlur(pixels, (int)size, (int)size, radius, token), token);
+
+            using var output = new InMemoryRandomAccessStream();
+            var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, output).AsTask(token);
+            encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied,
+                size, size, 96, 96, pixels);
+            await encoder.FlushAsync().AsTask(token);
+            output.Seek(0);
+            var bitmap = new BitmapImage { DecodePixelWidth = (int)size, DecodePixelHeight = (int)size };
+            await bitmap.SetSourceAsync(output).AsTask(token);
+            if (token.IsCancellationRequested || _disposed || version != _artworkVersion) return;
+            _albumArtwork = bitmap;
+            PropertyChanged?.Invoke(this, new(nameof(AlbumArtwork)));
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+        catch (Exception ex) { ProbeLog.Write("AlbumArtwork", ex); }
+    }
+
+    private static byte[] BoxBlur(byte[] source, int width, int height, int radius, CancellationToken token)
+    {
+        var horizontal = new byte[source.Length];
+        var result = new byte[source.Length];
+        var diameter = radius * 2 + 1;
+        for (var y = 0; y < height; y++)
+        {
+            token.ThrowIfCancellationRequested();
+            for (var channel = 0; channel < 4; channel++)
+            {
+                var sum = 0;
+                for (var offset = -radius; offset <= radius; offset++)
+                    sum += source[(y * width + Math.Clamp(offset, 0, width - 1)) * 4 + channel];
+                for (var x = 0; x < width; x++)
+                {
+                    horizontal[(y * width + x) * 4 + channel] = (byte)(sum / diameter);
+                    var remove = Math.Clamp(x - radius, 0, width - 1);
+                    var add = Math.Clamp(x + radius + 1, 0, width - 1);
+                    sum += source[(y * width + add) * 4 + channel] - source[(y * width + remove) * 4 + channel];
+                }
+            }
+        }
+        for (var x = 0; x < width; x++)
+        {
+            token.ThrowIfCancellationRequested();
+            for (var channel = 0; channel < 4; channel++)
+            {
+                var sum = 0;
+                for (var offset = -radius; offset <= radius; offset++)
+                    sum += horizontal[(Math.Clamp(offset, 0, height - 1) * width + x) * 4 + channel];
+                for (var y = 0; y < height; y++)
+                {
+                    result[(y * width + x) * 4 + channel] = (byte)(sum / diameter);
+                    var remove = Math.Clamp(y - radius, 0, height - 1);
+                    var add = Math.Clamp(y + radius + 1, 0, height - 1);
+                    sum += horizontal[(add * width + x) * 4 + channel] - horizontal[(remove * width + x) * 4 + channel];
+                }
+            }
+        }
+        return result;
     }
 
     public async Task SendAsync(MediaCommand command)
@@ -233,6 +350,37 @@ public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
         PropertyChanged?.Invoke(this, new(nameof(ProgressLabel)));
     }
 
+    private async void WatchdogTimer_Tick(DispatcherQueueTimer sender, object args)
+    {
+        if (_disposed || _watchdogBusy || _startTask is null || !_startTask.IsCompletedSuccessfully) return;
+        _watchdogBusy = true;
+        try
+        {
+            var snapshotAge = DateTimeOffset.UtcNow - _lastSnapshotUtc;
+            var reconnect = _watchdogFailures >= 2 || snapshotAge >= TimeSpan.FromSeconds(32);
+            await _media.RefreshAsync(reconnect, _lifetime.Token);
+            var native = _media.Snapshot.Selected;
+            if (!SameState(_selected, native)) Apply(native);
+            _watchdogFailures = 0;
+            _lastSnapshotUtc = DateTimeOffset.UtcNow;
+            if (reconnect) ProbeLog.Write("MediaWatchdog: GSMTC connection rebuilt.");
+        }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            _watchdogFailures++;
+            ProbeLog.Write($"MediaWatchdog: {ex.GetType().Name} (attempt {_watchdogFailures}).");
+        }
+        finally { _watchdogBusy = false; }
+    }
+
+    private static bool SameState(MediaSessionInfo? displayed, MediaSessionInfo? native) =>
+        displayed is null && native is null ||
+        displayed is not null && native is not null &&
+        string.Equals(displayed.SourceAppId, native.SourceAppId, StringComparison.OrdinalIgnoreCase) &&
+        displayed.Track == native.Track && displayed.Status == native.Status &&
+        displayed.Timeline.End == native.Timeline.End;
+
     private static string FormatTime(TimeSpan value) => value.TotalHours >= 1
         ? value.ToString(@"h\:mm\:ss")
         : value.ToString(@"m\:ss");
@@ -247,8 +395,11 @@ public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
         _media.Diagnostic -= OnDiagnostic;
         _timelineTimer.Stop();
         _timelineTimer.Tick -= TimelineTimer_Tick;
+        _watchdogTimer.Stop();
+        _watchdogTimer.Tick -= WatchdogTimer_Tick;
         await _lifetime.CancelAsync();
         _artworkCancellation?.Cancel();
+        _albumArtworkCancellation?.Cancel();
         if (_startTask is not null) await _startTask;
         if (_artworkLoadTask is not null)
         {
@@ -257,6 +408,7 @@ public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
         }
         await _media.DisposeAsync();
         _artworkCancellation?.Dispose();
+        _albumArtworkCancellation?.Dispose();
         _lifetime.Dispose();
     }
 }

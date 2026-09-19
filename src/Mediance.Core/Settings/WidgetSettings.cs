@@ -1,6 +1,7 @@
 namespace Mediance.Core.Settings;
 
 public enum ThemePreset { Midnight, Prism, ClearGlass, Album }
+public enum WidgetViewMode { Standard, Micro, CoverControls, VerticalLyrics }
 
 public sealed record SavedWindowPlacement(int X, int Y);
 
@@ -35,6 +36,10 @@ public sealed record WidgetSettings
     public bool EnableAutomaticLyricsSync { get; init; } = true;
     public bool StartWithWindows { get; init; }
     public ThemePreset Theme { get; init; } = ThemePreset.Midnight;
+    public WidgetViewMode ViewMode { get; init; } = WidgetViewMode.Standard;
+    public double AlbumBlur { get; init; }
+    public double AlbumZoom { get; init; } = 106;
+    public double AlbumDarkness { get; init; } = 54;
     public bool ShowAudioOutput { get; init; } = true;
     public int? WindowX { get; init; }
     public int? WindowY { get; init; }
@@ -55,6 +60,13 @@ public sealed record WidgetSettings
         if (!shortcut.IsValid) shortcut = HotkeyGesture.Default;
         return this with
         {
+            SolidBackground = false,
+            EnableAmbientGlow = false,
+            EnableWheelVolume = true,
+            ShowBorder = true,
+            ShowTitle = true,
+            ShowArtist = true,
+            ShowSource = true,
             GlassIntensity = FiniteClamp(GlassIntensity, 10, 95, 55),
             WindowWidth = FiniteClamp(WindowWidth, 420, 720, 520),
             ArtworkSize = FiniteClamp(ArtworkSize, 48, 120, 84),
@@ -63,6 +75,10 @@ public sealed record WidgetSettings
             LyricsLeadMilliseconds = FiniteClamp(LyricsLeadMilliseconds, -2000, 2000, 500),
             LyricsLineCount = LyricsLineCount == 2 ? 2 : 3,
             Theme = Enum.IsDefined(Theme) ? Theme : ThemePreset.Midnight,
+            ViewMode = Enum.IsDefined(ViewMode) ? ViewMode : WidgetViewMode.Standard,
+            AlbumBlur = FiniteClamp(AlbumBlur, 0, 24, 0),
+            AlbumZoom = FiniteClamp(AlbumZoom, 100, 140, 106),
+            AlbumDarkness = FiniteClamp(AlbumDarkness, 0, 90, 54),
             MonitorPlacements = MonitorPlacements ?? EmptyMonitorPlacements,
             ShortcutModifiers = shortcut.Modifiers,
             ShortcutVirtualKey = shortcut.VirtualKey

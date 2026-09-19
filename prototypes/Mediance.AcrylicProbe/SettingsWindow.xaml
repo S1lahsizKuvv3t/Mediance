@@ -11,12 +11,17 @@
                     <Grid MinHeight="43" ColumnSpacing="12">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <TextBlock Text="{x:Bind Label}" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap" />
-                        <ToggleSwitch Grid.Column="1" MinWidth="0" OnContent="" OffContent="" IsOn="{x:Bind IsOn, Mode=TwoWay}" IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
-                                      AutomationProperties.Name="{x:Bind Label}" />
+                        <ToggleSwitch Grid.Column="1" MinWidth="0" OnContent="" OffContent="" IsOn="{x:Bind IsOn, Mode=TwoWay}" IsEnabled="{x:Bind IsEnabled, Mode=OneWay}" AutomationProperties.Name="{x:Bind Label}" />
                     </Grid>
                 </DataTemplate>
             </Grid.Resources>
-            <Grid.RowDefinitions><RowDefinition Height="32" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="32" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="32" /></Grid.ColumnDefinitions>
                 <Grid x:Name="DragRegion" Background="Transparent" ToolTipService.ToolTip="{x:Bind local:TextCatalog.DragHint}">
@@ -27,104 +32,126 @@
                     <FontIcon Glyph="&#xE8BB;" FontSize="11" />
                 </Button>
             </Grid>
-            <Pivot x:Name="Pages" Grid.Row="1" Margin="-12,0,-12,0">
+            <StackPanel Grid.Row="1" Spacing="4">
+                <TextBox x:Name="SearchBox" PlaceholderText="{x:Bind local:TextCatalog.SettingsSearch}"
+                         TextChanged="SearchBox_TextChanged" FontSize="12" />
+                <TextBlock x:Name="SearchHint" FontSize="10" Opacity="0.55" TextWrapping="Wrap" />
+            </StackPanel>
+            <Pivot x:Name="Pages" Grid.Row="2" Margin="-12,0,-12,0">
                 <PivotItem>
-                    <PivotItem.Header><TextBlock Text="{x:Bind local:TextCatalog.Appearance}" FontSize="17" /></PivotItem.Header>
+                    <PivotItem.Header><TextBlock Text="{x:Bind local:TextCatalog.Appearance}" FontSize="15" /></PivotItem.Header>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <StackPanel Spacing="16" Padding="0,8,8,0">
-                            <ItemsControl ItemsSource="{x:Bind Settings.WindowOptions}" ItemTemplate="{StaticResource ToggleRow}" />
-                            <Border Height="1" Background="#22FFFFFF" />
+                        <StackPanel Spacing="14" Padding="0,8,8,0">
                             <StackPanel Spacing="8">
                                 <TextBlock Text="{x:Bind local:TextCatalog.Theme}" FontSize="13" FontWeight="SemiBold" />
-                                <ComboBox ItemsSource="{x:Bind Settings.ThemeOptions}" DisplayMemberPath="Label"
-                                          SelectedItem="{x:Bind Settings.SelectedTheme, Mode=TwoWay}" HorizontalAlignment="Stretch" />
-                                <ToggleSwitch Header="{x:Bind local:TextCatalog.StartWithWindows}" OnContent="" OffContent=""
-                                              IsOn="{x:Bind Settings.StartWithWindows, Mode=TwoWay}" />
+                                <ComboBox ItemsSource="{x:Bind Settings.ThemeOptions}" DisplayMemberPath="Label" SelectedItem="{x:Bind Settings.SelectedTheme, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+                                <TextBlock Text="{x:Bind local:TextCatalog.ViewMode}" FontSize="13" FontWeight="SemiBold" />
+                                <ComboBox ItemsSource="{x:Bind Settings.ViewModeOptions}" DisplayMemberPath="Label" SelectedItem="{x:Bind Settings.SelectedViewMode, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+                                <TextBlock Text="{x:Bind local:TextCatalog.ViewModeHint}" FontSize="11" Opacity="0.62" TextWrapping="Wrap" />
                             </StackPanel>
+                            <StackPanel Spacing="5">
+                                <Grid><TextBlock Text="{x:Bind local:TextCatalog.GlassStrength}" FontSize="13" /><TextBlock Text="{x:Bind Settings.GlassValue, Mode=OneWay}" HorizontalAlignment="Right" FontSize="11" Opacity="0.62" /></Grid>
+                                <Slider Minimum="10" Maximum="95" Value="{x:Bind Settings.GlassIntensity, Mode=TwoWay}" StepFrequency="1" />
+                            </StackPanel>
+                            <Border Background="#0CFFFFFF" BorderBrush="#18FFFFFF" BorderThickness="1" CornerRadius="10" Padding="13,10">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="{x:Bind local:TextCatalog.AlbumBackground}" FontSize="13" FontWeight="SemiBold" />
+                                    <StackPanel><Grid><TextBlock Text="{x:Bind local:TextCatalog.AlbumBlur}" /><TextBlock Text="{x:Bind Settings.AlbumBlurValue, Mode=OneWay}" HorizontalAlignment="Right" Opacity="0.62" /></Grid><Slider Minimum="0" Maximum="24" Value="{x:Bind Settings.AlbumBlur, Mode=TwoWay}" IsEnabled="{x:Bind Settings.AlbumControlsEnabled, Mode=OneWay}" /></StackPanel>
+                                    <StackPanel><Grid><TextBlock Text="{x:Bind local:TextCatalog.AlbumZoom}" /><TextBlock Text="{x:Bind Settings.AlbumZoomValue, Mode=OneWay}" HorizontalAlignment="Right" Opacity="0.62" /></Grid><Slider Minimum="100" Maximum="140" Value="{x:Bind Settings.AlbumZoom, Mode=TwoWay}" IsEnabled="{x:Bind Settings.AlbumControlsEnabled, Mode=OneWay}" /></StackPanel>
+                                    <StackPanel><Grid><TextBlock Text="{x:Bind local:TextCatalog.AlbumDarkness}" /><TextBlock Text="{x:Bind Settings.AlbumDarknessValue, Mode=OneWay}" HorizontalAlignment="Right" Opacity="0.62" /></Grid><Slider Minimum="0" Maximum="90" Value="{x:Bind Settings.AlbumDarkness, Mode=TwoWay}" IsEnabled="{x:Bind Settings.AlbumControlsEnabled, Mode=OneWay}" /></StackPanel>
+                                </StackPanel>
+                            </Border>
+                            <StackPanel Spacing="7">
+                                <TextBlock Text="{x:Bind local:TextCatalog.ThemeProfiles}" FontWeight="SemiBold" />
+                                <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                    <Button Content="{x:Bind local:TextCatalog.ExportTheme}" HorizontalAlignment="Stretch" Click="ExportTheme_Click" />
+                                    <Button Grid.Column="1" Content="{x:Bind local:TextCatalog.ImportTheme}" HorizontalAlignment="Stretch" Click="ImportTheme_Click" />
+                                </Grid>
+                                <TextBlock Text="{x:Bind Settings.ThemeTransferStatus, Mode=OneWay}" FontSize="11" Opacity="0.62" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </PivotItem>
+                <PivotItem>
+                    <PivotItem.Header><TextBlock Text="{x:Bind local:TextCatalog.Elements}" FontSize="15" /></PivotItem.Header>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Spacing="10" Padding="0,8,8,0">
+                            <Border Background="#0CFFFFFF" BorderBrush="#18FFFFFF" BorderThickness="1" CornerRadius="10" Padding="13,9"><StackPanel>
+                                <TextBlock Text="{x:Bind local:TextCatalog.ElementsContent}" FontWeight="SemiBold" /><TextBlock Text="{x:Bind local:TextCatalog.ElementsContentHint}" FontSize="11" Opacity="0.58" TextWrapping="Wrap" />
+                                <ItemsControl ItemsSource="{x:Bind Settings.ContentOptions}" ItemTemplate="{StaticResource ToggleRow}" />
+                            </StackPanel></Border>
+                            <Border Background="#0CFFFFFF" BorderBrush="#18FFFFFF" BorderThickness="1" CornerRadius="10" Padding="13,9"><StackPanel>
+                                <TextBlock Text="{x:Bind local:TextCatalog.ElementsControls}" FontWeight="SemiBold" /><ItemsControl ItemsSource="{x:Bind Settings.ControlOptions}" ItemTemplate="{StaticResource ToggleRow}" />
+                            </StackPanel></Border>
+                            <Border Background="#0CFFFFFF" BorderBrush="#18FFFFFF" BorderThickness="1" CornerRadius="10" Padding="13,9"><StackPanel>
+                                <TextBlock Text="{x:Bind local:TextCatalog.ElementsUtilities}" FontWeight="SemiBold" /><ItemsControl ItemsSource="{x:Bind Settings.UtilityOptions}" ItemTemplate="{StaticResource ToggleRow}" />
+                            </StackPanel></Border>
+                            <StackPanel><Grid><TextBlock Text="{x:Bind local:TextCatalog.WindowWidth}" /><TextBlock Text="{x:Bind Settings.WidthValue, Mode=OneWay}" HorizontalAlignment="Right" Opacity="0.62" /></Grid><Slider Minimum="420" Maximum="720" StepFrequency="10" Value="{x:Bind Settings.WindowWidth, Mode=TwoWay}" /></StackPanel>
+                            <StackPanel><Grid><TextBlock Text="{x:Bind local:TextCatalog.ArtworkSize}" /><TextBlock Text="{x:Bind Settings.ArtworkValue, Mode=OneWay}" HorizontalAlignment="Right" Opacity="0.62" /></Grid><Slider Minimum="64" Maximum="132" StepFrequency="4" Value="{x:Bind Settings.ArtworkSize, Mode=TwoWay}" /></StackPanel>
+                            <StackPanel><Grid><TextBlock Text="{x:Bind local:TextCatalog.TextSize}" /><TextBlock Text="{x:Bind Settings.TextValue, Mode=OneWay}" HorizontalAlignment="Right" Opacity="0.62" /></Grid><Slider Minimum="80" Maximum="130" StepFrequency="5" Value="{x:Bind Settings.TextScale, Mode=TwoWay}" /></StackPanel>
+                            <StackPanel><Grid><TextBlock Text="{x:Bind local:TextCatalog.ControlSize}" /><TextBlock Text="{x:Bind Settings.ControlValue, Mode=OneWay}" HorizontalAlignment="Right" Opacity="0.62" /></Grid><Slider Minimum="36" Maximum="72" StepFrequency="4" Value="{x:Bind Settings.ControlSize, Mode=TwoWay}" /></StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </PivotItem>
+                <PivotItem>
+                    <PivotItem.Header><TextBlock Text="{x:Bind local:TextCatalog.LyricsCategory}" FontSize="15" /></PivotItem.Header>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Spacing="16" Padding="0,10,8,0">
+                            <StackPanel><Grid><TextBlock Text="{x:Bind local:TextCatalog.LyricsTiming}" /><TextBlock Text="{x:Bind Settings.LyricsTimingValue, Mode=OneWay}" HorizontalAlignment="Right" Opacity="0.62" /></Grid><Slider Minimum="-2000" Maximum="2000" StepFrequency="100" Value="{x:Bind Settings.LyricsLeadMilliseconds, Mode=TwoWay}" /></StackPanel>
+                            <StackPanel Spacing="6"><TextBlock Text="{x:Bind local:TextCatalog.LyricsLayout}" /><ComboBox ItemsSource="{x:Bind Settings.LyricsLineOptions}" DisplayMemberPath="Label" SelectedItem="{x:Bind Settings.SelectedLyricsLineOption, Mode=TwoWay}" HorizontalAlignment="Stretch" /></StackPanel>
+                            <Border Background="#0CFFFFFF" BorderBrush="#18FFFFFF" BorderThickness="1" CornerRadius="10" Padding="13,11"><StackPanel Spacing="6">
+                                <ToggleSwitch Header="{x:Bind local:TextCatalog.AutomaticLyricsSync}" OnContent="" OffContent="" IsOn="{x:Bind Settings.EnableAutomaticLyricsSync, Mode=TwoWay}" />
+                                <TextBlock Text="{x:Bind local:TextCatalog.AutomaticLyricsSyncHint}" FontSize="11" Opacity="0.62" TextWrapping="Wrap" />
+                            </StackPanel></Border>
+                            <Border Background="#0CFFFFFF" BorderBrush="#18FFFFFF" BorderThickness="1" CornerRadius="10" Padding="13,11"><StackPanel Spacing="7">
+                                <TextBlock Text="{x:Bind local:TextCatalog.LocalTimings}" FontWeight="SemiBold" />
+                                <TextBlock Text="{x:Bind local:TextCatalog.LocalTimingsHint}" FontSize="11" Opacity="0.6" TextWrapping="Wrap" />
+                                <ListView ItemsSource="{x:Bind LocalTimings.Entries, Mode=OneWay}" DisplayMemberPath="Label"
+                                          SelectedItem="{x:Bind LocalTimings.Selected, Mode=TwoWay}" MaxHeight="105" />
+                                <Grid>
+                                    <TextBlock Text="{x:Bind LocalTimings.Status, Mode=OneWay}" FontSize="10" Opacity="0.6" VerticalAlignment="Center" TextWrapping="Wrap" />
+                                    <Button Content="{x:Bind local:TextCatalog.DeleteTiming}" HorizontalAlignment="Right"
+                                            IsEnabled="{x:Bind LocalTimings.CanDelete, Mode=OneWay}" Click="DeleteTiming_Click" />
+                                </Grid>
+                            </StackPanel></Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </PivotItem>
+                <PivotItem>
+                    <PivotItem.Header><TextBlock Text="{x:Bind local:TextCatalog.SystemCategory}" FontSize="15" /></PivotItem.Header>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Spacing="15" Padding="0,9,8,0">
+                            <ItemsControl ItemsSource="{x:Bind Settings.WindowOptions}" ItemTemplate="{StaticResource ToggleRow}" />
+                            <ToggleSwitch Header="{x:Bind local:TextCatalog.StartWithWindows}" OnContent="" OffContent="" IsOn="{x:Bind Settings.StartWithWindows, Mode=TwoWay}" />
                             <Border Height="1" Background="#22FFFFFF" />
-                            <StackPanel Spacing="8">
-                                <TextBlock Text="{x:Bind local:TextCatalog.GlobalShortcut}" FontSize="13" FontWeight="SemiBold" />
-                                <TextBlock Text="{x:Bind Hotkey.ShortcutText, Mode=OneWay}" FontSize="16" />
-                                <Button x:Name="SelectShortcutButton" Content="{x:Bind Hotkey.SelectButtonText, Mode=OneWay}"
-                                        Click="SelectShortcut_Click" HorizontalAlignment="Left"
-                                        AutomationProperties.Name="{x:Bind local:TextCatalog.SelectShortcut}" />
+                            <StackPanel Spacing="7">
+                                <TextBlock Text="{x:Bind local:TextCatalog.GlobalShortcut}" FontWeight="SemiBold" /><TextBlock Text="{x:Bind Hotkey.ShortcutText, Mode=OneWay}" FontSize="16" />
+                                <Button x:Name="SelectShortcutButton" Content="{x:Bind Hotkey.SelectButtonText, Mode=OneWay}" Click="SelectShortcut_Click" HorizontalAlignment="Left" />
                                 <TextBlock Text="{x:Bind Hotkey.Status, Mode=OneWay}" FontSize="11" Opacity="0.7" TextWrapping="Wrap" />
                             </StackPanel>
                             <Border Height="1" Background="#22FFFFFF" />
-                            <StackPanel Spacing="6">
-                                <Grid>
-                                    <TextBlock Text="{x:Bind local:TextCatalog.GlassStrength}" FontSize="13" />
-                                    <TextBlock Text="{x:Bind Settings.GlassValue, Mode=OneWay}" FontSize="12" Opacity="0.65" HorizontalAlignment="Right" />
-                                </Grid>
-                                <Slider Minimum="10" Maximum="95" Value="{x:Bind Settings.GlassIntensity, Mode=TwoWay}" StepFrequency="1" IsEnabled="{x:Bind Settings.GlassEnabled, Mode=OneWay}"
-                                        AutomationProperties.Name="{x:Bind local:TextCatalog.GlassStrength}" />
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="{x:Bind local:TextCatalog.Audio}" FontWeight="SemiBold" /><TextBlock Text="{x:Bind Routing.ApplicationName, Mode=OneWay}" FontSize="16" />
+                                <ComboBox ItemsSource="{x:Bind Routing.Choices, Mode=OneWay}" DisplayMemberPath="Name" SelectedItem="{x:Bind Routing.SelectedChoice, Mode=TwoWay}" IsEnabled="{x:Bind Routing.CanSelect, Mode=OneWay}" HorizontalAlignment="Stretch" />
+                                <Grid><Button Content="{x:Bind local:TextCatalog.Refresh}" Click="RefreshAudio_Click" /><ProgressRing IsActive="{x:Bind Routing.IsBusy, Mode=OneWay}" Width="20" Height="20" HorizontalAlignment="Right" /></Grid>
+                                <TextBlock Text="{x:Bind Routing.Hint, Mode=OneWay}" FontSize="11" Opacity="0.62" TextWrapping="Wrap" />
                             </StackPanel>
-                            <TextBlock Text="{x:Bind local:TextCatalog.DensityHint}" FontSize="12" Opacity="0.65" TextWrapping="Wrap" />
-                        </StackPanel>
-                    </ScrollViewer>
-                </PivotItem>
-                <PivotItem>
-                    <PivotItem.Header><TextBlock Text="{x:Bind local:TextCatalog.Elements}" FontSize="17" /></PivotItem.Header>
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <ItemsControl Padding="0,4,8,0" ItemsSource="{x:Bind Settings.VisibilityOptions}" ItemTemplate="{StaticResource ToggleRow}" />
-                    </ScrollViewer>
-                </PivotItem>
-                <PivotItem>
-                    <PivotItem.Header><TextBlock Text="{x:Bind local:TextCatalog.Sizes}" FontSize="17" /></PivotItem.Header>
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <StackPanel Spacing="14" Padding="0,8,8,0">
-                            <StackPanel><Grid><TextBlock Text="{x:Bind local:TextCatalog.WindowWidth}" FontSize="13" /><TextBlock Text="{x:Bind Settings.WidthValue, Mode=OneWay}" HorizontalAlignment="Right" FontSize="12" Opacity="0.65" /></Grid>
-                                <Slider Minimum="420" Maximum="720" StepFrequency="10" Value="{x:Bind Settings.WindowWidth, Mode=TwoWay}" AutomationProperties.Name="{x:Bind local:TextCatalog.WindowWidth}" />
-                            </StackPanel>
-                            <StackPanel><Grid><TextBlock Text="{x:Bind local:TextCatalog.ArtworkSize}" FontSize="13" /><TextBlock Text="{x:Bind Settings.ArtworkValue, Mode=OneWay}" HorizontalAlignment="Right" FontSize="12" Opacity="0.65" /></Grid>
-                                <Slider Minimum="48" Maximum="120" StepFrequency="4" Value="{x:Bind Settings.ArtworkSize, Mode=TwoWay}" IsEnabled="{x:Bind Settings.ShowArtwork, Mode=OneWay}" AutomationProperties.Name="{x:Bind local:TextCatalog.ArtworkSize}" />
-                            </StackPanel>
-                            <StackPanel><Grid><TextBlock Text="{x:Bind local:TextCatalog.TextSize}" FontSize="13" /><TextBlock Text="{x:Bind Settings.TextValue, Mode=OneWay}" HorizontalAlignment="Right" FontSize="12" Opacity="0.65" /></Grid>
-                                <Slider Minimum="80" Maximum="140" StepFrequency="5" Value="{x:Bind Settings.TextScale, Mode=TwoWay}" AutomationProperties.Name="{x:Bind local:TextCatalog.TextSize}" />
-                            </StackPanel>
-                            <StackPanel><Grid><TextBlock Text="{x:Bind local:TextCatalog.ControlSize}" FontSize="13" /><TextBlock Text="{x:Bind Settings.ControlValue, Mode=OneWay}" HorizontalAlignment="Right" FontSize="12" Opacity="0.65" /></Grid>
-                                <Slider Minimum="36" Maximum="72" StepFrequency="4" Value="{x:Bind Settings.ControlSize, Mode=TwoWay}" IsEnabled="{x:Bind Settings.ShowControls, Mode=OneWay}" AutomationProperties.Name="{x:Bind local:TextCatalog.ControlSize}" />
-                            </StackPanel>
-                            <StackPanel><Grid><TextBlock Text="{x:Bind local:TextCatalog.LyricsTiming}" FontSize="13" /><TextBlock Text="{x:Bind Settings.LyricsTimingValue, Mode=OneWay}" HorizontalAlignment="Right" FontSize="12" Opacity="0.65" /></Grid>
-                                <Slider Minimum="-2000" Maximum="2000" StepFrequency="100" Value="{x:Bind Settings.LyricsLeadMilliseconds, Mode=TwoWay}" AutomationProperties.Name="{x:Bind local:TextCatalog.LyricsTiming}" />
-                            </StackPanel>
-                            <StackPanel Spacing="6">
-                                <TextBlock Text="{x:Bind local:TextCatalog.LyricsLayout}" FontSize="13" />
-                                <ComboBox ItemsSource="{x:Bind Settings.LyricsLineOptions}" DisplayMemberPath="Label"
-                                          SelectedItem="{x:Bind Settings.SelectedLyricsLineOption, Mode=TwoWay}" HorizontalAlignment="Stretch" />
-                            </StackPanel>
-                            <StackPanel Spacing="5">
-                                <ToggleSwitch Header="{x:Bind local:TextCatalog.AutomaticLyricsSync}" OnContent="" OffContent=""
-                                              IsOn="{x:Bind Settings.EnableAutomaticLyricsSync, Mode=TwoWay}" />
-                                <TextBlock Text="{x:Bind local:TextCatalog.AutomaticLyricsSyncHint}" FontSize="11" Opacity="0.62" TextWrapping="Wrap" />
+                            <Border Height="1" Background="#22FFFFFF" />
+                            <StackPanel Spacing="7">
+                                <Grid><TextBlock Text="{x:Bind local:TextCatalog.UpdateChecker}" FontWeight="SemiBold" /><Ellipse Grid.Column="1" Width="7" Height="7" Fill="#FF46C8FF" HorizontalAlignment="Right" Visibility="{x:Bind Update.UpdateVisibility, Mode=OneWay}" /></Grid>
+                                <TextBlock Text="{x:Bind Update.Status, Mode=OneWay}" FontSize="11" Opacity="0.68" TextWrapping="Wrap" />
+                                <Button Content="{x:Bind Update.ActionLabel, Mode=OneWay}" Click="Update_Click" IsEnabled="{x:Bind Update.CanAct, Mode=OneWay}" HorizontalAlignment="Left" />
                             </StackPanel>
                         </StackPanel>
                     </ScrollViewer>
-                </PivotItem>
-                <PivotItem>
-                    <PivotItem.Header><TextBlock Text="{x:Bind local:TextCatalog.Audio}" FontSize="17" /></PivotItem.Header>
-                    <StackPanel Spacing="14" Padding="0,12,8,0">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="{x:Bind Routing.ApplicationName, Mode=OneWay}" FontSize="18" FontWeight="SemiBold" />
-                            <TextBlock Text="{x:Bind local:TextCatalog.AudioOutput}" FontSize="12" Opacity="0.65" />
-                        </StackPanel>
-                        <ComboBox ItemsSource="{x:Bind Routing.Choices, Mode=OneWay}" DisplayMemberPath="Name"
-                                  SelectedItem="{x:Bind Routing.SelectedChoice, Mode=TwoWay}"
-                                  IsEnabled="{x:Bind Routing.CanSelect, Mode=OneWay}" HorizontalAlignment="Stretch"
-                                  AutomationProperties.Name="{x:Bind local:TextCatalog.AudioOutput}" />
-                        <Grid>
-                            <Button Content="{x:Bind local:TextCatalog.Refresh}" Click="RefreshAudio_Click" FontSize="12" />
-                            <ProgressRing IsActive="{x:Bind Routing.IsBusy, Mode=OneWay}" Width="20" Height="20" HorizontalAlignment="Right" />
-                        </Grid>
-                        <TextBlock Text="{x:Bind Routing.Hint, Mode=OneWay}" FontSize="12" Opacity="0.65" TextWrapping="Wrap" />
-                        <TextBlock Text="{x:Bind Routing.Error, Mode=OneWay}" FontSize="11" Foreground="#FFFFCC99" TextWrapping="Wrap" />
-                    </StackPanel>
                 </PivotItem>
             </Pivot>
-            <TextBlock Grid.Row="2" Text="{x:Bind Settings.Error, Mode=OneWay}" Foreground="#FFFFCC99" FontSize="11" TextWrapping="Wrap" />
-            <Grid Grid.Row="3">
+            <TextBlock Grid.Row="3" Text="{x:Bind Settings.Error, Mode=OneWay}" Foreground="#FFFFCC99" FontSize="11" TextWrapping="Wrap" />
+            <Grid Grid.Row="4">
                 <Button Content="{x:Bind local:TextCatalog.Reset}" Click="Reset_Click" FontSize="12" />
-                <TextBlock Text="{x:Bind local:TextCatalog.AutoSave}" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="10" Opacity="0.5" />
+                <Border x:Name="SavePulse" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="7,3" CornerRadius="7" Background="#1646C8FF" Opacity="0">
+                    <TextBlock Text="{x:Bind local:TextCatalog.AutoSave}" FontSize="10" />
+                </Border>
             </Grid>
         </Grid>
     </Border>

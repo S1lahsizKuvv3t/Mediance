@@ -11,7 +11,6 @@ public static class TextCatalog
     public static string Close => Get("Close");
     public static string DragHint => Get("DragHint");
     public static string Topmost => Get("Topmost");
-    public static string Solid => Get("Solid");
     public static string GlassStrength => Get("GlassStrength");
     public static string Previous => Get("Previous");
     public static string Next => Get("Next");
@@ -38,6 +37,21 @@ public static class TextCatalog
     public static string Refresh => Get("Refresh");
     public static string PlaybackProgress => Get("PlaybackProgress");
     public static string Theme => Get("Theme");
+    public static string ViewMode => Get("ViewMode");
+    public static string ViewModeHint => Get("ViewModeHint");
+    public static string AlbumBackground => Get("AlbumBackground");
+    public static string AlbumBlur => Get("AlbumBlur");
+    public static string AlbumZoom => Get("AlbumZoom");
+    public static string AlbumDarkness => Get("AlbumDarkness");
+    public static string ThemeProfiles => Get("ThemeProfiles");
+    public static string ExportTheme => Get("ExportTheme");
+    public static string ImportTheme => Get("ImportTheme");
+    public static string ElementsContent => Get("ElementsContent");
+    public static string ElementsContentHint => Get("ElementsContentHint");
+    public static string ElementsControls => Get("ElementsControls");
+    public static string ElementsControlsHint => Get("ElementsControlsHint");
+    public static string ElementsUtilities => Get("ElementsUtilities");
+    public static string ElementsUtilitiesHint => Get("ElementsUtilitiesHint");
     public static string StartWithWindows => Get("StartWithWindows");
     public static string LyricsLayout => Get("LyricsLayout");
     public static string AutomaticLyricsSync => Get("AutomaticLyricsSync");
@@ -45,4 +59,12 @@ public static class TextCatalog
     public static string LyricsManualRestart => Get("LyricsManualRestart");
     public static string LyricsManualCancel => Get("LyricsManualCancel");
     public static string LyricsManualRedo => Get("LyricsManualRedo");
+    public static string EnterMicroMode => Get("EnterMicroMode");
+    public static string SettingsSearch => Get("SettingsSearch");
+    public static string LyricsCategory => Get("LyricsCategory");
+    public static string SystemCategory => Get("SystemCategory");
+    public static string UpdateChecker => Get("UpdateChecker");
+    public static string LocalTimings => Get("LocalTimings");
+    public static string LocalTimingsHint => Get("LocalTimingsHint");
+    public static string DeleteTiming => Get("DeleteTiming");
 }

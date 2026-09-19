@@ -6,6 +6,11 @@ using Mediance.Core.Lyrics;
 
 namespace Mediance.Lyrics;
 
+public sealed record LocalLyricsTimingSummary(
+    string Id,
+    int LineCount,
+    DateTimeOffset UpdatedUtc);
+
 public sealed class LocalLyricsTimingStore(string path)
 {
     private const int Version = 2;
@@ -58,17 +63,64 @@ public sealed class LocalLyricsTimingStore(string path)
             data.Entries = data.Entries.OrderByDescending(entry => entry.UpdatedUtc)
                 .Take(MaximumEntries).ToList();
 
-            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
-            await File.WriteAllTextAsync(temporary, JsonSerializer.Serialize(data, Options), token);
-            token.ThrowIfCancellationRequested();
-            if (File.Exists(path)) File.Replace(temporary, path, path + ".bak");
-            else File.Move(temporary, path);
+            await WriteAsync(data, temporary, token);
         }
         finally
         {
             try { if (File.Exists(temporary)) File.Delete(temporary); }
             finally { _gate.Release(); }
         }
+    }
+
+    public async Task<IReadOnlyList<LocalLyricsTimingSummary>> ListAsync(CancellationToken token = default)
+    {
+        await _gate.WaitAsync(token);
+        try
+        {
+            var data = await ReadAsync(token);
+            return data.Entries
+                .OrderByDescending(entry => entry.UpdatedUtc)
+                .Select(entry => new LocalLyricsTimingSummary(
+                    EntryId(entry), entry.TimingsMilliseconds.Length, entry.UpdatedUtc))
+                .ToArray();
+        }
+        finally { _gate.Release(); }
+    }
+
+    public async Task<bool> DeleteAsync(string id, CancellationToken token = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        await _gate.WaitAsync(token);
+        var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            var data = await ReadAsync(token);
+            var removed = data.Entries.RemoveAll(entry => EntryId(entry) == id) > 0;
+            if (removed)
+            {
+                await WriteAsync(data, temporary, token);
+                // A deletion is a privacy action. Keep recovery data in the same
+                // post-delete state so a later malformed primary cannot resurrect it.
+                File.Copy(path, path + ".bak", true);
+            }
+            return removed;
+        }
+        finally
+        {
+            try { if (File.Exists(temporary)) File.Delete(temporary); }
+            finally { _gate.Release(); }
+        }
+    }
+
+    private static string EntryId(TimingEntry entry) => $"{entry.TrackKey}:{entry.LyricsKey}";
+
+    private async Task WriteAsync(TimingFile data, string temporary, CancellationToken token)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
+        await File.WriteAllTextAsync(temporary, JsonSerializer.Serialize(data, Options), token);
+        token.ThrowIfCancellationRequested();
+        if (File.Exists(path)) File.Replace(temporary, path, path + ".bak");
+        else File.Move(temporary, path);
     }
 
     private async Task<TimingFile> ReadAsync(CancellationToken token)

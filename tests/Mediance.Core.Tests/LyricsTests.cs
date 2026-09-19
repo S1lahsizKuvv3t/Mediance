@@ -97,6 +97,28 @@ public sealed class LyricsTests
     }
 
     [Fact]
+    public void AutomaticAlignmentAcceptsAReliableMidSongCapture()
+    {
+        const string lyrics = "Birinci satır burada\nİkinci satır burada\nÜçüncü satır burada\n" +
+            "Gecenin içinde yürüyorum\nSesini uzaktan duyuyorum\nSabaha kadar buradayım\n" +
+            "Yedinci satır burada\nSekizinci satır burada\nDokuzuncu satır burada\nOnuncu satır burada";
+        TimedSpeechSegment[] transcript =
+        [
+            new(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(4), "gecenin içinde yürüyorum"),
+            new(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(8), "sesini uzaktan duyuyorum"),
+            new(TimeSpan.FromSeconds(9), TimeSpan.FromSeconds(12), "sabaha kadar buradayım")
+        ];
+
+        var result = AutomaticLyricsAligner.Align(lyrics, transcript, TimeSpan.FromSeconds(42),
+            TimeSpan.FromSeconds(120));
+
+        Assert.True(result.IsReliable(10));
+        Assert.Equal(3, result.AnchoredLines);
+        Assert.InRange(result.LineStarts[3].TotalSeconds, 42, 45);
+        Assert.True(result.LineStarts.SequenceEqual(result.LineStarts.Order()));
+    }
+
+    [Fact]
     public async Task ManualTimingPersistsWithoutWritingTrackOrLyricText()
     {
         var directory = Path.Combine(Path.GetTempPath(), "Mediance-lyrics-" + Guid.NewGuid().ToString("N"));
@@ -123,6 +145,35 @@ public sealed class LyricsTests
             Assert.DoesNotContain("Private Track", json, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("Private Artist", json, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("Secret first line", json, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
+    }
+
+    [Fact]
+    public async Task LocalTimingsCanBeListedAndDeletedWithoutExposingTrackText()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "Mediance-lyrics-" + Guid.NewGuid().ToString("N"));
+        var path = Path.Combine(directory, "lyrics-timing.json");
+        var query = new LyricsQuery("Private Track", "Private Artist", null, TimeSpan.FromSeconds(60));
+        try
+        {
+            var store = new LocalLyricsTimingStore(path);
+            await store.SaveAsync(query, "First\nSecond", [TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(8)]);
+
+            var listed = await store.ListAsync();
+            Assert.Single(listed);
+            Assert.Equal(2, listed[0].LineCount);
+            Assert.DoesNotContain("Private", listed[0].Id, StringComparison.OrdinalIgnoreCase);
+
+            Assert.True(await store.DeleteAsync(listed[0].Id));
+            Assert.Empty(await store.ListAsync());
+            Assert.Null(await store.LoadAsync(query, "First\nSecond"));
+
+            await File.WriteAllTextAsync(path, "{interrupted");
+            Assert.Empty(await new LocalLyricsTimingStore(path).ListAsync());
         }
         finally
         {
@@ -596,6 +647,51 @@ public sealed class LyricsTests
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             });
         }
+    }
+
+    [Fact]
+    public async Task AutomaticLearningMergesAnonymousAnchorsAndAddsCooldown()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "Mediance-learning-" + Guid.NewGuid().ToString("N"));
+        var path = Path.Combine(directory, "learning.json");
+        var query = new LyricsQuery("Private Track", "Private Artist", null, TimeSpan.FromSeconds(60));
+        const string lyrics = "Secret one\nSecret two\nSecret three\nSecret four";
+        try
+        {
+            var store = new AutomaticLyricsLearningStore(path);
+            await store.RecordAsync(query, lyrics, "low-confidence",
+                [new(0, TimeSpan.FromSeconds(2)), new(1, TimeSpan.FromSeconds(8))], true);
+            await store.RecordAsync(query, lyrics, "low-confidence",
+                [new(2, TimeSpan.FromSeconds(14)), new(3, TimeSpan.FromSeconds(20))], true);
+            var learned = await store.LoadAsync(query, lyrics);
+            Assert.Equal(2, learned.FailureCount);
+            Assert.Equal(4, learned.Anchors.Count);
+            Assert.True(AutomaticLyricsAligner.FromAnchors(
+                lyrics, learned.Anchors, query.Duration).IsReliable(4));
+
+            learned = await store.RecordAsync(query, lyrics, "empty", [], true);
+            Assert.NotNull(learned.RetryAfterUtc);
+            var json = await File.ReadAllTextAsync(path);
+            Assert.DoesNotContain("Private Track", json, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("Private Artist", json, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("Secret one", json, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
+    }
+
+    [Fact]
+    public async Task PlainProjectionForcesTheAutomaticPathOnlyWhenExplicitlyWrapped()
+    {
+        var synced = new LyricsDocument(LyricsKind.Synced,
+            [new(TimeSpan.FromSeconds(1), "First"), new(TimeSpan.FromSeconds(5), "Second")]);
+        var projected = await new PlainProjectionLyricsProvider(new FixedProvider(synced))
+            .FindAsync(new("Title", "Artist", null, TimeSpan.FromSeconds(30)));
+        Assert.Equal(LyricsKind.Plain, projected.Kind);
+        Assert.Equal("First\nSecond", projected.PlainText);
+        Assert.Empty(projected.Lines);
     }
 
     private sealed class FixedProvider(LyricsDocument result) : ILyricsProvider

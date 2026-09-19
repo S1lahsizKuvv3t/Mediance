@@ -81,11 +81,12 @@ Projede geliştirme için kısa komutlar da bulunur:
 .\scripts\dev.ps1 build
 .\scripts\dev.ps1 test
 .\scripts\dev.ps1 glass-test
+.\scripts\beta-check.ps1
 ```
 
 ## Güncel durum
 
-Mevcut sürüm 89 otomatik testi ve native pencere smoke testini geçmektedir. Spotify kontrolleri ve uygulamaya özel ses yönlendirmesi gerçek cihazlarda da doğrulanmıştır. Süreç bazlı ses yakalama ile ilk model indirmesi yayından önce canlı kabul testinden geçirilecektir. İmzalı 1.0 sürümünden önce kalan işler [Yol haritasında](docs/ROADMAP.md) tutulur.
+Mevcut sürüm 96 otomatik testi ve native pencere smoke testini geçmektedir. Spotify kontrolleri ve uygulamaya özel ses yönlendirmesi gerçek cihazlarda da doğrulanmıştır. Tekrarlanabilir beta kapısı; canlı lyrics örneklerini, kaynak matrisini, çoklu monitör durumunu, uyku dönüşünü ve isteğe bağlı uzun çalışma testini raporlar. Donanım veya canlı medya gerektiren bir adım çalıştırılmadığında başarılı sayılmaz; raporda bekliyor olarak kalır. İmzalı 1.0 sürümünden önce kalan işler [Yol haritasında](docs/ROADMAP.md) tutulur.
 
 Hata ve özellik talepleri için GitHub issue şablonlarını kullanabilirsiniz. Güvenlik sorunları herkese açık issue olarak paylaşılmamalıdır; bunun için [SECURITY.md](SECURITY.md) belgesini izleyin.
 

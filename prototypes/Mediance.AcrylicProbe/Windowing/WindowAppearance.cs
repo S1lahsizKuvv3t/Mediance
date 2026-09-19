@@ -16,7 +16,7 @@ internal sealed class WindowAppearance(Window window, Border surface) : IDisposa
     internal void Apply(WidgetSettings settings)
     {
         _glass.Update(settings.Theme);
-        var solid = settings.SolidBackground || !_glass.Supported;
+        var solid = !_glass.Supported;
         if (solid) window.SystemBackdrop = null;
         else if (window.SystemBackdrop != _glass) window.SystemBackdrop = _glass;
         // This layer is over a real Desktop Acrylic backdrop, not a simulated blur.
@@ -41,9 +41,9 @@ internal sealed class WindowAppearance(Window window, Border surface) : IDisposa
         surface.Background = new SolidColorBrush(solid ? solidColor : Color.FromArgb(alpha, baseColor.R, baseColor.G, baseColor.B));
         var border = settings.Theme switch
         {
-            ThemePreset.Prism => Color.FromArgb(settings.ShowBorder ? (byte)92 : (byte)0, 99, 173, 255),
-            ThemePreset.Album => Color.FromArgb(settings.ShowBorder ? (byte)62 : (byte)0, 255, 255, 255),
-            _ => Color.FromArgb(settings.ShowBorder ? (byte)37 : (byte)0, 255, 255, 255)
+            ThemePreset.Prism => Color.FromArgb(92, 99, 173, 255),
+            ThemePreset.Album => Color.FromArgb(62, 255, 255, 255),
+            _ => Color.FromArgb(37, 255, 255, 255)
         };
         surface.BorderBrush = new SolidColorBrush(border);
     }

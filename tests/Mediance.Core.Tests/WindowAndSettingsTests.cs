@@ -94,7 +94,8 @@ public sealed class WindowAndSettingsTests
     {
         var settings = (new WidgetSettings
         { WindowWidth = 99999, GlassIntensity = -5, TextScale = double.NaN, ShowArtwork = false, ShowControls = false,
-          ShowAudioOutput = false, LyricsLeadMilliseconds = 9000, LyricsLineCount = 9, Theme = (ThemePreset)99 }).Normalize();
+          ShowAudioOutput = false, LyricsLeadMilliseconds = 9000, LyricsLineCount = 9, Theme = (ThemePreset)99,
+          ViewMode = (WidgetViewMode)99, AlbumBlur = 99, AlbumZoom = 2, AlbumDarkness = double.PositiveInfinity }).Normalize();
         Assert.Equal(720, settings.WindowWidth);
         Assert.Equal(420, new WidgetSettings { WindowWidth = 100 }.Normalize().WindowWidth);
         Assert.Equal(10, settings.GlassIntensity);
@@ -105,8 +106,42 @@ public sealed class WindowAndSettingsTests
         Assert.Equal(2000, settings.LyricsLeadMilliseconds);
         Assert.Equal(3, settings.LyricsLineCount);
         Assert.Equal(ThemePreset.Midnight, settings.Theme);
+        Assert.Equal(WidgetViewMode.Standard, settings.ViewMode);
+        Assert.Equal(24, settings.AlbumBlur);
+        Assert.Equal(100, settings.AlbumZoom);
+        Assert.Equal(54, settings.AlbumDarkness);
+        var retired = new WidgetSettings { SolidBackground = true, EnableAmbientGlow = true,
+            EnableWheelVolume = false, ShowBorder = false, ShowTitle = false, ShowArtist = false,
+            ShowSource = false }.Normalize();
+        Assert.False(retired.SolidBackground);
+        Assert.False(retired.EnableAmbientGlow);
+        Assert.True(retired.EnableWheelVolume);
+        Assert.True(retired.ShowBorder);
+        Assert.True(retired.ShowTitle);
+        Assert.True(retired.ShowArtist);
+        Assert.True(retired.ShowSource);
         Assert.Equal(ThemePreset.Album, new WidgetSettings { Theme = ThemePreset.Album }.Normalize().Theme);
         Assert.Equal(2, new WidgetSettings { LyricsLineCount = 2 }.Normalize().LyricsLineCount);
+    }
+
+    [Fact]
+    public void ThemeProfileRoundTripsOnlyAppearanceValues()
+    {
+        var source = new WidgetSettings
+        {
+            Theme = ThemePreset.Album, GlassIntensity = 71, AlbumBlur = 12,
+            AlbumZoom = 124, AlbumDarkness = 66, WindowWidth = 700,
+            ShortcutVirtualKey = 0x58
+        };
+        var profile = ThemeProfile.Parse(ThemeProfile.FromSettings(source).ToJson());
+        var applied = profile.ApplyTo(new WidgetSettings { WindowWidth = 480, ShortcutVirtualKey = 0x4D });
+        Assert.Equal(ThemePreset.Album, applied.Theme);
+        Assert.False(applied.SolidBackground);
+        Assert.Equal(12, applied.AlbumBlur);
+        Assert.Equal(124, applied.AlbumZoom);
+        Assert.Equal(66, applied.AlbumDarkness);
+        Assert.Equal(480, applied.WindowWidth);
+        Assert.Equal((uint)0x4D, applied.ShortcutVirtualKey);
     }
 
     [Fact]
@@ -130,10 +165,12 @@ public sealed class WindowAndSettingsTests
         using var folder = new TestFolder();
         var store = new JsonSettingsStore(folder.File);
         await store.SaveAsync(new() { ShowArtwork = false, ShowAudioOutput = false, ShowProgress = false,
+            ShowTitle = false, ShowArtist = false, ShowSource = false,
             EnableAmbientGlow = false, EnableWheelVolume = false, IsLocked = true, GlassIntensity = 23, ControlSize = 64,
             CloseToTray = true, LyricsOpen = true, LyricsLineCount = 2, EnableAutomaticLyricsSync = false,
             StartWithWindows = true,
-            Theme = ThemePreset.Prism, WindowX = -820, WindowY = 140, LastMonitorId = @"\\.\DISPLAY2",
+            Theme = ThemePreset.Prism, ViewMode = WidgetViewMode.Micro,
+            WindowX = -820, WindowY = 140, LastMonitorId = @"\\.\DISPLAY2",
             MonitorPlacements = new Dictionary<string, SavedWindowPlacement> { [@"\\.\DISPLAY2"] = new(-820, 140) },
             LyricsLeadMilliseconds = 700, ShortcutModifiers = HotkeyModifiers.Control | HotkeyModifiers.Shift,
             ShortcutVirtualKey = 'L' });
@@ -141,14 +178,18 @@ public sealed class WindowAndSettingsTests
         Assert.False(saved.ShowArtwork);
         Assert.False(saved.ShowAudioOutput);
         Assert.False(saved.ShowProgress);
+        Assert.True(saved.ShowTitle);
+        Assert.True(saved.ShowArtist);
+        Assert.True(saved.ShowSource);
         Assert.False(saved.EnableAmbientGlow);
-        Assert.False(saved.EnableWheelVolume);
+        Assert.True(saved.EnableWheelVolume);
         Assert.True(saved.CloseToTray);
         Assert.True(saved.LyricsOpen);
         Assert.Equal(2, saved.LyricsLineCount);
         Assert.False(saved.EnableAutomaticLyricsSync);
         Assert.True(saved.StartWithWindows);
         Assert.Equal(ThemePreset.Prism, saved.Theme);
+        Assert.Equal(WidgetViewMode.Micro, saved.ViewMode);
         Assert.Equal(@"\\.\DISPLAY2", saved.LastMonitorId);
         Assert.Equal(new SavedWindowPlacement(-820, 140), saved.MonitorPlacements[@"\\.\DISPLAY2"]);
         Assert.Equal(-820, saved.WindowX);
@@ -210,11 +251,11 @@ public sealed class WindowAndSettingsTests
         using var folder = new TestFolder();
         var store = new JsonSettingsStore(folder.File);
         Assert.Equal(new WidgetSettings(), await store.LoadAsync());
-        await store.SaveAsync(new() { ShowTitle = false });
+        await store.SaveAsync(new() { ShowArtwork = false });
         using var token = new CancellationTokenSource();
         token.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => store.SaveAsync(new(), token.Token));
-        Assert.False((await store.LoadAsync()).ShowTitle);
+        Assert.False((await store.LoadAsync()).ShowArtwork);
     }
 
     [Fact]
@@ -226,6 +267,19 @@ public sealed class WindowAndSettingsTests
         var saved = await store.LoadAsync();
         Assert.InRange(saved.GlassIntensity, 10, 80);
         Assert.Empty(Directory.GetFiles(Path.GetDirectoryName(folder.File)!, "*.tmp"));
+    }
+
+    [Theory]
+    [InlineData("0.9.0-beta.2", "0.9.0-beta.1", 1)]
+    [InlineData("0.9.0", "0.9.0-beta.9", 1)]
+    [InlineData("v1.0.0-beta.10", "1.0.0-beta.2", 1)]
+    [InlineData("0.8.9", "0.9.0", -1)]
+    public void ReleaseVersionsCompareStableAndPrereleaseBuilds(
+        string leftText, string rightText, int expectedSign)
+    {
+        Assert.True(ReleaseVersion.TryParse(leftText, out var left));
+        Assert.True(ReleaseVersion.TryParse(rightText, out var right));
+        Assert.Equal(expectedSign, Math.Sign(left.CompareTo(right)));
     }
 
     private sealed class TestFolder : IDisposable
