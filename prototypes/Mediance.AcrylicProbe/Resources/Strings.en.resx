@@ -242,4 +242,6 @@
   <data name="NoLocalTimings"><value>No local timings yet.</value></data>
   <data name="LocalTimingDeleted"><value>Local timing deleted.</value></data>
   <data name="LocalTimingError"><value>Local timings could not be read.</value></data>
+  <data name="ShowNowPlayingCapsule"><value>Now playing capsule</value></data>
+  <data name="NowPlayingCapsule"><value>Now playing</value></data>
 </root>

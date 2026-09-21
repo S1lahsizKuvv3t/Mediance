@@ -19,6 +19,10 @@ Bu nedenle tarayıcıda açılan sıradan bir YouTube videosu, açık Spotify ot
 
 Widget'ın üst bölümünde kapak, kaynak, şarkı bilgisi ve medya düğmeleri bulunur. İnce ilerleme çizgisinin solunda geçen süre, sağında toplam süre gösterilir. Çizgiye tıklayarak veya basılı tutup sürükleyerek şarkının başka bir bölümüne gidebilirsiniz. Bu işlem yalnızca medya uygulaması zaman değiştirmeyi destekliyorsa kullanılabilir.
 
+### Görev çubuğu medya kapsülü
+
+İsteğe bağlı medya kapsülü, çalan parçanın kapağını, adını ve sanatçısını Windows bildirim alanının hemen solunda gösterir. Sağdaki düğme parçayı doğrudan oynatır veya durdurur; kapsülün geri kalanına tıklamak standart Mediance penceresini açar. Sağ tık menüsünde oynat/durdur, sonraki parça, ayarlar ve çıkış bulunur. Kapsül ana widget'ın bulunduğu monitörü izler ve başka bir uygulama o monitörde tam ekran olduğunda fareyi veya oyunu etkilememek için otomatik gizlenir. `Ayarlar > Sistem > Çalan medya kapsülü` anahtarından kapatılabilir.
+
 Pencereyi taşımak için cam yüzeydeki boş bir alana sol tuşla basılı tutup sürükleyin. Düğme, seçici ve lyrics satırları sürükleme alanı değildir. Fareyi bıraktığınız anda pencere hareketi biter.
 
 Alt soldaki kilit düğmesi pencerenin yanlışlıkla taşınmasını engeller. Yanındaki raptiye düğmesi pencereyi diğer pencerelerin üzerinde tutar. Sağ altta lyrics ve settings düğmeleri vardır.

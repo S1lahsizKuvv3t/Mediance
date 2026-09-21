@@ -242,4 +242,6 @@
   <data name="NoLocalTimings"><value>Hen&#xFC;z yerel zamanlama yok.</value></data>
   <data name="LocalTimingDeleted"><value>Yerel zamanlama silindi.</value></data>
   <data name="LocalTimingError"><value>Yerel zamanlamalar okunamad&#x131;.</value></data>
+  <data name="ShowNowPlayingCapsule"><value>Çalan medya kapsülü</value></data>
+  <data name="NowPlayingCapsule"><value>Çalan medya</value></data>
 </root>

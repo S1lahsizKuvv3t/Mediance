@@ -19,6 +19,7 @@ public sealed record WidgetSettings
     public bool EnableAmbientGlow { get; init; } = true;
     public bool EnableWheelVolume { get; init; } = true;
     public bool CloseToTray { get; init; }
+    public bool ShowNowPlayingCapsule { get; init; } = true;
     public bool ShowTitle { get; init; } = true;
     public bool ShowArtist { get; init; } = true;
     public bool ShowSource { get; init; } = true;

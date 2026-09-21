@@ -67,4 +67,6 @@ public static class TextCatalog
     public static string LocalTimings => Get("LocalTimings");
     public static string LocalTimingsHint => Get("LocalTimingsHint");
     public static string DeleteTiming => Get("DeleteTiming");
+    public static string NowPlayingCapsule => Get("NowPlayingCapsule");
+    public static string Exit => Get("Exit");
 }

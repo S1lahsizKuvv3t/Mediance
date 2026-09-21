@@ -120,6 +120,7 @@ public sealed class WindowAndSettingsTests
         Assert.True(retired.ShowTitle);
         Assert.True(retired.ShowArtist);
         Assert.True(retired.ShowSource);
+        Assert.True(retired.ShowNowPlayingCapsule);
         Assert.Equal(ThemePreset.Album, new WidgetSettings { Theme = ThemePreset.Album }.Normalize().Theme);
         Assert.Equal(2, new WidgetSettings { LyricsLineCount = 2 }.Normalize().LyricsLineCount);
     }
@@ -167,7 +168,7 @@ public sealed class WindowAndSettingsTests
         await store.SaveAsync(new() { ShowArtwork = false, ShowAudioOutput = false, ShowProgress = false,
             ShowTitle = false, ShowArtist = false, ShowSource = false,
             EnableAmbientGlow = false, EnableWheelVolume = false, IsLocked = true, GlassIntensity = 23, ControlSize = 64,
-            CloseToTray = true, LyricsOpen = true, LyricsLineCount = 2, EnableAutomaticLyricsSync = false,
+            CloseToTray = true, ShowNowPlayingCapsule = false, LyricsOpen = true, LyricsLineCount = 2, EnableAutomaticLyricsSync = false,
             StartWithWindows = true,
             Theme = ThemePreset.Prism, ViewMode = WidgetViewMode.Micro,
             WindowX = -820, WindowY = 140, LastMonitorId = @"\\.\DISPLAY2",
@@ -184,6 +185,7 @@ public sealed class WindowAndSettingsTests
         Assert.False(saved.EnableAmbientGlow);
         Assert.True(saved.EnableWheelVolume);
         Assert.True(saved.CloseToTray);
+        Assert.False(saved.ShowNowPlayingCapsule);
         Assert.True(saved.LyricsOpen);
         Assert.Equal(2, saved.LyricsLineCount);
         Assert.False(saved.EnableAutomaticLyricsSync);

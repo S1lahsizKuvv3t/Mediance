@@ -8,6 +8,7 @@ namespace Mediance.Windows.Windowing;
 public static class NativeWindowFeatures
 {
     private const int ExtendedStyleIndex = -20;
+    private const int WindowStyleIndex = -16;
     private const long AppWindowStyle = 0x00040000L;
     private const long ToolWindowStyle = 0x00000080L;
     private const long NoActivateStyle = 0x08000000L;
@@ -38,6 +39,29 @@ public static class NativeWindowFeatures
             throw new Win32Exception(Marshal.GetLastWin32Error());
     }
 
+    public static void ConfigurePopupWindow(nint window)
+    {
+        const long popupStyle = unchecked((long)0x80000000);
+        const long captionStyle = 0x00C00000;
+        const long thickFrameStyle = 0x00040000;
+        const long systemMenuStyle = 0x00080000;
+        const long minimizeBoxStyle = 0x00020000;
+        const long maximizeBoxStyle = 0x00010000;
+        var styles = GetWindowLongPtr(window, WindowStyleIndex).ToInt64();
+        var updated = (styles | popupStyle) &
+            ~(captionStyle | thickFrameStyle | systemMenuStyle | minimizeBoxStyle | maximizeBoxStyle);
+        Marshal.SetLastPInvokeError(0);
+        var previous = SetWindowLongPtr(window, WindowStyleIndex, new nint(updated));
+        if (previous == 0 && Marshal.GetLastPInvokeError() != 0)
+            throw new Win32Exception(Marshal.GetLastPInvokeError());
+
+        SetAttribute(window, 33, 1); // DWMCP_DONOTROUND; the exact pill is provided by SetWindowRgn.
+        SetAttribute(window, 34, unchecked((int)0xFFFFFFFE)); // No DWM border.
+        const uint refreshFlags = 0x0001 | 0x0002 | 0x0004 | 0x0010 | 0x0020;
+        if (!SetWindowPos(window, 0, 0, 0, 0, 0, refreshFlags))
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+    }
+
     private static void SetAttribute(nint window, uint attribute, int value) =>
         Marshal.ThrowExceptionForHR(DwmSetWindowAttribute(window, attribute, in value, sizeof(int)));
 
@@ -52,6 +76,13 @@ public static class NativeWindowFeatures
         var monitor = MonitorFromPoint(new Point { X = position.X, Y = position.Y }, 2); // MONITOR_DEFAULTTONEAREST
         if (monitor == 0) throw new Win32Exception(Marshal.GetLastWin32Error());
         return ReadMonitor(monitor).WorkArea;
+    }
+
+    public static MonitorWorkArea MonitorAt(PixelPoint position)
+    {
+        var monitor = MonitorFromPoint(new Point { X = position.X, Y = position.Y }, 2);
+        if (monitor == 0) throw new Win32Exception(Marshal.GetLastWin32Error());
+        return ReadMonitor(monitor);
     }
 
     public static string MonitorIdAt(PixelPoint position)
@@ -85,7 +116,89 @@ public static class NativeWindowFeatures
         var info = new MonitorInfoEx { Size = (uint)Marshal.SizeOf<MonitorInfoEx>(), DeviceName = string.Empty };
         if (!GetMonitorInfo(monitor, ref info)) throw new Win32Exception(Marshal.GetLastWin32Error());
         return new(info.DeviceName, new(info.Work.Left, info.Work.Top,
-            info.Work.Right - info.Work.Left, info.Work.Bottom - info.Work.Top));
+            info.Work.Right - info.Work.Left, info.Work.Bottom - info.Work.Top),
+            new(info.Monitor.Left, info.Monitor.Top,
+                info.Monitor.Right - info.Monitor.Left, info.Monitor.Bottom - info.Monitor.Top));
+    }
+
+    public static bool IsForegroundFullscreenAt(PixelPoint position)
+    {
+        var foreground = GetForegroundWindow();
+        if (foreground == 0 || !IsWindowVisible(foreground)) return false;
+        _ = GetWindowThreadProcessId(foreground, out var processId);
+        if (processId == (uint)Environment.ProcessId) return false;
+        var targetMonitor = MonitorFromPoint(new Point { X = position.X, Y = position.Y }, 2);
+        var foregroundMonitor = MonitorFromWindow(foreground, 2);
+        if (targetMonitor == 0 || targetMonitor != foregroundMonitor || !GetWindowRect(foreground, out var rect)) return false;
+        var bounds = ReadMonitor(foregroundMonitor).Bounds;
+        const int tolerance = 3;
+        return rect.Left <= bounds.X + tolerance && rect.Top <= bounds.Y + tolerance &&
+               rect.Right >= bounds.X + bounds.Width - tolerance &&
+               rect.Bottom >= bounds.Y + bounds.Height - tolerance;
+    }
+
+    public static TaskbarPlacement? TaskbarAt(PixelPoint position)
+    {
+        var targetMonitor = MonitorFromPoint(new Point { X = position.X, Y = position.Y }, 2);
+        if (targetMonitor == 0) return null;
+        nint taskbar = 0;
+        WindowEnumProc findTaskbar = (window, data) =>
+        {
+            if (!IsWindowVisible(window) || MonitorFromWindow(window, 0) != targetMonitor) return true;
+            var className = WindowClassName(window);
+            if (className is not ("Shell_TrayWnd" or "Shell_SecondaryTrayWnd")) return true;
+            taskbar = window;
+            return false;
+        };
+        _ = EnumWindows(findTaskbar, 0);
+        if (taskbar == 0 || !GetWindowRect(taskbar, out var taskbarRect)) return null;
+
+        PixelRect? notificationArea = null;
+        WindowEnumProc findNotificationArea = (child, data) =>
+        {
+            if (!IsWindowVisible(child) || !GetWindowRect(child, out var childRect)) return true;
+            var className = WindowClassName(child);
+            if (className is not ("TrayNotifyWnd" or "ClockButton")) return true;
+            var candidate = ToPixelRect(childRect);
+            if (candidate.Width <= 0 || candidate.Height <= 0) return true;
+            notificationArea = notificationArea is null ? candidate : Union(notificationArea.Value, candidate);
+            return true;
+        };
+        _ = EnumChildWindows(taskbar, findNotificationArea, 0);
+        return new(ToPixelRect(taskbarRect), notificationArea);
+    }
+
+    private static string WindowClassName(nint window)
+    {
+        var buffer = new char[128];
+        var length = GetClassName(window, buffer, buffer.Length);
+        return length > 0 ? new string(buffer, 0, length) : string.Empty;
+    }
+
+    private static PixelRect ToPixelRect(Rect value) =>
+        new(value.Left, value.Top, value.Right - value.Left, value.Bottom - value.Top);
+
+    private static PixelRect Union(PixelRect left, PixelRect right)
+    {
+        var x = Math.Min(left.X, right.X);
+        var y = Math.Min(left.Y, right.Y);
+        var rightEdge = Math.Max(left.X + left.Width, right.X + right.Width);
+        var bottomEdge = Math.Max(left.Y + left.Height, right.Y + right.Height);
+        return new(x, y, rightEdge - x, bottomEdge - y);
+    }
+
+    public static void SetRoundedRegion(nint window, int width, int height, int radius)
+    {
+        var diameter = Math.Max(2, radius * 2);
+        var region = CreateRoundRectRgn(0, 0, width + 1, height + 1, diameter, diameter);
+        if (region == 0) throw new Win32Exception(Marshal.GetLastWin32Error());
+        if (SetWindowRgn(window, region, true) == 0)
+        {
+            var error = Marshal.GetLastWin32Error();
+            _ = DeleteObject(region);
+            throw new Win32Exception(error);
+        }
+        // SetWindowRgn owns the region after success.
     }
 
     public static bool IsTopmost(nint window) => (GetWindowLongPtr(window, ExtendedStyleIndex).ToInt64() & 0x8) != 0;
@@ -110,6 +223,7 @@ public static class NativeWindowFeatures
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string DeviceName;
     }
     private delegate bool MonitorEnumProc(nint monitor, nint deviceContext, ref Rect monitorRect, nint data);
+    private delegate bool WindowEnumProc(nint window, nint data);
 
     [DllImport("user32.dll")]
     private static extern uint GetDpiForWindow(nint hwnd);
@@ -135,10 +249,36 @@ public static class NativeWindowFeatures
     private static extern nint GetForegroundWindow();
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool IsWindowVisible(nint window);
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetWindowRect(nint window, out Rect rect);
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(nint window, out uint processId);
+    [DllImport("user32.dll")]
+    private static extern nint MonitorFromWindow(nint window, uint flags);
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool EnumWindows(WindowEnumProc callback, nint data);
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool EnumChildWindows(nint parent, WindowEnumProc callback, nint data);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetClassName(nint window, [Out] char[] className, int maximumCount);
+    [DllImport("gdi32.dll", SetLastError = true)]
+    private static extern nint CreateRoundRectRgn(int left, int top, int right, int bottom, int width, int height);
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern int SetWindowRgn(nint window, nint region, [MarshalAs(UnmanagedType.Bool)] bool redraw);
+    [DllImport("gdi32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool DeleteObject(nint value);
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool SetForegroundWindow(nint window);
     [DllImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool SetWindowPos(nint hwnd, nint insertAfter, int x, int y, int width, int height, uint flags);
 }
 
-public sealed record MonitorWorkArea(string Id, PixelRect WorkArea);
+public sealed record MonitorWorkArea(string Id, PixelRect WorkArea, PixelRect Bounds);
+public sealed record TaskbarPlacement(PixelRect Bounds, PixelRect? NotificationArea);

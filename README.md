@@ -33,7 +33,7 @@
 | Audio | Per-application output-device selection and mouse-wheel application volume |
 | Layouts | Standard, Micro, cover-and-controls, vertical lyrics, and a minimal configurable layout |
 | Appearance | Acrylic glass, centered Album artwork theme, blur, zoom, darkness, width, and density controls |
-| Desktop | Multi-monitor snapping, position lock, always-on-top, tray behavior, and a configurable global shortcut |
+| Desktop | Taskbar now-playing capsule, multi-monitor snapping, position lock, tray behavior, and a configurable global shortcut |
 | Privacy | No account, telemetry, listening history, saved audio, or cloud speech transcription |
 
 ## What it does
@@ -47,6 +47,7 @@ Mediance sits on the desktop as a small Acrylic widget. It reads the media sessi
 - Choose a different output device for the selected media app without changing the system-wide default.
 - Hide individual parts of the widget and tune its width, artwork, text, controls, glass density, and theme.
 - Use the Album theme to turn the current cover into a smoothly animated, readable background.
+- Keep the current track beside the Windows clock with an artwork-colored capsule and one-click play/pause; it hides automatically for full-screen games.
 - Pin the widget above other windows, lock its position, snap it to either monitor, or hide it in the system tray.
 - Keep games in the foreground: the widget does not appear in the taskbar or Alt+Tab and pointer clicks do not activate it.
 - Show or hide it with a configurable global shortcut.

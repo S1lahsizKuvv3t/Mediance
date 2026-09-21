@@ -158,7 +158,7 @@ public sealed partial class SettingsWindow : Window
             (0, TextCatalog.Appearance, "tema gorunum album blur zoom cam seffaflik prism midnight"),
             (1, TextCatalog.Elements, "oge kapak kontrol buton boyut genislik yazi ses cikisi lyrics dugmesi"),
             (2, TextCatalog.LyricsCategory, "lyrics soz senkron zamanlama satir otomatik"),
-            (3, TextCatalog.SystemCategory, "sistem windows kisayol shortcut ses audio kapat tepsi guncelleme update")
+            (3, TextCatalog.SystemCategory, "sistem windows kisayol shortcut ses audio kapat tepsi kapsul calan medya guncelleme update")
         };
         var result = categories.FirstOrDefault(value => NormalizeSearch(value.Item3)
             .Contains(query, StringComparison.OrdinalIgnoreCase));

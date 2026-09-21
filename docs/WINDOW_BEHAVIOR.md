@@ -29,6 +29,8 @@ WinUI receives one initialization activation and immediately restores the previo
 
 `Mediance.Windows.Windowing.SystemTrayIcon` owns one `Shell_NotifyIcon` entry and a window subclass. It restores the icon after Explorer broadcasts `TaskbarCreated`, removes it during shutdown and builds a native popup menu without an external package. Left click toggles the widget. Right click offers show/hide, settings and exit. With `CloseToTray` enabled, the X button and Alt+F4 hide the widget; the tray Exit command remains the explicit full shutdown path.
 
+`NowPlayingCapsuleWindow` adds an optional taskbar-adjacent media capsule on the monitor that owns the main widget. It uses the current artwork as a softly darkened background, sizes itself to the track metadata, and opens the standard widget when clicked. Its context menu exposes play/pause, next, settings and exit. The capsule is a rounded, no-activate tool window, so it stays out of the taskbar and Alt+Tab. A foreground-window check hides it immediately when another process covers the full monitor, then restores it after the full-screen application exits. This keeps games from losing cursor confinement.
+
 ## Verification
 
 `scripts/dev.ps1 glass-test` exercises the tool-window/no-activate styles, native topmost flags, programmatic movement, theme visibility, density application, backdrop switching, visibility reflow, the settings-window singleton/reopen lifecycle and clean close. App-local logs are under `%LOCALAPPDATA%/Mediance/prototypes`. The optional executable argument `--preview-dir=<absolute directory>` with `--smoke-test` renders settled widget and settings XAML views in solid mode for layout review; it does not capture other windows and is not proof of Acrylic appearance.
