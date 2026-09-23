@@ -6,16 +6,18 @@ public sealed class FirstAvailableLyricsProvider(params ILyricsProvider[] provid
 {
     public async Task<LyricsDocument> FindAsync(LyricsQuery query, CancellationToken token = default)
     {
-        foreach (var provider in providers)
-        {
-            try
-            {
-                var result = await provider.FindAsync(query, token);
-                if (result.Kind != LyricsKind.Unavailable) return result;
-            }
-            catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
-            catch (Exception) { }
-        }
+        var lookups = providers.Select(provider => FindSafelyAsync(provider, query, token)).ToArray();
+        var results = await Task.WhenAll(lookups);
+        foreach (var result in results)
+            if (result.Kind != LyricsKind.Unavailable) return result;
         return LyricsDocument.Unavailable;
+    }
+
+    private static async Task<LyricsDocument> FindSafelyAsync(ILyricsProvider provider, LyricsQuery query,
+        CancellationToken token)
+    {
+        try { return await provider.FindAsync(query, token); }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
+        catch (Exception) { return LyricsDocument.Unavailable; }
     }
 }

@@ -137,6 +137,7 @@
   <data name="Lyrics"><value>lyrics</value></data>
   <data name="HideLyrics"><value>sözleri kapat</value></data>
   <data name="LyricsLoading"><value>Şarkı sözleri aranıyor…</value></data>
+  <data name="LyricsRetrying"><value>Kaynaklar yeniden kontrol ediliyor…</value></data>
   <data name="LyricsNeedTrack"><value>Önce bir şarkı oynat.</value></data>
   <data name="LyricsInstrumental"><value>Bu parça enstrümantal.</value></data>
   <data name="LyricsUnavailable"><value>Bu şarkı için söz bulunamadı.</value></data>

@@ -11,6 +11,7 @@ Notable user-visible changes are recorded here. Mediance follows semantic versio
 ### Fixed
 
 - The capsule uses a true borderless popup surface, keeping its rounded edges, metadata, and playback button fully inside the Windows taskbar without a bright native frame.
+- Lyrics sources now run concurrently so a slow endpoint cannot prevent later providers from being reached. Short-lived misses are verified automatically and are no longer cached as “not found” for 45 seconds.
 
 ## [0.9.0-beta.3] — 2026-09-19
 

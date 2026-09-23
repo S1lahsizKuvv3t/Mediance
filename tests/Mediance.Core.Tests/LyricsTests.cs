@@ -488,6 +488,42 @@ public sealed class LyricsTests
     }
 
     [Fact]
+    public async Task FallbackProviderStartsIndependentSourcesTogether()
+    {
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var secondStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var provider = new FallbackLyricsProvider(
+            new GatedProvider(release.Task, LyricsDocument.Unavailable),
+            new SignalingProvider(secondStarted,
+                new(LyricsKind.Synced, [new(TimeSpan.FromSeconds(1), "Recovered")])));
+
+        var lookup = provider.FindAsync(new("Track", "Artist", null, null));
+        await secondStarted.Task.WaitAsync(TimeSpan.FromSeconds(1));
+        release.SetResult();
+        var result = await lookup;
+
+        Assert.Equal(LyricsKind.Synced, result.Kind);
+    }
+
+    [Fact]
+    public async Task PlainFallbackSourcesStartTogetherWithoutWaitingForEarlierTimeouts()
+    {
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var secondStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var provider = new FirstAvailableLyricsProvider(
+            new GatedProvider(release.Task, LyricsDocument.Unavailable),
+            new SignalingProvider(secondStarted, new(LyricsKind.Plain, [], "Recovered")));
+
+        var lookup = provider.FindAsync(new("Track", "Artist", null, null));
+        await secondStarted.Task.WaitAsync(TimeSpan.FromSeconds(1));
+        release.SetResult();
+        var result = await lookup;
+
+        Assert.Equal(LyricsKind.Plain, result.Kind);
+        Assert.Equal("Recovered", result.PlainText);
+    }
+
+    [Fact]
     public async Task SlowLyricsSourceTimesOutWithoutBlockingTheNextSource()
     {
         var slow = new TimeoutLyricsProvider(new DelayedProvider(TimeSpan.FromSeconds(5)),
@@ -717,6 +753,25 @@ public sealed class LyricsTests
             Calls++;
             if (delay is { } value) await Task.Delay(value, token);
             return result;
+        }
+    }
+
+    private sealed class GatedProvider(Task release, LyricsDocument result) : ILyricsProvider
+    {
+        public async Task<LyricsDocument> FindAsync(LyricsQuery query, CancellationToken token = default)
+        {
+            await release.WaitAsync(token);
+            return result;
+        }
+    }
+
+    private sealed class SignalingProvider(TaskCompletionSource started, LyricsDocument result) : ILyricsProvider
+    {
+        public Task<LyricsDocument> FindAsync(LyricsQuery query, CancellationToken token = default)
+        {
+            token.ThrowIfCancellationRequested();
+            started.TrySetResult();
+            return Task.FromResult(result);
         }
     }
 
