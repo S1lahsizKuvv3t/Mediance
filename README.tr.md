@@ -33,7 +33,7 @@
 | Ses | Uygulamaya özel çıkış cihazı ve fare tekerleğiyle uygulama sesi |
 | Görünümler | Standart, Micro, kapak + kontroller, dikey lyrics ve sadeleştirilebilir düzen |
 | Görünüm | Acrylic cam, ortalanmış Album teması, blur, zoom, karartma, genişlik ve yoğunluk ayarları |
-| Masaüstü | Çoklu monitör hizalama, konum kilidi, üstte tutma, sistem tepsisi ve değiştirilebilir global kısayol |
+| Masaüstü | Görev çubuğu medya kapsülü, çoklu monitör hizalama, konum kilidi, sistem tepsisi ve değiştirilebilir global kısayol |
 | Gizlilik | Hesap, telemetri, dinleme geçmişi, kayıtlı ses veya bulut konuşma çözümleme yok |
 
 ## Mediance ne yapar?
@@ -47,6 +47,7 @@ Mediance masaüstünde küçük bir Acrylic widget olarak durur. Windows'un mevc
 - Bilgisayarın genel çıkışını değiştirmeden seçili uygulamayı başka bir ses cihazına yönlendirme.
 - Widget öğelerini ayrı ayrı gizleme; genişlik, kapak, yazı, kontrol, cam yoğunluğu ve tema ayarları.
 - Album temasıyla mevcut kapağı yumuşak geçişli ve okunaklı bir arka plana dönüştürme.
+- Mevcut parçayı kapak renkli bir kapsülle Windows saatinin yanında gösterme ve tek tıkla oynatıp durdurma; tam ekran oyunlarda otomatik gizlenir.
 - Üstte tutma, konum kilidi, iki monitörde kenara hizalama ve sistem tepsisine küçültme.
 - Oyunu ön planda tutma; widget görev çubuğu ve Alt+Tab'da görünmez, tıklanınca oyundan odağı almaz.
 - Kullanıcının belirleyebildiği global göster/gizle kısayolu.

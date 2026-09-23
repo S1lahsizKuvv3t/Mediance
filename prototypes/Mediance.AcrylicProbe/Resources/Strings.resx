@@ -137,6 +137,7 @@
   <data name="Lyrics"><value>lyrics</value></data>
   <data name="HideLyrics"><value>sözleri kapat</value></data>
   <data name="LyricsLoading"><value>Şarkı sözleri aranıyor…</value></data>
+  <data name="LyricsRetrying"><value>Kaynaklar yeniden kontrol ediliyor…</value></data>
   <data name="LyricsNeedTrack"><value>Önce bir şarkı oynat.</value></data>
   <data name="LyricsInstrumental"><value>Bu parça enstrümantal.</value></data>
   <data name="LyricsUnavailable"><value>Bu şarkı için söz bulunamadı.</value></data>
@@ -242,4 +243,6 @@
   <data name="NoLocalTimings"><value>Hen&#xFC;z yerel zamanlama yok.</value></data>
   <data name="LocalTimingDeleted"><value>Yerel zamanlama silindi.</value></data>
   <data name="LocalTimingError"><value>Yerel zamanlamalar okunamad&#x131;.</value></data>
+  <data name="ShowNowPlayingCapsule"><value>Çalan medya kapsülü</value></data>
+  <data name="NowPlayingCapsule"><value>Çalan medya</value></data>
 </root>

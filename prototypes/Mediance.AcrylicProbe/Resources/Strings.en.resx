@@ -137,6 +137,7 @@
   <data name="Lyrics"><value>lyrics</value></data>
   <data name="HideLyrics"><value>hide lyrics</value></data>
   <data name="LyricsLoading"><value>Looking for lyrics…</value></data>
+  <data name="LyricsRetrying"><value>Checking the sources once more…</value></data>
   <data name="LyricsNeedTrack"><value>Start a song first.</value></data>
   <data name="LyricsInstrumental"><value>This track is instrumental.</value></data>
   <data name="LyricsUnavailable"><value>No lyrics were found for this song.</value></data>
@@ -242,4 +243,6 @@
   <data name="NoLocalTimings"><value>No local timings yet.</value></data>
   <data name="LocalTimingDeleted"><value>Local timing deleted.</value></data>
   <data name="LocalTimingError"><value>Local timings could not be read.</value></data>
+  <data name="ShowNowPlayingCapsule"><value>Now playing capsule</value></data>
+  <data name="NowPlayingCapsule"><value>Now playing</value></data>
 </root>

@@ -31,6 +31,7 @@ public sealed partial class MainWindow : Window
     private readonly LocalLyricsTimingStore _lyricsTimingStore;
     private readonly AutomaticLyricsLearningStore _lyricsLearningStore;
     private SettingsWindow? _settingsWindow;
+    private NowPlayingCapsuleWindow? _capsuleWindow;
     private Storyboard? _lyricsTransition;
     private Storyboard? _progressTransition;
     private Storyboard? _progressValueTransition;
@@ -166,6 +167,12 @@ public sealed partial class MainWindow : Window
         _settingsLoaded = true;
         ApplyStartupSetting();
         await Model.StartAsync();
+        if (!_smoke)
+        {
+            _capsuleWindow = new(Model, Settings, AppWindow, ShowFromCapsule,
+                () => OpenSettings(), ShutdownAsync);
+            _capsuleWindow.Start();
+        }
         if (Settings.LyricsOpen) _ = Lyrics.SetVisibleAsync(true);
         await Routing.RefreshAsync();
         _ = Update.CheckAsync(false);
@@ -315,6 +322,11 @@ public sealed partial class MainWindow : Window
         if (_closing) return;
         _frame.ShowWithoutActivation();
         AnimateEntrance();
+    }
+    private void ShowFromCapsule()
+    {
+        if (Settings.IsMicroMode) Settings.ViewMode = WidgetViewMode.Standard;
+        ShowWithoutActivation();
     }
     internal void HideForBackgroundStartup() => _frame.Hide();
     private async void Previous_Click(object sender, RoutedEventArgs e) => await Model.SendAsync(MediaCommand.Previous);
@@ -911,6 +923,8 @@ public sealed partial class MainWindow : Window
         SaveWindowPosition();
         Settings.LyricsOpen = Lyrics.IsVisible;
         _settingsWindow?.Close();
+        _capsuleWindow?.Dispose();
+        _capsuleWindow = null;
         Settings.Changed -= Settings_Changed;
         Model.PropertyChanged -= Model_PropertyChanged;
         Lyrics.LinesChanged -= Lyrics_LinesChanged;
@@ -958,6 +972,8 @@ public sealed partial class MainWindow : Window
         if (identifiedWorkAreas.Count != workAreas.Count || identifiedWorkAreas.Any(x => string.IsNullOrWhiteSpace(x.Id)) ||
             identifiedWorkAreas.Select(x => x.Id).Distinct(StringComparer.OrdinalIgnoreCase).Count() != identifiedWorkAreas.Count)
             throw new InvalidOperationException("Monitor identities were missing or duplicated.");
+        if (identifiedWorkAreas.Any(x => x.Bounds.Width < x.WorkArea.Width || x.Bounds.Height < x.WorkArea.Height))
+            throw new InvalidOperationException("A monitor work area escaped its display bounds.");
         foreach (var area in workAreas)
         {
             var center = new Mediance.Core.Windowing.PixelPoint(area.X + area.Width / 2, area.Y + area.Height / 2);
@@ -1093,7 +1109,7 @@ public sealed partial class MainWindow : Window
         Settings.ShowControls = true;
         Settings.ViewMode = WidgetViewMode.Standard;
         await Task.Delay(300);
-        if (Settings.WindowOptions.Count != 1 || Settings.ControlOptions.Count != 1 ||
+        if (Settings.WindowOptions.Count != 2 || Settings.ControlOptions.Count != 1 ||
             Settings.ContentOptions.Count != 2 || Settings.UtilityOptions.Count != 2)
             throw new InvalidOperationException("The simplified Elements categories exposed legacy toggles.");
         var settingsWindow = OpenSettings();

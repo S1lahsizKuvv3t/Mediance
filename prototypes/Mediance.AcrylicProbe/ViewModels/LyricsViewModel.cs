@@ -17,6 +17,7 @@ public sealed record LyricsLinesChangedEventArgs(
 public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
 {
     private static readonly TimeSpan AutomaticSyncRetryDelay = TimeSpan.FromSeconds(12);
+    private static readonly TimeSpan UnavailableLyricsRetryDelay = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan AutomaticAttemptRetryDelay = TimeSpan.FromSeconds(5);
     private const int MaximumAutomaticAttempts = 3;
     private readonly ILyricsService _lyrics;
@@ -212,6 +213,16 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
         {
             var document = await _lyrics.FindAsync(query, token);
             if (token.IsCancellationRequested || _disposed || _trackIdentity != _player.TrackIdentity) return;
+            if (document.Kind == LyricsKind.Unavailable)
+            {
+                _status = Localization.TextCatalog.Get("LyricsRetrying");
+                Raise();
+                await Task.Delay(UnavailableLyricsRetryDelay, token);
+                if (token.IsCancellationRequested || _disposed || !_visible ||
+                    _trackIdentity != _player.TrackIdentity) return;
+                document = await _lyrics.FindAsync(query, token);
+                if (token.IsCancellationRequested || _disposed || _trackIdentity != _player.TrackIdentity) return;
+            }
             ApplyDocument(document);
             if (document.Kind == LyricsKind.Plain || document.IsUserTimed)
                 _ = RetrySourceAuthoredLyricsAsync(query, _trackIdentity, token);

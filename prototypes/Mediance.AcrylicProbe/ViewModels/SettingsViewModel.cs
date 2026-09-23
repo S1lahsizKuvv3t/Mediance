@@ -26,7 +26,8 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     private IReadOnlyList<ToggleSetting>? _utilityOptions;
     public IReadOnlyList<ToggleSetting> WindowOptions => _windowOptions ??=
     [
-        new(Localization.TextCatalog.Get("CloseToTray"), () => CloseToTray, v => CloseToTray = v)
+        new(Localization.TextCatalog.Get("CloseToTray"), () => CloseToTray, v => CloseToTray = v),
+        new(Localization.TextCatalog.Get("ShowNowPlayingCapsule"), () => ShowNowPlayingCapsule, v => ShowNowPlayingCapsule = v)
     ];
     public IReadOnlyList<ToggleSetting> ContentOptions => _contentOptions ??=
     [
@@ -53,6 +54,7 @@ public sealed class SettingsViewModel(JsonSettingsStore? store) : INotifyPropert
     public bool ShowArtwork { get => _data.ShowArtwork; set => Change(_data with { ShowArtwork = value }); }
     public bool ShowProgress { get => _data.ShowProgress; set => Change(_data with { ShowProgress = value }); }
     public bool CloseToTray { get => _data.CloseToTray; set => Change(_data with { CloseToTray = value }); }
+    public bool ShowNowPlayingCapsule { get => _data.ShowNowPlayingCapsule; set => Change(_data with { ShowNowPlayingCapsule = value }); }
     public bool ShowControls { get => _data.ShowControls; set => Change(_data with { ShowControls = value }); }
     public bool ShowBrand { get => _data.ShowBrand; set => Change(_data with { ShowBrand = value }); }
     public bool ShowPlaybackStatus { get => _data.ShowPlaybackStatus; set => Change(_data with { ShowPlaybackStatus = value }); }

@@ -25,7 +25,10 @@ public sealed class MemoryLyricsCacheProvider : ILyricsProvider
         _inner = inner;
         _capacity = capacity;
         _positiveLifetime = positiveLifetime ?? TimeSpan.FromHours(4);
-        _negativeLifetime = negativeLifetime ?? TimeSpan.FromSeconds(45);
+        // A miss may mean that a remote source briefly timed out. Keep it only
+        // long enough to coalesce immediate duplicate UI requests, then let the
+        // view model verify it once more without requiring a track change.
+        _negativeLifetime = negativeLifetime ?? TimeSpan.FromSeconds(2);
         _plainLifetime = plainLifetime ?? TimeSpan.FromSeconds(8);
     }
 

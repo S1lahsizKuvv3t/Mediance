@@ -80,6 +80,7 @@ public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
     public string Status => _selected is null ? "" : TextCatalog.Get(_selected.Status == PlaybackStatus.Playing ? "Playing" : "Paused");
     public ImageSource? Artwork => _artwork;
     public ImageSource? AlbumArtwork => _albumArtwork ?? _artwork;
+    public bool HasMedia => _selected is not null;
     public string Error => _error;
     public bool CanPrevious => !_busy && _selected?.Capabilities.CanPrevious == true;
     public bool CanNext => !_busy && _selected?.Capabilities.CanNext == true;
