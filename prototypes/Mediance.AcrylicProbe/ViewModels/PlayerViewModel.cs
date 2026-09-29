@@ -58,6 +58,7 @@ public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
     public string Title => _selected is null ? TextCatalog.Get("IdleTitle") :
         string.IsNullOrWhiteSpace(_selected.Track.Title) ? TextCatalog.Get("Untitled") : _selected.Track.Title;
     public string Artist => _selected is null ? TextCatalog.Get("IdleArtist") : _selected.Track.Artist;
+    public Visibility ArtistVisibility => string.IsNullOrWhiteSpace(Artist) ? Visibility.Collapsed : Visibility.Visible;
     public string Source => _selected is null ? TextCatalog.Get("IdleSource") :
         _selected.SourceAppId.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? _selected.SourceAppId[..^4] : _selected.SourceAppId;
     public string? SourceAppId => _selected?.SourceAppId;

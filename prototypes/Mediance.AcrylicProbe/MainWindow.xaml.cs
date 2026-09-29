@@ -47,6 +47,7 @@ public sealed partial class MainWindow : Window
     private string? _lastTrackIdentity;
     private readonly bool _animationsEnabled = AreAnimationsEnabled();
     private readonly bool _smoke;
+    private readonly string? _smokeDataDirectory;
     private readonly StartupRegistration _startup = new(Environment.ProcessPath ?? Path.Combine(AppContext.BaseDirectory, "Mediance.exe"));
     private bool _settingsLoaded;
     private bool _seeking;
@@ -71,14 +72,16 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         _smoke = Environment.GetCommandLineArgs().Contains("--smoke-test");
-        Model = new(new WindowsMediaSessionService(), DispatcherQueue);
-        Routing = new(new WindowsAudioRoutingService(), Model);
+        var demo = _smoke && Environment.GetCommandLineArgs().Contains("--demo-preview") ? new PreviewMediaService() : null;
+        _smokeDataDirectory = _smoke ? Path.Combine(Path.GetTempPath(), "Mediance-smoke-" + Guid.NewGuid().ToString("N")) : null;
+        Model = new(demo is null ? new WindowsMediaSessionService() : demo, DispatcherQueue);
+        Routing = new(demo is null ? new WindowsAudioRoutingService() : demo, Model);
         _lyricsClient = new();
         _updateClient = new() { Timeout = TimeSpan.FromSeconds(8) };
         Update = new(_updateClient);
-        _lyricsTimingStore = new(GetLyricsTimingPath());
+        _lyricsTimingStore = new(_smokeDataDirectory is null ? GetLyricsTimingPath() : Path.Combine(_smokeDataDirectory, "lyrics-timing.json"));
         LocalTimings = new(_lyricsTimingStore);
-        _lyricsLearningStore = new(GetLyricsLearningPath());
+        _lyricsLearningStore = new(_smokeDataDirectory is null ? GetLyricsLearningPath() : Path.Combine(_smokeDataDirectory, "lyrics-learning.json"));
         ILyricsProvider lyricsProvider = new MemoryLyricsCacheProvider(new FallbackLyricsProvider(
             new TimeoutLyricsProvider(new LrcLibLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(4)),
             new TimeoutLyricsProvider(new BetterLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)),
@@ -91,6 +94,7 @@ public sealed partial class MainWindow : Window
                 new TimeoutLyricsProvider(new BbsLyricsProvider(_lyricsClient), TimeSpan.FromSeconds(3)))));
         if (Environment.GetCommandLineArgs().Contains("--force-plain-lyrics"))
             lyricsProvider = new PlainProjectionLyricsProvider(lyricsProvider);
+        if (demo is not null) lyricsProvider = demo;
         Lyrics = new(new LyricsService(lyricsProvider, _lyricsTimingStore, TimeSpan.FromSeconds(20)), Model, DispatcherQueue,
             new WindowsAutomaticLyricsSynchronizer(GetLyricsModelPath()), _lyricsLearningStore);
         Lyrics.LinesChanged += Lyrics_LinesChanged;
@@ -182,6 +186,8 @@ public sealed partial class MainWindow : Window
         QueueResize();
         if (Environment.GetCommandLineArgs().Contains("--background")) _frame.Hide();
         else AnimateEntrance();
+        if (!_smoke && Environment.GetCommandLineArgs().Contains("--capsule-live-check"))
+            _ = CheckCapsuleLiveAsync();
         if (Environment.GetCommandLineArgs().Contains("--smoke-test"))
         {
             try { await RunSmokeAsync(); }
@@ -222,6 +228,15 @@ public sealed partial class MainWindow : Window
             _ = ApplyViewModeLyricsAsync(Settings.ViewMode);
         }
         QueueResize();
+    }
+
+    private async Task CheckCapsuleLiveAsync()
+    {
+        for (var index = 0; index < 30 && !_closing; index++)
+        {
+            await Task.Delay(2000);
+            if (!_closing) _capsuleWindow?.CheckLivePlacement();
+        }
     }
     private void ApplyStartupSetting()
     {
@@ -955,6 +970,8 @@ public sealed partial class MainWindow : Window
         _updateClient.Dispose();
         await Model.DisposeAsync();
         await Settings.DisposeAsync();
+        if (_smokeDataDirectory is not null && Directory.Exists(_smokeDataDirectory))
+            Directory.Delete(_smokeDataDirectory, true);
         _appearance.Dispose();
         _volumeHudCancellation?.Dispose();
         _allowClose = true;
@@ -981,6 +998,15 @@ public sealed partial class MainWindow : Window
                 throw new InvalidOperationException("A monitor center resolved to the wrong work area.");
         }
         ProbeLog.Write($"WindowSmoke: resolved {workAreas.Count} monitor work area(s)");
+        using (var capsule = new NowPlayingCapsuleWindow(Model, Settings, AppWindow, () => { }, () => { }, () => Task.CompletedTask))
+        {
+            capsule.Start();
+            foreach (var monitor in identifiedWorkAreas) await capsule.VerifyPlacementAsync(monitor);
+            var capsulePreview = Environment.GetCommandLineArgs().FirstOrDefault(a => a.StartsWith("--preview-dir=", StringComparison.Ordinal));
+            if (capsulePreview is not null)
+                await capsule.SavePreviewAsync(Path.Combine(capsulePreview["--preview-dir=".Length..], "now-playing.png"));
+        }
+        ProbeLog.Write("WindowSmoke: capsule monitor placement, client bounds and native styles passed");
         if (_tray?.IsAdded != true) throw new InvalidOperationException("System tray icon was not registered.");
         Settings.IsLocked = true;
         Settings.AlwaysOnTop = true;
@@ -1123,6 +1149,7 @@ public sealed partial class MainWindow : Window
         {
             var directory = previewArg["--preview-dir=".Length..];
             if (Environment.GetCommandLineArgs().Contains("--narrow-preview")) Settings.WindowWidth = 420;
+            else if (Environment.GetCommandLineArgs().Contains("--demo-preview")) Settings.WindowWidth = 560;
             await Task.Delay(300);
             await WindowPreview.SaveAsync(Surface, Path.Combine(directory, "widget.png"));
             Settings.Theme = ThemePreset.Album;

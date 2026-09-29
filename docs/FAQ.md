@@ -30,7 +30,7 @@ Her parçanın güvenilir bir söz kaydı veya zaman kodlu sürümü bulunmayabi
 
 ## Genius'ta söz var ama neden hemen otomatik akmıyor?
 
-Bir sayfada söz metninin bulunması zaman kodu bulunduğu anlamına gelmez. Mediance önce zaman kodlu kaynakları tarar ve geçici hatalarda kısa süre sonra yeniden dener. Hiçbir kaynakta zaman kodu yoksa **Otomatik şarkı sözü senkronu** açıkken seçili uygulamanın sesini şarkının başından bir kez cihazda analiz eder. Güvenilir eşleşme kaydedilir ve sonraki çalımda normal senkronlu görünümde açılır. Şarkının henüz duyulmamış geleceğini ilk çalımın başında bilemeyeceği için düz metinden anında eksiksiz zaman çizelgesi üretilemez. Manuel zamanlama her zaman yedek seçenek olarak kalır.
+Bir sayfada söz metninin bulunması zaman kodu bulunduğu anlamına gelmez. Mediance önce zaman kodlu kaynakları tarar ve geçici hatalarda kısa süre sonra yeniden dener. Hiçbir kaynakta zaman kodu yoksa **Otomatik şarkı sözü senkronu** açıkken seçili uygulamanın sesini mevcut konumdan sınırlı örneklerle cihazda analiz eder. Güvenilir eşleşme kaydedilir ve sonraki çalımda normal senkronlu görünümde açılır. Şarkının henüz duyulmamış geleceğini ilk çalımın başında bilemeyeceği için düz metinden anında eksiksiz zaman çizelgesi üretilemez. Manuel zamanlama her zaman yedek seçenek olarak kalır.
 
 ## Otomatik lyric senkronu internete ses gönderiyor mu?
 
@@ -50,7 +50,7 @@ Evet. Kullanıcı tarafından zamanlanmış bir şarkıda **Yeniden senkronla** 
 
 ## Mediance şarkı sözlerini veya dinleme geçmişimi kaydediyor mu?
 
-Hayır. Dinleme geçmişi oluşturulmaz. Yerel zamanlama dosyasında şarkı adı, sanatçı veya söz metni yerine tek yönlü parmak izleri ve zaman değerleri bulunur. Otomatik senkron sırasında yakalanan ses bellekte işlenir ve arşivlenmez.
+Senkronlu söz metni ve zamanlaması yerel olarak saklanır; böylece sonraki dinlemede yeniden arama gerekmez. Dinleme geçmişi oluşturulmaz. Eşleştirmede tek yönlü parmak izleri kullanılır; şarkı ve sanatçı adı ayrıca yazılmaz. Otomatik senkron sırasında yakalanan ses bellekte işlenir ve arşivlenmez.
 
 ## Lyrics araması sırasında internete ne gönderiliyor?
 
@@ -62,7 +62,7 @@ Settings içindeki **Boyutlar → Şarkı sözü zamanlaması** ayarını deği�
 
 ## Uygulamayı kapattım ama hâlâ çalışıyor.
 
-**Kapatıldığında tepsiye küçült** açıksa X yalnızca pencereyi gizler. Tam çıkış için sistem tepsisindeki Mediance simgesine sağ tıklayıp **Çıkış** seçin.
+Widget üzerindeki kısa çizgi Micro modunu açar. Ana widget üzerinde kapatma çarpısı bulunmaz. Tam çıkış için sistem tepsisindeki Mediance simgesine sağ tıklayıp **Çıkış** seçin.
 
 ## Mediance'ı nasıl geri getiririm?
 
@@ -82,7 +82,7 @@ Mediance kayıtlı monitörü bulamazsa pencereyi mevcut çalışma alanlarında
 
 ## Windows SmartScreen neden uyarı gösteriyor?
 
-Beta paketi henüz dijital olarak imzalanmamışsa Windows yayıncıyı doğrulayamaz. Dosyayı yalnızca resmi GitHub Releases sayfasından indirin ve yayınlanan SHA-256 değeriyle karşılaştırın.
+Paket henüz dijital olarak imzalanmadığı için Windows yayıncıyı doğrulayamaz. Dosyayı yalnızca resmi GitHub Releases sayfasından indirin ve yayınlanan SHA-256 değeriyle karşılaştırın.
 
 ## Windows 10 destekleniyor mu?
 
@@ -90,8 +90,20 @@ Mevcut hedef Windows 11 24H2 x64'tür. Windows 10 için destek sözü verilmemek
 
 ## Otomatik güncelleme var mı?
 
-İlk beta sürümünde yoktur. Yeni sürüm yayınlandığında paket GitHub Releases üzerinden indirilecek ve mevcut klasör güncellenecektir. Kullanıcı ayarları uygulama klasörünün dışında tutulduğu için güncelleme sırasında korunur.
+Yeni sürüm denetimi vardır; otomatik indirme veya kurulum yoktur. Yeni sürüm yayınlandığında paket GitHub Releases üzerinden indirilecek ve mevcut klasör güncellenecektir. Kullanıcı ayarları uygulama klasörünün dışında tutulduğu için güncelleme sırasında korunur.
 
 ## Uygulamayı nasıl tamamen kaldırırım?
 
 Mediance'ı kapatın ve uygulama klasörünü silin. Yerel ayarları, zamanlamaları ve indirilen konuşma modelini de kaldırmak isterseniz `%LOCALAPPDATA%\Mediance` klasörünü silin. Windows ile başlatma açıksa önce Settings üzerinden kapatmanız önerilir.
+
+## Kaydettiğim senkron neden tekrar aranıyor?
+
+1.0 ve sonrasında kayıtlı metin ve zamanlama önce yüklenir; kayıt uyumluysa yeniden internet araması veya ses analizi yapılmaz. Eski sürümün yalnızca zaman damgası içeren kaydı için söz metni bir kez yeniden alınır. Başka bir sanatçı, farklı süreli kayıt veya silinmiş kütüphane yeni bir arama gerektirebilir.
+
+## Spotify'da bölüm olarak yüklenmiş bir şarkının sözleri aranır mı?
+
+Evet. Bölüm etiketi aramayı engellemez. Başlıktaki sanatçı/parça ayrımı kullanılabilir; sanatçı bilgisi bulunmazsa başlığa göre arama yapılır. Birden fazla belirsiz eşleşmede yanlış söz seçilmez.
+
+## Görev çubuğu kapsülü nerede durur?
+
+Widget'ın bulunduğu monitörde, bildirim alanının yanında ve görev çubuğunun içinde ortalanır. Başlat menüsü açıldığında masaüstüne taşınmaz. Görev çubuğu görünmüyorsa veya aynı ekranda tam ekran bir uygulama varsa gizlenir. Bazı alternatif görev çubukları farklı davranabilir.

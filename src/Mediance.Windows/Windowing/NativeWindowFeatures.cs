@@ -12,6 +12,7 @@ public static class NativeWindowFeatures
     private const long AppWindowStyle = 0x00040000L;
     private const long ToolWindowStyle = 0x00000080L;
     private const long NoActivateStyle = 0x08000000L;
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<nint, TaskbarPlacement> TaskbarCache = new();
 
     public static double DpiScale(nint window) => Math.Max(96, GetDpiForWindow(window)) / 96d;
 
@@ -127,6 +128,10 @@ public static class NativeWindowFeatures
         if (foreground == 0 || !IsWindowVisible(foreground)) return false;
         _ = GetWindowThreadProcessId(foreground, out var processId);
         if (processId == (uint)Environment.ProcessId) return false;
+        // Start/Search flyouts can own a transparent full-monitor window. They
+        // are shell surfaces, not immersive games or full-screen media.
+        var processName = ProcessName(processId);
+        if (processName is "StartMenuExperienceHost" or "ShellExperienceHost" or "SearchHost" or "explorer") return false;
         var targetMonitor = MonitorFromPoint(new Point { X = position.X, Y = position.Y }, 2);
         var foregroundMonitor = MonitorFromWindow(foreground, 2);
         if (targetMonitor == 0 || targetMonitor != foregroundMonitor || !GetWindowRect(foreground, out var rect)) return false;
@@ -137,21 +142,37 @@ public static class NativeWindowFeatures
                rect.Bottom >= bounds.Y + bounds.Height - tolerance;
     }
 
-    public static TaskbarPlacement? TaskbarAt(PixelPoint position)
+    public static TaskbarPlacement? TaskbarAt(PixelPoint position, double fallbackDpiScale = 1)
     {
         var targetMonitor = MonitorFromPoint(new Point { X = position.X, Y = position.Y }, 2);
         if (targetMonitor == 0) return null;
         nint taskbar = 0;
         WindowEnumProc findTaskbar = (window, data) =>
         {
-            if (!IsWindowVisible(window) || MonitorFromWindow(window, 0) != targetMonitor) return true;
+            if (MonitorFromWindow(window, 2) != targetMonitor) return true;
             var className = WindowClassName(window);
             if (className is not ("Shell_TrayWnd" or "Shell_SecondaryTrayWnd")) return true;
             taskbar = window;
             return false;
         };
         _ = EnumWindows(findTaskbar, 0);
-        if (taskbar == 0 || !GetWindowRect(taskbar, out var taskbarRect)) return null;
+        if (taskbar == 0 || !GetWindowRect(taskbar, out var taskbarRect))
+        {
+            // Start may temporarily hide/reparent the shell tray. The reserved
+            // monitor edge still identifies the real taskbar band. Keep its last
+            // tray anchor, rather than moving the capsule into desktop space.
+            var monitor = ReadMonitor(targetMonitor);
+            var b = monitor.Bounds;
+            var w = monitor.WorkArea;
+            PixelRect? band = null;
+            if (w.Y + w.Height < b.Y + b.Height) band = new(b.X, w.Y + w.Height, b.Width, b.Y + b.Height - w.Y - w.Height);
+            else if (w.Y > b.Y) band = new(b.X, b.Y, b.Width, w.Y - b.Y);
+            else if (w.X > b.X) band = new(b.X, b.Y, w.X - b.X, b.Height);
+            else if (w.X + w.Width < b.X + b.Width) band = new(w.X + w.Width, b.Y, b.X + b.Width - w.X - w.Width, b.Height);
+            if (band is null) return null; // hidden taskbar: no reserved band
+            TaskbarCache.TryGetValue(targetMonitor, out var last);
+            return new(band.Value, last?.NotificationArea, fallbackDpiScale);
+        }
 
         PixelRect? notificationArea = null;
         WindowEnumProc findNotificationArea = (child, data) =>
@@ -165,7 +186,9 @@ public static class NativeWindowFeatures
             return true;
         };
         _ = EnumChildWindows(taskbar, findNotificationArea, 0);
-        return new(ToPixelRect(taskbarRect), notificationArea);
+        var placement = new TaskbarPlacement(ToPixelRect(taskbarRect), notificationArea, DpiScale(taskbar));
+        TaskbarCache[targetMonitor] = placement;
+        return placement;
     }
 
     private static string WindowClassName(nint window)
@@ -207,6 +230,23 @@ public static class NativeWindowFeatures
     public static bool IsNoActivateWindow(nint window) =>
         (GetWindowLongPtr(window, ExtendedStyleIndex).ToInt64() & NoActivateStyle) != 0;
     public static nint ForegroundWindow() => GetForegroundWindow();
+    public static bool IsStartMenuForeground()
+    {
+        _ = GetWindowThreadProcessId(GetForegroundWindow(), out var processId);
+        return string.Equals(ProcessName(processId), "StartMenuExperienceHost", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string? ProcessName(uint processId)
+    {
+        try
+        {
+            using var process = System.Diagnostics.Process.GetProcessById((int)processId);
+            return process.ProcessName;
+        }
+        catch (ArgumentException) { return null; }
+        catch (InvalidOperationException) { return null; }
+        catch (Win32Exception) { return null; }
+    }
     public static void RestoreForegroundWindow(nint window)
     {
         if (window != 0) _ = SetForegroundWindow(window);
@@ -281,4 +321,4 @@ public static class NativeWindowFeatures
 }
 
 public sealed record MonitorWorkArea(string Id, PixelRect WorkArea, PixelRect Bounds);
-public sealed record TaskbarPlacement(PixelRect Bounds, PixelRect? NotificationArea);
+public sealed record TaskbarPlacement(PixelRect Bounds, PixelRect? NotificationArea, double DpiScale = 1);

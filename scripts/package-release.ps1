@@ -1,5 +1,6 @@
 param(
-    [string]$Version = "0.9.0-beta.3"
+    [ValidatePattern('^\d+\.\d+\.\d+(-[A-Za-z0-9.-]+)?$')]
+    [string]$Version = "1.0.0"
 )
 
 $ErrorActionPreference = "Stop"
@@ -31,6 +32,11 @@ if (-not (Test-Path -LiteralPath (Join-Path $sourceDirectory "Mediance.exe"))) {
 
 New-Item -ItemType Directory -Path $releaseDirectory -Force | Out-Null
 foreach ($path in @($stagingDirectory, $launcherDirectory)) {
+    $resolved = [IO.Path]::GetFullPath($path)
+    $allowedRoot = [IO.Path]::GetFullPath($releaseDirectory).TrimEnd('\') + '\'
+    if (-not $resolved.StartsWith($allowedRoot, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Refusing to remove a directory outside release staging: $resolved"
+    }
     if (Test-Path -LiteralPath $path) {
         Remove-Item -LiteralPath $path -Recurse -Force
     }
@@ -62,7 +68,8 @@ Installation:
 2. Run Mediance.exe from the top level of the extracted folder.
 3. Keep the App folder beside Mediance.exe. It contains the files the application needs.
 
-This beta is not code-signed, so Windows SmartScreen may show an unknown publisher warning.
+This portable release is not code-signed, so Windows SmartScreen may show an unknown publisher warning.
+Settings and saved lyrics stay under %LOCALAPPDATA%\Mediance when the application folder is replaced.
 
 Project: https://github.com/S1lahsizKuvv3t/Mediance
 "@
@@ -74,8 +81,8 @@ Set-Content -LiteralPath (Join-Path $documentationDirectory "README.txt") -Value
     --self-contained true `
     --output $launcherDirectory `
     -p:Version=$Version `
-    -p:AssemblyVersion=0.9.0.0 `
-    -p:FileVersion=0.9.0.0 `
+    -p:AssemblyVersion="$($Version.Split('-')[0]).0" `
+    -p:FileVersion="$($Version.Split('-')[0]).0" `
     -p:InformationalVersion=$Version `
     --nologo
 if ($LASTEXITCODE -ne 0) {

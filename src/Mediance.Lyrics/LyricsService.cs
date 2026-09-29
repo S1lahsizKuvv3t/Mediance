@@ -10,9 +10,23 @@ public sealed class LyricsService(
     public async Task<LyricsDocument> FindAsync(LyricsQuery query, CancellationToken token = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(query.Title);
+        if (timingStore is not null)
+        {
+            var saved = await timingStore.LoadDocumentAsync(query, token);
+            if (saved is not null) return saved;
+        }
         using var limited = CancellationTokenSource.CreateLinkedTokenSource(token);
         limited.CancelAfter(timeout ?? TimeSpan.FromSeconds(15));
         var document = await provider.FindAsync(query, limited.Token);
+        if (document.Kind == LyricsKind.Synced && timingStore is not null)
+        {
+            // Disk failure must not hide valid source lyrics. Manual/automatic saves
+            // still propagate write failures so the UI never reports a false save.
+            try { await timingStore.SaveDocumentAsync(query, document, limited.Token); }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+            catch (ArgumentException) { }
+        }
         if (document.Kind != LyricsKind.Plain) return document;
 
         var cleaned = PlainLyricsTimeline.Clean(document.PlainText);
@@ -21,7 +35,11 @@ public sealed class LyricsService(
         {
             var timings = await timingStore.LoadAsync(query, cleaned, limited.Token);
             if (timings is not null)
+            {
+                // Schema 2 stored hashes only. Hydrate its text once, retaining timing.
+                await timingStore.SaveAsync(query, cleaned, timings, limited.Token);
                 return ToSynced(cleaned, timings);
+            }
         }
         return new LyricsDocument(LyricsKind.Plain, [], cleaned);
     }

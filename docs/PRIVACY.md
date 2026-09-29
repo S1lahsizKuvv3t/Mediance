@@ -1,6 +1,6 @@
 # Gizlilik
 
-Son güncelleme: 19 Eylül 2026
+Son güncelleme: 30 Eylül 2026
 
 Mediance hesap gerektirmeden çalışır. Uygulamada reklam, kullanıcı profili, dinleme geçmişi veya telemetri sistemi bulunmaz.
 
@@ -43,20 +43,23 @@ Lyrics paneli kapalıyken söz araması yapılmaz. Paneli açtığınızda doğr
 
 Sağlayıcı zinciri sürüme ve erişilebilirliğe göre LRCLIB, Better Lyrics, AMLL TTML, Apple/iTunes katalog hizmetleri, Şarkı Analizi, SozMuzik, Genius ve ŞarkıSözleri BBS uçlarını kullanabilir. Bu hizmetlerin kendi gizlilik ve kayıt politikaları geçerlidir.
 
-Sonuçlar kısa süreli olarak yalnızca uygulama belleğinde önbelleğe alınır. Bu önbellek uygulama kapandığında kaybolur.
+Önce yerel senkron kütüphanesi kontrol edilir. Uygun bir kayıt varsa sağlayıcılara şarkı sorgusu gönderilmez. Kayıt yoksa çevrimiçi arama yapılır. Düz sözler ve bulunamayan sonuçlar yalnızca kısa süreli bellekte önbelleğe alınır; senkronlu sonuçlar aşağıdaki yerel kütüphanede saklanır.
 
-## Yerel lyrics zamanlamaları
+## Yerel senkron lyrics kütüphanesi
 
-Otomatik eşleşme kabul edildiğinde veya kullanıcı bir şarkıyı manuel olarak zamanladığında tamamlanan zaman değerleri `%LOCALAPPDATA%\Mediance\lyrics-timing.json` dosyasına yazılır.
+Otomatik eşleşme kabul edildiğinde, manuel zamanlama tamamlandığında veya bir sağlayıcıdan senkronlu söz alındığında söz metni ve zaman değerleri `%LOCALAPPDATA%\Mediance\lyrics-timing.json` dosyasına yazılır.
 
 Bu dosya şunları içermez:
 
 - şarkı adı;
 - sanatçı adı;
-- albüm adı;
-- söz metni.
+- albüm adı.
 
-Eşleştirme için SHA-256 tabanlı şarkı, söz ve satır parmak izleri; şarkı süresi; satır zamanları ve güncelleme tarihi saklanır. Dosya yereldir ve Mediance tarafından bir sunucuya yüklenmez.
+Söz metni **saklanır**. Böylece kayıt, internet kaynağına yeniden bağlanmadan kullanılabilir.
+
+Eşleştirme için SHA-256 tabanlı şarkı, söz ve satır parmak izleri; söz satırları; şarkı süresi; satır zamanları; zamanlamanın yerel mi kaynaklı mı olduğu ve güncelleme tarihi saklanır. Dosya yereldir ve Mediance tarafından bir sunucuya yüklenmez. Kayıtlar kendiliğinden süre aşımına uğramaz. Settings içindeki kayıt yönetiminden silinebilir. Silme işlemi kurtarma yedeğini de günceller.
+
+Eski, yalnızca parmak izi içeren kayıtlar korunur. İlk başarılı söz aramasından sonra aynı zamanlamaya metin eklenir. Dosyanın `.bak` kurtarma yedeği ve bozulduğunda korunan `.invalid` kopyası da söz metni içerebilir.
 
 ## Otomatik senkron öğrenme belleği
 

@@ -1,6 +1,6 @@
 # Support
 
-GitHub Issues is the main support channel during the public beta.
+GitHub Issues is the main support channel for Mediance releases.
 
 Before opening an issue:
 

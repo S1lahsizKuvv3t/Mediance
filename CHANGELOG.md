@@ -4,6 +4,23 @@ Notable user-visible changes are recorded here. Mediance follows semantic versio
 
 ## [Unreleased]
 
+No changes yet.
+
+## [1.0.0] — 2026-09-30
+
+### Changed
+
+- Saved synchronized lyrics now include text and load before providers, including after an app restart. Source results, automatic alignment and manual timing share the local library.
+- Existing timing-only entries retain their timestamps and acquire text on their next successful lookup. Completed records no longer have count-based eviction.
+- Refreshed English/Turkish guides, privacy notes, screenshots and the feature-tour GIF with original demo content.
+
+### Fixed
+
+- Taskbar placement uses the target monitor DPI and a stable reserved taskbar band, keeping the capsule centered at 1080p and higher resolutions and preventing Start-menu jumps.
+- Removed the desktop-position fallback when the taskbar is unavailable and bounded the play/pause button and hover effect inside the capsule.
+- Added offline/restart, migration, recording-isolation and taskbar/DPI regression coverage.
+
+
 ### Added
 
 - Added an optional taskbar now-playing capsule beside the Windows notification area. It follows the widget's monitor, uses the current artwork, supports one-click play/pause and a context menu, and hides while another application is full screen.

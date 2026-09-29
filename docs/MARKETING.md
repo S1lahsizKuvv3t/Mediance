@@ -1,6 +1,6 @@
 # Mediance marketing kit
 
-The files under `assets/marketing` are rendered from the real WinUI application. They are intended for the GitHub README, release pages, social posts, and store drafts.
+The files under `assets/marketing` are rendered from the real WinUI application using original demo metadata, artwork and lyrics. The GIF is a feature tour assembled from those renders, not a recording of a user desktop. They are intended for the GitHub README, release pages, social posts, and store drafts.
 
 ## Ready-to-use assets
 
@@ -14,6 +14,7 @@ The files under `assets/marketing` are rendered from the real WinUI application.
 | `widget-micro-idle.png` | Micro mode at its idle opacity |
 | `widget-micro-hover.png` | Micro mode while hovered |
 | `widget-minimal.png` | Minimal layout |
+| `now-playing.png` | Taskbar capsule surface |
 | `settings-*.png` | Appearance, elements, lyrics, and system settings |
 
 Regenerate the pack from the repository root after a visible UI change:

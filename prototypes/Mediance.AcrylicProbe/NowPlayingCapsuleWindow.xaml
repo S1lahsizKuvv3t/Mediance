@@ -35,11 +35,11 @@
                     </LinearGradientBrush>
                 </Rectangle.Fill>
             </Rectangle>
-            <Grid Padding="4,3,14,3" ColumnSpacing="7">
+            <Grid Padding="4,3,7,3" ColumnSpacing="7">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="28" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="24" />
                 </Grid.ColumnDefinitions>
                 <Border Width="28" Height="28" CornerRadius="14" Background="#24000000">
                     <Grid>
@@ -47,21 +47,22 @@
                         <Image Source="{x:Bind Model.Artwork, Mode=OneWay}" Stretch="UniformToFill" />
                     </Grid>
                 </Border>
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="-1">
-                    <TextBlock Text="{x:Bind Model.Title, Mode=OneWay}" FontSize="11.5" FontWeight="SemiBold"
-                               LineHeight="13" LineStackingStrategy="BlockLineHeight"
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="0">
+                    <TextBlock Text="{x:Bind Model.Title, Mode=OneWay}" FontSize="12" FontWeight="SemiBold"
+                               LineHeight="14" LineStackingStrategy="BlockLineHeight"
                                TextTrimming="CharacterEllipsis" MaxLines="1" />
-                    <TextBlock Text="{x:Bind Model.Artist, Mode=OneWay}" FontSize="8.5" Opacity="0.7"
-                               LineHeight="10" LineStackingStrategy="BlockLineHeight"
+                    <TextBlock Text="{x:Bind Model.Artist, Mode=OneWay}" FontSize="9" Opacity="0.7"
+                               Visibility="{x:Bind Model.ArtistVisibility, Mode=OneWay}"
+                               LineHeight="11" LineStackingStrategy="BlockLineHeight"
                                TextTrimming="CharacterEllipsis" MaxLines="1" />
                 </StackPanel>
-                <Button Grid.Column="2" Width="18" Height="18" Padding="0" VerticalAlignment="Center"
-                        Background="#26FFFFFF" BorderThickness="0" CornerRadius="9"
+                <Button x:Name="PlayButton" Grid.Column="2" Width="24" Height="24" MinWidth="0" MinHeight="0" Padding="0" VerticalAlignment="Center"
+                        Background="#26FFFFFF" BorderThickness="0" CornerRadius="12"
                         IsEnabled="{x:Bind Model.CanToggle, Mode=OneWay}"
                         AutomationProperties.Name="{x:Bind Model.PlayLabel, Mode=OneWay}"
                         ToolTipService.ToolTip="{x:Bind Model.PlayLabel, Mode=OneWay}"
                         Click="Play_Click">
-                    <FontIcon Glyph="{x:Bind Model.PlayGlyph, Mode=OneWay}" FontSize="8" />
+                    <FontIcon Glyph="{x:Bind Model.PlayGlyph, Mode=OneWay}" FontSize="10" />
                 </Button>
             </Grid>
         </Grid>

@@ -51,7 +51,7 @@ The audio-policy COM adapter is isolated here because its ABI is not part of the
 
 ### Mediance.Lyrics
 
-Owns network providers and privacy-preserving local timing storage:
+Owns network providers and local synchronized-lyrics storage:
 
 - LRCLIB LRC;
 - Better Lyrics TTML;
@@ -60,15 +60,15 @@ Owns network providers and privacy-preserving local timing storage:
 - validated plain-text fallbacks;
 - per-provider deadlines and fallback order;
 - result-sensitive, bounded memory-only caching that keeps authored timing long-lived but expires plain fallbacks quickly;
-- privacy-preserving local automatic and manual timing.
+- an atomic local library containing lyrics and source, automatic or manual timing.
 
-Plain text alone is never presented as synchronized. The open panel rechecks synchronized sources after a degraded plain or locally timed result. A plain-only result may also enter the independent on-device audio alignment path described below; source-authored LRC or TTML always wins over every local timing.
+Plain text alone is never presented as synchronized. Saved synchronized documents are checked before any provider call and are returned without a background source refresh. Only a plain result triggers the later source retry and optional audio-alignment path. Without a local entry, source-authored LRC or TTML is preferred over plain text.
 
 ### Mediance.AcrylicProbe
 
 This is the current desktop host despite its historical project name. It contains the production-facing widget, settings window, animations, localization resources, and view models. The assembly and executable are named `Mediance`.
 
-The project name will be simplified before 1.0 packaging so release users do not see internal prototype terminology.
+The historical project name remains a development detail; the release executable and native launcher are both named Mediance.
 
 ## Media state flow
 
@@ -116,7 +116,7 @@ Recent results are kept in a bounded in-memory cache. Successful documents live 
 
 When verified lyrics contain no timestamps, optional automatic sync captures only the selected application's process-loopback stream. Audio stays in memory, is converted to 16 kHz mono, and is transcribed locally with Whisper. Capture is bounded to 75 seconds and may begin at the current playback position. The aligner maps the transcript to a contiguous lyric region, checks that region against the approximate track position, interpolates the remaining timeline and accepts it only above token and anchored-line confidence thresholds. Empty, transient and low-confidence results retry on later sections up to three times. Pauses, seeks and source changes cancel active capture rather than creating a misleading timeline.
 
-Local automatic and manual timing use the same versioned atomic file under local application data. Track and lyric identities are one-way fingerprints. A damaged main file is preserved and the last complete backup is restored when possible. Source-authored LRC or TTML always remains authoritative.
+Source, automatic and manual synchronization use the same schema-3 atomic file under local application data. Track identities remain one-way fingerprints, while text lines and timestamps are stored together. Saved documents load before network lookups; completed entries have no expiry or count-based eviction. Schema-2 hash-only entries are retained and hydrated after a successful text lookup. A damaged main file is preserved and the last complete backup is restored when possible. Unsupported future versions are not overwritten.
 
 ## Settings and window state
 
