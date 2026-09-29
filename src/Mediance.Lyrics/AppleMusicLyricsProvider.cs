@@ -19,6 +19,7 @@ public sealed class AppleMusicLyricsProvider(
         var match = SelectSong(query, songs);
         if (match is null)
         {
+            if (string.IsNullOrWhiteSpace(query.Artist)) return LyricsDocument.Unavailable;
             var artist = await FindPrimaryArtistAsync(query.Artist, token);
             if (artist is null) return LyricsDocument.Unavailable;
             songs = await LookupArtistSongsAsync(artist.ArtistId, token);

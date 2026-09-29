@@ -28,7 +28,10 @@ public static class LyricsQueryFactory
                 return new(inferredTitle, inferredArtist, null, duration);
         }
 
-        return null;
+        // Episode and podcast publishers frequently omit the artist completely.
+        // Keep the title searchable; providers that support global search can
+        // still find a unique song, while LyricsMatching rejects ambiguous hits.
+        return new(title, "", null, duration);
     }
 
     private static string? Clean(string? value) =>

@@ -16,21 +16,29 @@ public sealed partial class GeniusLyricsProvider(HttpClient client, Uri? baseUri
     public async Task<LyricsDocument> FindAsync(LyricsQuery query, CancellationToken token = default)
     {
         var artistSlug = Slug(PrimaryArtist(query.Artist));
-        if (artistSlug.Length == 0) return LyricsDocument.Unavailable;
+        Song[] songs = [];
+        if (artistSlug.Length > 0)
+        {
+            var artistPage = await GetTextAsync(new Uri(_baseUri, $"artists/{artistSlug}"), token);
+            diagnostic?.Invoke($"artist-page:{artistPage.Length}");
+            var idMatch = ArtistIdRegex().Match(artistPage);
+            if (idMatch.Success && long.TryParse(idMatch.Groups[1].Value, out var artistId))
+            {
+                var catalogueUri = new Uri(_baseUri,
+                    $"api/artists/{artistId}/songs?page=1&per_page=50&sort=title");
+                using var catalogueRequest = Request(catalogueUri, new Uri(_baseUri, $"artists/{artistSlug}"));
+                using var catalogueResponse = await client.SendAsync(catalogueRequest,
+                    HttpCompletionOption.ResponseHeadersRead, token);
+                if (catalogueResponse.IsSuccessStatusCode)
+                {
+                    var catalogue = await catalogueResponse.Content
+                        .ReadFromJsonAsync<Catalogue>(cancellationToken: token);
+                    songs = catalogue?.Response?.Songs ?? [];
+                }
+                diagnostic?.Invoke($"catalogue:{songs.Length}");
+            }
+        }
 
-        var artistPage = await GetTextAsync(new Uri(_baseUri, $"artists/{artistSlug}"), token);
-        diagnostic?.Invoke($"artist-page:{artistPage.Length}");
-        var idMatch = ArtistIdRegex().Match(artistPage);
-        if (!idMatch.Success || !long.TryParse(idMatch.Groups[1].Value, out var artistId))
-            return LyricsDocument.Unavailable;
-
-        var catalogueUri = new Uri(_baseUri, $"api/artists/{artistId}/songs?page=1&per_page=50&sort=title");
-        using var catalogueRequest = Request(catalogueUri, new Uri(_baseUri, $"artists/{artistSlug}"));
-        using var catalogueResponse = await client.SendAsync(catalogueRequest, HttpCompletionOption.ResponseHeadersRead, token);
-        if (!catalogueResponse.IsSuccessStatusCode) return LyricsDocument.Unavailable;
-        var catalogue = await catalogueResponse.Content.ReadFromJsonAsync<Catalogue>(cancellationToken: token);
-        var songs = catalogue?.Response?.Songs ?? [];
-        diagnostic?.Invoke($"catalogue:{songs.Length}");
         var candidates = songs.Select(song => new LyricsCandidate(song.Id, song.Title ?? "",
             song.ArtistNames ?? "", null, null)).ToArray();
         var best = LyricsMatching.SelectBest(query, candidates, 0.86);
