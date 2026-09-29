@@ -12,7 +12,7 @@ Notable user-visible changes are recorded here. Mediance follows semantic versio
 
 - The capsule uses a true borderless popup surface, keeping its rounded edges, metadata, and playback button fully inside the Windows taskbar without a bright native frame.
 - Lyrics sources now run concurrently so a slow endpoint cannot prevent later providers from being reached. Short-lived misses are verified automatically and are no longer cached as “not found” for 45 seconds.
-- Spotify tracks published as episodes can now load lyrics when their empty artist metadata is encoded in the title as artist - song.
+- Spotify media published as episodes now always performs a lyrics lookup. Mediance extracts artist - song titles when possible and otherwise uses a guarded title-only search that rejects ambiguous matches.
 
 ## [0.9.0-beta.3] — 2026-09-19
 

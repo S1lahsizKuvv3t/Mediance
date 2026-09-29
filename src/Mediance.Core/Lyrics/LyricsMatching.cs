@@ -36,9 +36,14 @@ public static class LyricsMatching
 
     public static double Score(LyricsQuery query, LyricsCandidate candidate)
     {
-        var weighted = Similarity(query.Title, candidate.TrackName) * 0.40
-                     + Similarity(query.Artist, candidate.ArtistName) * 0.35;
-        var totalWeight = 0.75;
+        var weighted = Similarity(query.Title, candidate.TrackName) * 0.40;
+        var totalWeight = 0.40;
+
+        if (!string.IsNullOrWhiteSpace(query.Artist))
+        {
+            weighted += Similarity(query.Artist, candidate.ArtistName) * 0.35;
+            totalWeight += 0.35;
+        }
 
         if (query.Duration is { TotalSeconds: > 0 } requested && candidate.Duration is { TotalSeconds: > 0 } found)
         {
@@ -51,7 +56,7 @@ public static class LyricsMatching
             weighted += Similarity(query.Album, candidate.AlbumName) * 0.05;
             totalWeight += 0.05;
         }
-        return weighted / totalWeight;
+        return totalWeight <= 0 ? 0 : weighted / totalWeight;
     }
 
     private static double Similarity(string? left, string? right)

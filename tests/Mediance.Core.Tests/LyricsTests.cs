@@ -37,10 +37,15 @@ public sealed class LyricsTests
     }
 
     [Fact]
-    public void LyricsQueryDoesNotGuessWhenEpisodeMetadataHasNoArtistPattern()
+    public void LyricsQueryKeepsEpisodeTitleSearchableWhenArtistIsMissing()
     {
-        Assert.Null(LyricsQueryFactory.FromMediaMetadata(
-            "An ordinary podcast episode", "", "Podcast", TimeSpan.FromMinutes(30)));
+        var query = LyricsQueryFactory.FromMediaMetadata(
+            "An ordinary podcast episode", "", "Podcast", TimeSpan.FromMinutes(30));
+
+        Assert.NotNull(query);
+        Assert.Equal("An ordinary podcast episode", query.Title);
+        Assert.Equal("", query.Artist);
+        Assert.Null(query.Album);
     }
 
     [Fact]
@@ -53,6 +58,43 @@ public sealed class LyricsTests
         ];
 
         Assert.Equal(0, LyricsMatching.SelectBest(query, candidates));
+    }
+
+    [Fact]
+    public void TitleOnlyEpisodeQuerySelectsAUniqueSong()
+    {
+        var query = new LyricsQuery("Unique Episode Song", "", null, TimeSpan.FromSeconds(180));
+        LyricsCandidate[] candidates =
+        [
+            new(1, "Another Song", "Artist A", null, TimeSpan.FromSeconds(180)),
+            new(2, "Unique Episode Song", "Artist B", null, TimeSpan.FromSeconds(180))
+        ];
+
+        Assert.Equal(1, LyricsMatching.SelectBest(query, candidates));
+    }
+
+    [Fact]
+    public void TitleOnlyEpisodeQueryRejectsAmbiguousSongs()
+    {
+        var query = new LyricsQuery("Shared Title", "", null, null);
+        LyricsCandidate[] candidates =
+        [
+            new(1, "Shared Title", "Artist A", null, null),
+            new(2, "Shared Title", "Artist B", null, null)
+        ];
+
+        Assert.Equal(-1, LyricsMatching.SelectBest(query, candidates));
+    }
+
+    [Fact]
+    public async Task LyricsServiceAllowsTitleOnlyEpisodeLookups()
+    {
+        var expected = new LyricsDocument(LyricsKind.Plain, [], "Synthetic lyric");
+        var result = await new LyricsService(new FixedProvider(expected))
+            .FindAsync(new("Episode Song", "", null, TimeSpan.FromMinutes(3)));
+
+        Assert.Equal(LyricsKind.Plain, result.Kind);
+        Assert.Equal("Synthetic lyric", result.PlainText);
     }
 
     [Fact]
@@ -684,6 +726,28 @@ public sealed class LyricsTests
         Assert.Equal(4, handler.Requests.Count);
         Assert.Contains("api/search/song?q=", handler.Requests[2].AbsoluteUri);
         Assert.Contains("Damarlar", handler.Requests[2].Query);
+    }
+
+    [Fact]
+    public async Task GeniusFallbackCanSearchByEpisodeTitleWithoutAnArtist()
+    {
+        var handler = new SequenceHandler(
+            (HttpStatusCode.OK, """
+                {"response":{"sections":[{"type":"song","hits":[
+                  {"result":{"id":2,"title":"Unique Episode Song","artist_names":"Artist","url":"https://lyrics.test/episode-lyrics"}}
+                ]}]}}
+                """),
+            (HttpStatusCode.OK, """
+                <div data-lyrics-container="true">Synthetic episode lyric</div>
+                """));
+
+        var result = await new GeniusLyricsProvider(new HttpClient(handler), new Uri("https://lyrics.test/"))
+            .FindAsync(new("Unique Episode Song", "", null, TimeSpan.FromSeconds(173)));
+
+        Assert.Equal(LyricsKind.Plain, result.Kind);
+        Assert.Equal("Synthetic episode lyric", result.PlainText);
+        Assert.Equal(2, handler.Requests.Count);
+        Assert.Contains("api/search/song?q=", handler.Requests[0].AbsoluteUri);
     }
 
     [Fact]

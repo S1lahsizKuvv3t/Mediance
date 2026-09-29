@@ -10,7 +10,6 @@ public sealed class LyricsService(
     public async Task<LyricsDocument> FindAsync(LyricsQuery query, CancellationToken token = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(query.Title);
-        ArgumentException.ThrowIfNullOrWhiteSpace(query.Artist);
         using var limited = CancellationTokenSource.CreateLinkedTokenSource(token);
         limited.CancelAfter(timeout ?? TimeSpan.FromSeconds(15));
         var document = await provider.FindAsync(query, limited.Token);
