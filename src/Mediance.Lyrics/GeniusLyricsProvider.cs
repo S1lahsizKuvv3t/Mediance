@@ -35,6 +35,14 @@ public sealed partial class GeniusLyricsProvider(HttpClient client, Uri? baseUri
             song.ArtistNames ?? "", null, null)).ToArray();
         var best = LyricsMatching.SelectBest(query, candidates, 0.86);
         diagnostic?.Invoke($"candidate:{best}");
+        if (best < 0)
+        {
+            songs = await SearchSongsAsync(query, token);
+            candidates = songs.Select(song => new LyricsCandidate(song.Id, song.Title ?? "",
+                song.ArtistNames ?? "", null, null)).ToArray();
+            best = LyricsMatching.SelectBest(query, candidates, 0.86);
+            diagnostic?.Invoke($"search-candidate:{best}");
+        }
         if (best < 0 || !Uri.TryCreate(songs[best].Url, UriKind.Absolute, out var songUri))
             return LyricsDocument.Unavailable;
 
@@ -49,6 +57,24 @@ public sealed partial class GeniusLyricsProvider(HttpClient client, Uri? baseUri
                 .Where(text => !string.IsNullOrWhiteSpace(text))).Trim();
         }
         return lyrics.Length == 0 ? LyricsDocument.Unavailable : new(LyricsKind.Plain, [], lyrics);
+    }
+
+    private async Task<Song[]> SearchSongsAsync(LyricsQuery query, CancellationToken token)
+    {
+        var searchText = Uri.EscapeDataString($"{query.Title} {query.Artist}");
+        using var request = Request(new Uri(_baseUri, $"api/search/song?q={searchText}"), _baseUri);
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
+        if (!response.IsSuccessStatusCode) return [];
+        var search = await response.Content.ReadFromJsonAsync<SearchResult>(cancellationToken: token);
+        var songs = search?.Response?.Sections?
+            .Where(section => string.Equals(section.Type, "song", StringComparison.OrdinalIgnoreCase))
+            .SelectMany(section => section.Hits ?? [])
+            .Select(hit => hit.Result)
+            .Where(song => song is not null)
+            .Cast<Song>()
+            .ToArray() ?? [];
+        diagnostic?.Invoke($"search:{songs.Length}");
+        return songs;
     }
 
     private async Task<string> GetTextAsync(Uri uri, CancellationToken token)
@@ -156,6 +182,12 @@ public sealed partial class GeniusLyricsProvider(HttpClient client, Uri? baseUri
 
     private sealed record Catalogue([property: JsonPropertyName("response")] CatalogueResponse? Response);
     private sealed record CatalogueResponse([property: JsonPropertyName("songs")] Song[]? Songs);
+    private sealed record SearchResult([property: JsonPropertyName("response")] SearchResponse? Response);
+    private sealed record SearchResponse([property: JsonPropertyName("sections")] SearchSection[]? Sections);
+    private sealed record SearchSection(
+        [property: JsonPropertyName("type")] string? Type,
+        [property: JsonPropertyName("hits")] SearchHit[]? Hits);
+    private sealed record SearchHit([property: JsonPropertyName("result")] Song? Result);
     private sealed record Song(
         [property: JsonPropertyName("id")] long Id,
         [property: JsonPropertyName("title")] string? Title,

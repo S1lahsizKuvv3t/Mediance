@@ -9,6 +9,53 @@ namespace Mediance.Core.Tests;
 public sealed class LyricsTests
 {
     [Fact]
+    public void LyricsQueryUsesNormalTrackMetadataWithoutChangingIt()
+    {
+        var query = LyricsQueryFactory.FromMediaMetadata(
+            "Damarlarımda", "Sansar Salvo", "Album", TimeSpan.FromSeconds(173));
+
+        Assert.NotNull(query);
+        Assert.Equal("Damarlarımda", query.Title);
+        Assert.Equal("Sansar Salvo", query.Artist);
+        Assert.Equal("Album", query.Album);
+        Assert.Equal(TimeSpan.FromSeconds(173), query.Duration);
+    }
+
+    [Theory]
+    [InlineData("Sansar Salvo - Damarlarımda")]
+    [InlineData("Sansar Salvo – Damarlarımda")]
+    [InlineData("Sansar Salvo — Damarlarımda")]
+    public void LyricsQueryInfersArtistAndTitleFromEpisodeMetadata(string combinedTitle)
+    {
+        var query = LyricsQueryFactory.FromMediaMetadata(
+            combinedTitle, "", "Wollien", TimeSpan.FromSeconds(173));
+
+        Assert.NotNull(query);
+        Assert.Equal("Damarlarımda", query.Title);
+        Assert.Equal("Sansar Salvo", query.Artist);
+        Assert.Null(query.Album);
+    }
+
+    [Fact]
+    public void LyricsQueryDoesNotGuessWhenEpisodeMetadataHasNoArtistPattern()
+    {
+        Assert.Null(LyricsQueryFactory.FromMediaMetadata(
+            "An ordinary podcast episode", "", "Podcast", TimeSpan.FromMinutes(30)));
+    }
+
+    [Fact]
+    public void ExactTitleAndArtistRemainValidWhenEpisodeDurationDiffers()
+    {
+        var query = new LyricsQuery("Damarlarımda", "Sansar Salvo", null, TimeSpan.FromSeconds(173));
+        LyricsCandidate[] candidates =
+        [
+            new(1, "Damarlarımda", "Sansar Salvo", "Seremoni Efendisi", TimeSpan.FromSeconds(240))
+        ];
+
+        Assert.Equal(0, LyricsMatching.SelectBest(query, candidates));
+    }
+
+    [Fact]
     public void PlainLyricsCleanupRemovesSectionLabelsButKeepsVocalAdlibs()
     {
         var cleaned = PlainLyricsTimeline.Clean(
@@ -607,6 +654,36 @@ public sealed class LyricsTests
         Assert.Equal(3, handler.Requests.Count);
         Assert.Contains("artists/kavak", handler.Requests[0].AbsoluteUri);
         Assert.Contains("api/artists/4021697/songs", handler.Requests[1].AbsoluteUri);
+    }
+
+    [Fact]
+    public async Task GeniusFallbackSearchesTheWholeCatalogueWhenTheFirstArtistPageMisses()
+    {
+        var handler = new SequenceHandler(
+            (HttpStatusCode.OK, "window.__STATE__ = {artist_id\\\":155777};"),
+            (HttpStatusCode.OK, """
+                {"response":{"songs":[
+                  {"id":1,"title":"Another Song","artist_names":"Sansar Salvo","url":"https://lyrics.test/another-lyrics"}
+                ]}}
+                """),
+            (HttpStatusCode.OK, """
+                {"response":{"sections":[{"type":"song","hits":[
+                  {"result":{"id":2,"title":"Damarlarımda","artist_names":"Sansar Salvo & Mafsal","url":"https://lyrics.test/damarlarimda-lyrics"}},
+                  {"result":{"id":3,"title":"Damarlarımda (Instrumental)","artist_names":"Sansar Salvo & Mafsal","url":"https://lyrics.test/instrumental-lyrics"}}
+                ]}]}}
+                """),
+            (HttpStatusCode.OK, """
+                <div data-lyrics-container="true">Synthetic first<br/>Synthetic second</div>
+                """));
+
+        var result = await new GeniusLyricsProvider(new HttpClient(handler), new Uri("https://lyrics.test/"))
+            .FindAsync(new("Damarlarımda", "Sansar Salvo", null, TimeSpan.FromSeconds(173)));
+
+        Assert.Equal(LyricsKind.Plain, result.Kind);
+        Assert.Equal("Synthetic first\nSynthetic second", result.PlainText);
+        Assert.Equal(4, handler.Requests.Count);
+        Assert.Contains("api/search/song?q=", handler.Requests[2].AbsoluteUri);
+        Assert.Contains("Damarlar", handler.Requests[2].Query);
     }
 
     [Fact]
