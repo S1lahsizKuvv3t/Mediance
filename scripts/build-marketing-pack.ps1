@@ -25,11 +25,11 @@ Get-Process Mediance -ErrorAction SilentlyContinue |
 
 $arguments = @(
     '--smoke-test',
+    '--demo-preview',
     "--preview-dir=$OutputDirectory",
-    '--lyrics-preview',
-    '--narrow-preview'
+    '--lyrics-preview'
 )
-$process = Start-Process -FilePath $exe -ArgumentList $arguments -PassThru -Wait
+$process = Start-Process -FilePath $exe -ArgumentList $arguments -WindowStyle Hidden -PassThru -Wait
 if ($process.ExitCode -ne 0) {
     throw "Mediance preview smoke failed with exit code $($process.ExitCode)."
 }

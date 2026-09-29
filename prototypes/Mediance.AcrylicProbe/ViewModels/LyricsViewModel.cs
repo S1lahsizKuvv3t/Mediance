@@ -224,7 +224,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged, IDisposable
                 if (token.IsCancellationRequested || _disposed || _trackIdentity != _player.TrackIdentity) return;
             }
             ApplyDocument(document);
-            if (document.Kind == LyricsKind.Plain || document.IsUserTimed)
+            if (document.Kind == LyricsKind.Plain)
                 _ = RetrySourceAuthoredLyricsAsync(query, _trackIdentity, token);
             if (document.Kind == LyricsKind.Plain) TryStartAutomaticSync();
         }

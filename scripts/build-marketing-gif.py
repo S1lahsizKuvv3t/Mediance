@@ -12,6 +12,7 @@ SCENES = [
     ("widget-album.png", "Album artwork theme"),
     ("widget-lyrics.png", "Synchronized lyrics"),
     ("widget-micro-hover.png", "One-click Micro mode"),
+    ("now-playing.png", "Now playing beside the clock"),
     ("settings-appearance.png", "Focused appearance controls"),
     ("settings-elements.png", "Simple layout controls"),
 ]
@@ -58,7 +59,7 @@ def scene_frame(filename: str, caption: str) -> Image.Image:
     draw = ImageDraw.Draw(canvas)
     draw.text((54, 40), "MEDIANCE", font=font(18, True), fill=MUTED)
     draw.text((54, 68), caption, font=font(36, True), fill=TEXT)
-    draw.text((54, 664), "Windows media, lyrics and per-app audio routing", font=font(17), fill=MUTED)
+    draw.text((54, 664), "Mediance 1.0 · Native WinUI interface with original demo content", font=font(17), fill=MUTED)
     return canvas.convert("RGB")
 
 
@@ -85,8 +86,9 @@ def build_gif(frames: list[Image.Image]) -> None:
 
 
 def build_sheet(frames: list[Image.Image]) -> None:
-    sheet = Image.new("RGB", (1600, 1080), (8, 11, 17))
-    thumb_box = (740, 450)
+    rows = (len(frames) + 1) // 2
+    sheet = Image.new("RGB", (1600, rows * 350 + 30), (8, 11, 17))
+    thumb_box = (740, 310)
     for index, frame in enumerate(frames):
         thumb = contain(frame, thumb_box).convert("RGB")
         column = index % 2

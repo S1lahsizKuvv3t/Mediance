@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand/Mediance-mark-master.png" width="128" alt="Mediance logosu">
+  <img src="assets/brand/Mediance-app-icon-master.png" width="128" alt="Mediance logosu">
 </p>
 
 <h1 align="center">Mediance</h1>
@@ -14,15 +14,20 @@
   <a href="docs/INSTALLATION.md">Kurulum</a> ·
   <a href="docs/WALKTHROUGH.md">Kullanım rehberi</a> ·
   <a href="docs/FAQ.md">SSS</a> ·
-  <a href="docs/BETA_QUALITY.md">Beta kalitesi</a> ·
+  <a href="docs/RELEASE_NOTES_1.0.0.md">Sürüm notları</a> ·
   <a href="docs/MARKETING.md">Tanıtım paketi</a>
 </p>
 
-> En yeni genel beta sürümünü [GitHub Releases](https://github.com/S1lahsizKuvv3t/Mediance/releases/tag/v0.9.0-beta.3) sayfasından indirebilirsiniz. İmzalı kurulum paketi ve otomatik güncelleme henüz yayın kontrol listesindedir.
+> **Mediance 1.0 yayınlandı.** [Windows x64 için indir](https://github.com/S1lahsizKuvv3t/Mediance/releases/latest) · [Neler değişti?](docs/RELEASE_NOTES_1.0.0.md)
+> Windows 11 24H2 ve üzeri için taşınabilir ZIP. Tamamını çıkarın, `Mediance.exe` dosyasını açın. Hesap veya ayrı bir çalışma zamanı kurulumu gerekmez.
 
 <p align="center">
   <img src="assets/marketing/Mediance-feature-tour.gif" width="760" alt="Mediance özellik turu">
 </p>
+
+Görseller gerçek WinUI arayüzünden, bize ait örnek kapak ve sözlerle üretilmiştir.
+
+<p align="center"><img src="assets/marketing/now-playing.png" width="300" alt="Görev çubuğu medya kapsülü"><br>Saatin yanında çalan parça</p>
 
 ## Özellik özeti
 
@@ -62,7 +67,7 @@ Mediance dinleme geçmişi tutmaz ve telemetri göndermez. Şarkı sözleri yaln
 
 Yayın paketi gerekli çalışma zamanlarını beraberinde taşır. Kullanıcının ayrıca .NET SDK veya Windows App SDK kurması gerekmez.
 
-## Beta sürümünü kurma
+## İndirme ve çalıştırma
 
 1. GitHub Releases sayfasından `Mediance-<sürüm>-win-x64.zip` dosyasını indirin.
 2. Arşivin tamamını normal bir klasöre çıkarın.
@@ -78,7 +83,7 @@ Uyumlu bir uygulamada müzik başlatın ve Mediance'ı açın. Widget tercih edi
 
 Ses çıkışı seçicisi yalnızca seçilen medya uygulamasını etkiler. **Varsayılan** seçimi uygulamayı yeniden Windows'un genel çıkışına bağlar. Tarayıcı yönlendirmesi tek bir sekmeye değil tarayıcı işlemine uygulanır.
 
-`lyrics` düğmesi mevcut şarkı için söz aramasını başlatır. Kaynağında zaman kodu bulunan sözler her zaman önceliklidir. Yalnızca doğrulanmış düz söz bulunursa isteğe bağlı yerel senkron sistemi seçili medya uygulamasının sesini en fazla 75 saniyelik bölümlerde cihaz üzerinde çözümler, sözlerin muhtemel bölümünü eşleştirir ve yalnızca güvenilir sonucu saklar. Şarkının ortasından başlayabilir ve düşük güvenli bir bölümden sonra ileride yeniden deneyebilir. Manuel zamanlama seçeneği de korunur. Çok dilli model ilk kullanımda bir kez indirilir; yakalanan ses arşivlenmez.
+`lyrics` düğmesi mevcut şarkı için söz aramasını başlatır. Önce yerel kayıt kontrol edilir. Otomatik veya manuel tamamlanan senkronlar söz metniyle birlikte saklanır; uygulama yeniden açıldığında da tekrar arama ve analiz yapılmadan yüklenir. Kaynaklardan alınan senkronlu sözler de saklanır. Yerel kayıt yoksa önce zaman kodlu sağlayıcılar aranır. Yalnızca doğrulanmış düz söz bulunursa isteğe bağlı yerel senkron sistemi seçili medya uygulamasının sesini en fazla 75 saniyelik bölümlerde cihaz üzerinde çözümler, sözlerin muhtemel bölümünü eşleştirir ve yalnızca güvenilir sonucu saklar. Şarkının ortasından başlayabilir ve düşük güvenli bir bölümden sonra ileride yeniden deneyebilir. Manuel zamanlama seçeneği de korunur. Çok dilli model ilk kullanımda bir kez indirilir; yakalanan ses arşivlenmez.
 
 Bütün kontroller [Kullanım rehberinde](docs/WALKTHROUGH.md), sık karşılaşılan sorular ise [SSS](docs/FAQ.md) sayfasında anlatılmıştır.
 
@@ -87,7 +92,7 @@ Bütün kontroller [Kullanım rehberinde](docs/WALKTHROUGH.md), sık karşılaş
 Windows 11 ve .NET 10 SDK gerekir.
 
 ```powershell
-git clone <fork-adresiniz>
+git clone https://github.com/S1lahsizKuvv3t/Mediance.git
 cd Mediance
 dotnet restore Mediance.slnx
 dotnet build Mediance.slnx --configuration Release
@@ -105,11 +110,11 @@ Projede geliştirme için kısa komutlar da bulunur:
 
 ## Güncel durum
 
-Mevcut sürüm 97 otomatik testi ve native pencere smoke testini geçmektedir. Canlı lyrics kabul setinde 12/12 kaynak senkronlu ve 4/4 kontrollü otomatik senkron örneği başarıyla tamamlanmıştır. Spotify kontrolleri ve uygulamaya özel ses yönlendirmesi gerçek cihazlarda da doğrulanmıştır. Tekrarlanabilir beta kapısı; canlı lyrics örneklerini, kaynak matrisini, çoklu monitör durumunu, uyku dönüşünü ve isteğe bağlı uzun çalışma testini raporlar. Donanım veya canlı medya gerektiren bir adım çalıştırılmadığında başarılı sayılmaz; raporda bekliyor olarak kalır. İmzalı 1.0 sürümünden önce kalan işler [Yol haritasında](docs/ROADMAP.md) tutulur.
+1.0 sürümü 122 otomatik testi ve bağlı monitörlerde kapsül yerleşimini de içeren native pencere kontrollerini geçer. Geometri testleri 1080p, 1440p, 4K, farklı DPI değerleri ve Başlat menüsü açıldığında genişleyen görev çubuğu sınırlarını kapsar. Önceki gerçek Spotify testleri medya kontrolleri, uygulama ses çıkışı ve lyrics eşleştirmesini doğruladı; her şarkıda otomatik senkron garantisi anlamına gelmez.
 
-Hata ve özellik talepleri için GitHub issue şablonlarını kullanabilirsiniz. Güvenlik sorunları herkese açık issue olarak paylaşılmamalıdır; bunun için [SECURITY.md](SECURITY.md) belgesini izleyin.
+Bu paket taşınabilirdir ve henüz dijital olarak imzalanmamıştır. Kurulum paketi, imzalama ve daha geniş donanım/erişilebilirlik kontrolleri [yol haritasında](docs/ROADMAP.md) bulunur. Değişiklikler ve sınırlar [1.0 sürüm notlarında](docs/RELEASE_NOTES_1.0.0.md) açıklanmıştır.
 
-İlk push öncesindeki repo ayarları için [GitHub kurulum listesini](docs/GITHUB_SETUP.md) kullanabilirsiniz.
+Sorun bildirirken uygulama sürümünü, Windows sürümünü ve tekrarlama adımlarını ekleyin. Güvenlik bildirimleri için [SECURITY.md](SECURITY.md) belgesini kullanın.
 
 ## Lisans
 

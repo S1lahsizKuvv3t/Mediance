@@ -45,11 +45,11 @@ Medya kontrollerinin altındaki seçici, yalnızca seçili medya uygulamasının
 
 Tarayıcı yönlendirmesi tek bir sekmeye değil tarayıcı işlemine uygulanır. Bazı uygulamalar yeni cihaz tercihini hemen kullanırken bazıları oynatmanın veya uygulamanın yeniden başlatılmasını isteyebilir.
 
-Widget'ın lyrics alanı dışındayken fare tekerleği seçili uygulamanın sesini yüzde 5 artırır veya azaltır. Ekranın üst bölümünde kısa süreli bir ses göstergesi belirir. Bu özellik ayarlardan kapatılabilir ve sistemin genel ses seviyesini değiştirmez.
+Widget'ın lyrics alanı dışındayken fare tekerleği seçili uygulamanın sesini yüzde 5 artırır veya azaltır. Ekranın üst bölümünde kısa süreli bir ses göstergesi belirir. Bu özellik her zaman açıktır ve sistemin genel ses seviyesini değiştirmez.
 
 ## Şarkı sözleri
 
-Lyrics paneli siz açana kadar ağ isteği yapılmaz. Panel açıldığında Mediance önce zaman kodu bulunan kaynakları arar. Doğru şarkı olduğundan emin olmak için başlık, sanatçı, albüm ve yaklaşık süre karşılaştırılır. Belirsiz bir eşleşmede yanlış söz göstermek yerine sonuç bulunamadı durumu kullanılır.
+Lyrics paneli siz açana kadar ağ isteği yapılmaz. Panel açıldığında Mediance önce yerel senkron kütüphanesine bakar. Kayıt varsa metni ve zamanlamasını doğrudan yükler; çevrimiçi arama veya yeniden senkronlama yapmaz. Kayıt yoksa zaman kodu bulunan kaynakları arar. Bölüm/podcast olarak yayınlanan medya da söz aramasına alınır; sanatçı bilgisi yoksa belirsiz eşleşmeler reddedilir. Doğru şarkı olduğundan emin olmak için başlık, sanatçı, albüm ve yaklaşık süre karşılaştırılır. Belirsiz bir eşleşmede yanlış söz göstermek yerine sonuç bulunamadı durumu kullanılır.
 
 Zaman kodlu söz bulunduğunda aktif satır çalan bölüme göre ilerler. Ayarlardan iki görünüm seçilebilir:
 
@@ -75,7 +75,7 @@ Otomatik eşleşme tamamlanamazsa manuel zamanlama seçeneği gösterilmeye deva
 
 Yarım kalan çalışma kaydedilmez. Baştan başlatabilir veya iptal edebilirsiniz. Daha önce zamanladığınız bir şarkıda **Yeniden senkronla** seçeneği görünür; yeni denemeyi iptal ederseniz eski çalışan zamanlama korunur.
 
-Kabul edilen otomatik ve tamamlanan manuel zamanlamalar `%LOCALAPPDATA%\Mediance\lyrics-timing.json` dosyasında tutulur. Dosyada şarkı adı, sanatçı veya söz metni bulunmaz; yalnızca eşleştirme parmak izleri ve zaman değerleri saklanır. İnternet kaynağında gerçek senkronize söz daha sonra bulunursa kaynak zamanlaması yerel kaydın önüne geçer.
+Kabul edilen otomatik ve tamamlanan manuel zamanlamalar `%LOCALAPPDATA%\Mediance\lyrics-timing.json` dosyasında tutulur. Dosyada söz satırları, zaman değerleri ve eşleştirme parmak izleri saklanır; şarkı ve sanatçı adları ayrıca yazılmaz. Kaynaklardan bulunan senkronlu sözler de bu kütüphaneye eklenir. Kayıtlı senkron internet sorgusundan önce gelir. Eski zamanlama kayıtları bir başarılı söz aramasından sonra metinle tamamlanır.
 
 ## Settings penceresi
 

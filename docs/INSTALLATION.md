@@ -21,12 +21,12 @@ Paketin en üstünde yalnızca `Mediance.exe` bulunur. Gerekli DLL, dil ve çal�
 
 ## SmartScreen uyarısı
 
-İlk beta sürümleri dijital olarak imzalanmadıysa Windows **Bilinmeyen yayıncı** uyarısı gösterebilir. Paketi yalnızca resmi Releases sayfasından indirin. Yayın notlarında verilen SHA-256 değeri indirdiğiniz dosyayla eşleşmiyorsa paketi çalıştırmayın.
+1.0 taşınabilir paketi henüz dijital olarak imzalanmadığı için Windows **Bilinmeyen yayıncı** uyarısı gösterebilir. Paketi yalnızca resmi Releases sayfasından indirin. Yayın notlarında verilen SHA-256 değeri indirdiğiniz dosyayla eşleşmiyorsa paketi çalıştırmayın.
 
 PowerShell ile SHA-256 kontrolü:
 
 ```powershell
-Get-FileHash .\Mediance-0.9.0-beta.3-win-x64.zip -Algorithm SHA256
+Get-FileHash .\Mediance-1.0.0-win-x64.zip -Algorithm SHA256
 ```
 
 ## İlk çalıştırma
@@ -43,14 +43,14 @@ ayarlayabilirsiniz.
 
 ## Güncelleme
 
-İlk beta sürümünde otomatik güncelleme bulunmaz.
+Uygulama GitHub üzerinden yeni sürümü kontrol eder. Otomatik indirme veya kurulum yapmaz.
 
 1. Sistem tepsisi menüsünden Mediance'ı tamamen kapatın.
 2. Yeni ZIP paketini indirin ve ayrı bir klasöre çıkarın.
 3. Eski uygulama klasörünü yeni dosyalarla değiştirin.
 4. `Mediance.exe` dosyasını yeniden açın.
 
-Ayarlar ve manuel lyrics zamanlamaları uygulama klasöründe değil `%LOCALAPPDATA%\Mediance` altında saklandığı için normal güncellemede korunur.
+Ayarlar ve metniyle birlikte saklanan senkron lyrics kayıtları uygulama klasöründe değil `%LOCALAPPDATA%\Mediance` altında saklandığı için normal güncellemede korunur.
 
 ## Kaldırma
 

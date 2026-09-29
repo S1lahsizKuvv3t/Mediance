@@ -1,39 +1,23 @@
 # Roadmap
 
-The current feature set is intentionally close to the planned 1.0 scope. Work before the first stable release is mostly about packaging, compatibility, and recovery rather than adding another large panel to the widget.
+Mediance 1.0 is a stable portable release. It contains the desktop widget, Album theme, Micro mode, taskbar capsule, local lyrics library and on-device alignment. Stable does not mean every recording, audio device or Windows configuration has been verified.
 
-## 0.9 public beta
+## Next reliability work
 
-- Publish a complete self-contained x64 ZIP.
-- Add clean screenshots and a short desktop demo.
-- Run the Windows build and test workflow on every change.
-- Test installation on computers without development tools.
-- Collect reproducible reports for Spotify, YouTube Music, Chrome, and Edge.
-- Check Bluetooth disconnect/reconnect and audio-device removal behavior.
-- Run a multi-hour media and lyrics soak test.
+- Extend real hardware checks across display scaling, taskbar auto-hide and secondary displays.
+- Run longer sleep/wake, player-restart and multi-hour listening tests.
+- Expand accessibility checks: keyboard navigation, screen readers, high contrast and reduced motion.
+- Improve automatic alignment coverage while keeping confidence gates and saved timings intact.
+- Make support diagnostics easy to share without including listening metadata or lyrics.
 
-## 1.0 stable
+## Distribution
 
-- Replace the internal `AcrylicProbe` project name with the final application project name.
-- Produce a versioned installer with clean install, update, and uninstall behavior.
-- Sign executables and installers.
-- Complete Windows 11 scaling checks at 100%, 125%, 150%, and 200%.
-- Complete keyboard navigation, screen-reader labels, high contrast, reduced motion, and transparency-off checks.
-- Add a privacy-safe diagnostics bundle for support requests.
-- Freeze the settings and manual-timing migration contract.
-- Publish final release notes, checksums, privacy text, and third-party notices.
+The portable ZIP remains the supported package. An installer will follow when the update rhythm settles. Code signing and a controlled update mechanism need their own release checks; 1.0 does not silently install updates or turn off SmartScreen.
 
-## After 1.0
+## Possible later features
 
-These ideas are useful, but they should not delay a stable first release:
+- Per-track timing offsets.
+- Better handling of ambiguous metadata and unusual recordings.
+- More audio-device compatibility.
 
-- import and export for settings and local automatic/manual timings;
-- a local manual-timing manager;
-- per-track lyric offset overrides;
-- packaged-app/AUMID audio routing;
-- more explicit media-session selection;
-- docking and optional auto-hide;
-- automatic update checks with a clear user choice;
-- additional localizations.
-
-The roadmap can change based on beta feedback. Features that weaken privacy, change the system-wide output device, or require media-account passwords are outside the current product direction.
+New features should keep the small widget and focused settings easy to use. GitHub Issues is the place for reproducible bugs and concrete feature requests.

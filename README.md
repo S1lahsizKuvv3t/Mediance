@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand/Mediance-mark-master.png" width="128" alt="Mediance logo">
+  <img src="assets/brand/Mediance-app-icon-master.png" width="128" alt="Mediance logo">
 </p>
 
 <h1 align="center">Mediance</h1>
@@ -14,22 +14,27 @@
   <a href="docs/INSTALLATION.md">Install</a> ·
   <a href="docs/WALKTHROUGH.md">Walkthrough</a> ·
   <a href="docs/FAQ.md">FAQ</a> &middot;
-  <a href="docs/BETA_QUALITY.md">Beta quality</a> &middot;
+  <a href="docs/RELEASE_NOTES_1.0.0.md">Release notes</a> &middot;
   <a href="docs/MARKETING.md">Marketing kit</a>
 </p>
 
-> The latest public beta is available from [GitHub Releases](https://github.com/S1lahsizKuvv3t/Mediance/releases/tag/v0.9.0-beta.3). Signed installers and automatic updates are still on the release checklist.
+> **Mediance 1.0 is available.** [Download for Windows x64](https://github.com/S1lahsizKuvv3t/Mediance/releases/latest) · [What changed](docs/RELEASE_NOTES_1.0.0.md)
+> Portable ZIP for Windows 11 24H2+. Extract it and open `Mediance.exe`. No account or separate runtime installation required.
 
 <p align="center">
   <img src="assets/marketing/Mediance-feature-tour.gif" width="760" alt="Mediance feature tour">
 </p>
+
+The tour uses the actual WinUI interface with original demo content.
+
+<p align="center"><img src="assets/marketing/now-playing.png" width="300" alt="Now-playing capsule"><br>Now playing beside the clock</p>
 
 ## Feature overview
 
 | Area | What Mediance provides |
 |---|---|
 | Media | Preferred-session selection, play/pause, previous/next, seeking, and stale-session recovery |
-| Lyrics | Source-synchronized lyrics, on-device automatic alignment, local learning, timing offset, and two/three-line views |
+| Lyrics | Source-synchronized lyrics, on-device alignment, saved lyrics, timing offset, and two/three-line views |
 | Audio | Per-application output-device selection and mouse-wheel application volume |
 | Layouts | Standard, Micro, cover-and-controls, vertical lyrics, and a minimal configurable layout |
 | Appearance | Acrylic glass, centered Album artwork theme, blur, zoom, darkness, width, and density controls |
@@ -62,7 +67,7 @@ Mediance does not keep listening history or send telemetry. Lyrics are fetched o
 
 The release build is self-contained. Users do not need to install the .NET SDK or Windows App SDK separately.
 
-## Install a beta build
+## Download and run
 
 1. Download `Mediance-<version>-win-x64.zip` from GitHub Releases.
 2. Extract the whole archive to a normal folder.
@@ -78,7 +83,7 @@ Start music in a supported app and open Mediance. The widget follows the preferr
 
 The audio output selector affects the selected application only. Choosing **Default** returns that app to the Windows default device. Browser routing applies to the browser process rather than one individual tab.
 
-Open `lyrics` to request lyrics for the current track. Source-authored synchronized lyrics always take priority. When only verified plain lyrics are available, optional on-device sync listens only to the selected media process in bounded 75-second samples, aligns a local speech transcript to the likely lyric region, and saves a result only when its confidence is high enough. It can start mid-track and retry later sections automatically. Manual timing remains available. The multilingual model is downloaded once on first use and audio is kept in memory rather than archived.
+Open `lyrics` to request lyrics for the current track. Mediance checks your saved lyrics first. Completed automatic and manual timings, together with their text, survive application restarts and load without another provider lookup. Source-synchronized results are saved too. For a track without a saved entry, synchronized providers are searched first. When only verified plain lyrics are available, optional on-device sync listens only to the selected media process in bounded 75-second samples, aligns a local speech transcript to the likely lyric region, and saves a result only when its confidence is high enough. It can start mid-track and retry later sections automatically. Manual timing remains available. The multilingual model is downloaded once on first use and audio is kept in memory rather than archived.
 
 The [walkthrough](docs/WALKTHROUGH.md) covers every control and setting. Common questions are collected in the [FAQ](docs/FAQ.md).
 
@@ -87,7 +92,7 @@ The [walkthrough](docs/WALKTHROUGH.md) covers every control and setting. Common 
 You need Windows 11 and the .NET 10 SDK.
 
 ```powershell
-git clone <your-fork-url>
+git clone https://github.com/S1lahsizKuvv3t/Mediance.git
 cd Mediance
 dotnet restore Mediance.slnx
 dotnet build Mediance.slnx --configuration Release
@@ -119,7 +124,9 @@ More detail is available in [Architecture](docs/ARCHITECTURE.md).
 
 ## Current status
 
-The current build passes 97 automated tests and the native window smoke test. The live lyrics acceptance set has also passed 12 of 12 source-timed samples and 4 of 4 forced automatic-path samples on Spotify. Spotify playback controls and per-app output routing have also been checked on real hardware. The repeatable beta gate records live lyrics samples, source coverage, multi-monitor checks, sleep/wake recovery, and optional soak runs without marking unavailable hardware as passed. The remaining work before a signed 1.0 release is tracked in the [roadmap](docs/ROADMAP.md). Read the full [Beta 3 release notes](docs/RELEASE_NOTES_0.9.0-beta.3.md).
+Version 1.0 passes 122 automated tests and the native window smoke checks, including capsule geometry on the connected monitors. Geometry tests cover 1080p, 1440p, 4K, mixed DPI and expanded Start-menu bounds. Earlier live Spotify checks covered playback, app-specific audio routing and lyric alignment; they are not a guarantee that every song can be aligned.
+
+This release is an unsigned portable application. Code signing, an installer and broader hardware/accessibility testing remain on the [roadmap](docs/ROADMAP.md). See the [1.0 release notes](docs/RELEASE_NOTES_1.0.0.md) for limits and migration details.
 
 Please use the issue templates for reproducible bugs and feature requests. For security reports, follow [SECURITY.md](SECURITY.md) rather than opening a public issue.
 
@@ -127,6 +134,6 @@ Repository owners can follow the one-time [GitHub setup checklist](docs/GITHUB_S
 
 ## License
 
-Copyright © 2026 Mediance. All rights reserved. No permission to redistribute modified builds or reuse the source is granted by the current license. This can be changed before the public launch if the project moves to an open-source license.
+Copyright © 2026 Mediance. All rights reserved. No permission to redistribute modified builds or reuse the source is granted by the current license. The repository is public, but its current license does not grant open-source reuse rights.
 
 Third-party components and references are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

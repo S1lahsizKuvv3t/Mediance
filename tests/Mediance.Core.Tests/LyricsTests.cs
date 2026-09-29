@@ -208,7 +208,7 @@ public sealed class LyricsTests
     }
 
     [Fact]
-    public async Task ManualTimingPersistsWithoutWritingTrackOrLyricText()
+    public async Task AuthoredTimingPersistsTextAndLoadsOfflineAfterRestart()
     {
         var directory = Path.Combine(Path.GetTempPath(), "Mediance-lyrics-" + Guid.NewGuid().ToString("N"));
         var path = Path.Combine(directory, "lyrics-timing.json");
@@ -223,17 +223,20 @@ public sealed class LyricsTests
             Assert.Equal(LyricsKind.Synced, saved.Kind);
             Assert.True(saved.IsUserTimed);
 
-            var reader = new LyricsService(new FixedProvider(new(LyricsKind.Plain, [], plain)),
+            var offline = new SequenceLyricsProvider(LyricsDocument.Unavailable);
+            var reader = new LyricsService(offline,
                 new LocalLyricsTimingStore(path));
             var loaded = await reader.FindAsync(query);
             Assert.Equal(LyricsKind.Synced, loaded.Kind);
             Assert.True(loaded.IsUserTimed);
             Assert.Equal([2, 8], loaded.Lines.Select(line => line.Start.TotalSeconds));
+            Assert.Equal(plain, loaded.PlainText);
+            Assert.Equal(0, offline.Calls);
 
             var json = await File.ReadAllTextAsync(path);
             Assert.DoesNotContain("Private Track", json, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("Private Artist", json, StringComparison.OrdinalIgnoreCase);
-            Assert.DoesNotContain("Secret first line", json, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Secret first line", json, StringComparison.OrdinalIgnoreCase);
         }
         finally
         {
@@ -271,7 +274,7 @@ public sealed class LyricsTests
     }
 
     [Fact]
-    public async Task SourceAuthoredTimingKeepsPriorityOverSavedManualTiming()
+    public async Task SavedTimingTakesPriorityWithoutContactingSource()
     {
         var directory = Path.Combine(Path.GetTempPath(), "Mediance-lyrics-" + Guid.NewGuid().ToString("N"));
         var path = Path.Combine(directory, "lyrics-timing.json");
@@ -284,11 +287,13 @@ public sealed class LyricsTests
             var source = new LyricsDocument(LyricsKind.Synced,
                 [new(TimeSpan.FromSeconds(4), "Source first"), new(TimeSpan.FromSeconds(9), "Source second")]);
 
-            var result = await new LyricsService(new FixedProvider(source), store).FindAsync(query);
+            var provider = new SequenceLyricsProvider(source);
+            var result = await new LyricsService(provider, store).FindAsync(query);
 
-            Assert.Equal("Source first", result.Lines[0].Text);
-            Assert.Equal(4, result.Lines[0].Start.TotalSeconds);
-            Assert.False(result.IsUserTimed);
+            Assert.Equal("First", result.Lines[0].Text);
+            Assert.Equal(2, result.Lines[0].Start.TotalSeconds);
+            Assert.True(result.IsUserTimed);
+            Assert.Equal(0, provider.Calls);
         }
         finally
         {

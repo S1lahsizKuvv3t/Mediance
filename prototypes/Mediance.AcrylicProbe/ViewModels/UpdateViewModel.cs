@@ -31,7 +31,7 @@ public sealed class UpdateViewModel(HttpClient client) : INotifyPropertyChanged
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, ReleasesEndpoint);
-            request.Headers.UserAgent.ParseAdd("Mediance-UpdateChecker/0.9");
+            request.Headers.UserAgent.ParseAdd("Mediance-UpdateChecker/1.0");
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
             response.EnsureSuccessStatusCode();
             await using var stream = await response.Content.ReadAsStreamAsync();

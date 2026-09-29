@@ -13,14 +13,40 @@ public sealed record LocalLyricsTimingSummary(
 
 public sealed class LocalLyricsTimingStore(string path)
 {
-    private const int Version = 2;
-    private const int MaximumEntries = 500;
+    private const int Version = 3;
     private readonly SemaphoreSlim _gate = new(1, 1);
     private static readonly JsonSerializerOptions Options = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true
     };
+
+    public async Task<LyricsDocument?> LoadDocumentAsync(LyricsQuery query, CancellationToken token = default)
+    {
+        var identity = Identity.Create(query, "");
+        await _gate.WaitAsync(token);
+        try
+        {
+            var data = await ReadAsync(token);
+            var match = data.Entries.Where(entry => entry.TrackKey == identity.TrackKey &&
+                    entry.TextLines is not null &&
+                    IsDurationCompatible(entry.DurationMilliseconds, identity.DurationMilliseconds) &&
+                    IsValid(entry.TimingsMilliseconds, identity.DurationMilliseconds, entry.IsUserTimed))
+                .OrderByDescending(entry => entry.UpdatedUtc).FirstOrDefault();
+            if (match?.TextLines is not { } lines) return null;
+            return new(LyricsKind.Synced, lines.Select((text, index) =>
+                new LyricLine(TimeSpan.FromMilliseconds(match.TimingsMilliseconds[index]), text)).ToArray(),
+                string.Join('\n', lines), match.IsUserTimed);
+        }
+        finally { _gate.Release(); }
+    }
+
+    public Task SaveDocumentAsync(LyricsQuery query, LyricsDocument document, CancellationToken token = default)
+    {
+        if (document.Kind != LyricsKind.Synced) throw new ArgumentException("Only synchronized lyrics can be saved.");
+        return SaveCoreAsync(query, string.Join('\n', document.Lines.Select(line => line.Text)),
+            document.Lines.Select(line => line.Start).ToArray(), document.IsUserTimed, token);
+    }
 
     public async Task<IReadOnlyList<TimeSpan>?> LoadAsync(
         LyricsQuery query, string plainText, CancellationToken token = default)
@@ -34,7 +60,7 @@ public sealed class LocalLyricsTimingStore(string path)
                 entry.TrackKey == identity.TrackKey &&
                 entry.TimingsMilliseconds.Length == identity.LineKeys.Length &&
                 IsDurationCompatible(entry.DurationMilliseconds, identity.DurationMilliseconds) &&
-                IsValid(entry.TimingsMilliseconds, identity.DurationMilliseconds)).ToArray();
+                IsValid(entry.TimingsMilliseconds, identity.DurationMilliseconds, entry.IsUserTimed)).ToArray();
             var match = candidates.FirstOrDefault(entry => entry.LyricsKey == identity.LyricsKey) ??
                 candidates.OrderByDescending(entry => LineSimilarity(entry.LineKeys, identity.LineKeys))
                     .FirstOrDefault(entry => LineSimilarity(entry.LineKeys, identity.LineKeys) >= 0.85);
@@ -43,12 +69,18 @@ public sealed class LocalLyricsTimingStore(string path)
         finally { _gate.Release(); }
     }
 
-    public async Task SaveAsync(LyricsQuery query, string plainText,
-        IReadOnlyList<TimeSpan> timings, CancellationToken token = default)
+    public Task SaveAsync(LyricsQuery query, string plainText,
+        IReadOnlyList<TimeSpan> timings, CancellationToken token = default) =>
+        SaveCoreAsync(query, plainText, timings, true, token);
+
+    private async Task SaveCoreAsync(LyricsQuery query, string plainText,
+        IReadOnlyList<TimeSpan> timings, bool isUserTimed, CancellationToken token)
     {
+        var lines = PlainLyricsTimeline.Clean(plainText).Split('\n',
+            StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         var identity = Identity.Create(query, plainText);
         var milliseconds = timings.Select(value => (long)Math.Round(value.TotalMilliseconds)).ToArray();
-        if (milliseconds.Length != identity.LineKeys.Length || !IsValid(milliseconds, identity.DurationMilliseconds))
+        if (milliseconds.Length != identity.LineKeys.Length || !IsValid(milliseconds, identity.DurationMilliseconds, isUserTimed))
             throw new ArgumentException("Lyrics timings must be increasing and match every lyric line.", nameof(timings));
 
         await _gate.WaitAsync(token);
@@ -57,11 +89,11 @@ public sealed class LocalLyricsTimingStore(string path)
         {
             var data = await ReadAsync(token);
             data.Entries.RemoveAll(entry =>
-                entry.TrackKey == identity.TrackKey && entry.LyricsKey == identity.LyricsKey);
+                entry.TrackKey == identity.TrackKey && entry.LyricsKey == identity.LyricsKey &&
+                IsDurationCompatible(entry.DurationMilliseconds, identity.DurationMilliseconds));
             data.Entries.Add(new(identity.TrackKey, identity.LyricsKey, identity.LineKeys,
-                identity.DurationMilliseconds, milliseconds, DateTimeOffset.UtcNow));
-            data.Entries = data.Entries.OrderByDescending(entry => entry.UpdatedUtc)
-                .Take(MaximumEntries).ToList();
+                identity.DurationMilliseconds, milliseconds, DateTimeOffset.UtcNow, lines, isUserTimed));
+            // A saved synchronization is a library entry, not an expiring network cache.
 
             await WriteAsync(data, temporary, token);
         }
@@ -112,7 +144,7 @@ public sealed class LocalLyricsTimingStore(string path)
         }
     }
 
-    private static string EntryId(TimingEntry entry) => $"{entry.TrackKey}:{entry.LyricsKey}";
+    private static string EntryId(TimingEntry entry) => $"{entry.TrackKey}:{entry.LyricsKey}:{entry.DurationMilliseconds}";
 
     private async Task WriteAsync(TimingFile data, string temporary, CancellationToken token)
     {
@@ -152,28 +184,33 @@ public sealed class LocalLyricsTimingStore(string path)
     {
         var data = JsonSerializer.Deserialize<TimingFile>(json, Options)
             ?? throw new JsonException("Lyrics timing data must be an object.");
-        if (data.SchemaVersion != Version) return new();
+        if (data.SchemaVersion is not (2 or Version))
+            throw new NotSupportedException("Unsupported lyrics library version; the original file is preserved.");
+        data.SchemaVersion = Version;
         data.Entries ??= [];
         data.Entries = data.Entries.Where(entry =>
+            entry is not null &&
             !string.IsNullOrWhiteSpace(entry.TrackKey) &&
             !string.IsNullOrWhiteSpace(entry.LyricsKey) &&
             entry.LineKeys is not null &&
             entry.TimingsMilliseconds is not null &&
             entry.LineKeys.Length == entry.TimingsMilliseconds.Length &&
-            IsValid(entry.TimingsMilliseconds, entry.DurationMilliseconds)).ToList();
+            (entry.TextLines is null || (entry.TextLines.Length == entry.LineKeys.Length &&
+                entry.TextLines.All(line => !string.IsNullOrWhiteSpace(line)))) &&
+            IsValid(entry.TimingsMilliseconds, entry.DurationMilliseconds, entry.IsUserTimed)).ToList();
         return data;
     }
 
     private static bool IsDurationCompatible(long? saved, long? current) =>
         saved is null || current is null || Math.Abs(saved.Value - current.Value) <= 20_000;
 
-    private static bool IsValid(IReadOnlyList<long> values, long? duration)
+    private static bool IsValid(IReadOnlyList<long> values, long? duration, bool strictlyIncreasing = true)
     {
         if (values.Count == 0) return false;
         long previous = -1;
         foreach (var value in values)
         {
-            if (value < 0 || value <= previous) return false;
+            if (value < 0 || value < previous || (strictlyIncreasing && value == previous)) return false;
             previous = value;
         }
         return duration is null || previous <= duration.Value + 10_000;
@@ -188,7 +225,7 @@ public sealed class LocalLyricsTimingStore(string path)
 
     private sealed class TimingFile
     {
-        public int SchemaVersion { get; init; } = Version;
+        public int SchemaVersion { get; set; } = Version;
         public List<TimingEntry> Entries { get; set; } = [];
     }
 
@@ -198,7 +235,9 @@ public sealed class LocalLyricsTimingStore(string path)
         string[] LineKeys,
         long? DurationMilliseconds,
         long[] TimingsMilliseconds,
-        DateTimeOffset UpdatedUtc);
+        DateTimeOffset UpdatedUtc,
+        string[]? TextLines = null,
+        bool IsUserTimed = true);
 
     private sealed record Identity(string TrackKey, string LyricsKey, string[] LineKeys, long? DurationMilliseconds)
     {
