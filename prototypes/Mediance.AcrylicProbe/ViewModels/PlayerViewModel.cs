@@ -61,10 +61,10 @@ public sealed class PlayerViewModel : INotifyPropertyChanged, IAsyncDisposable
     public string Source => _selected is null ? TextCatalog.Get("IdleSource") :
         _selected.SourceAppId.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? _selected.SourceAppId[..^4] : _selected.SourceAppId;
     public string? SourceAppId => _selected?.SourceAppId;
-    public Mediance.Core.Lyrics.LyricsQuery? LyricsQuery => _selected is null ||
-        string.IsNullOrWhiteSpace(_selected.Track.Title) || string.IsNullOrWhiteSpace(_selected.Track.Artist)
+    public Mediance.Core.Lyrics.LyricsQuery? LyricsQuery => _selected is null
         ? null
-        : new(_selected.Track.Title, _selected.Track.Artist, _selected.Track.Album,
+        : Mediance.Core.Lyrics.LyricsQueryFactory.FromMediaMetadata(
+            _selected.Track.Title, _selected.Track.Artist, _selected.Track.Album,
             _selected.Timeline.End > TimeSpan.Zero ? _selected.Timeline.End : null);
     public string? TrackIdentity => _selected is null ? null :
         $"{_selected.SourceAppId}\u001f{_selected.Track.Title}\u001f{_selected.Track.Artist}\u001f{_selected.Track.Album}";

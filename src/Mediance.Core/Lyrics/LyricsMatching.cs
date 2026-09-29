@@ -25,9 +25,11 @@ public static class LyricsMatching
         }).OrderByDescending(x => x.Score).ToArray();
 
         var best = scored[0];
-        if (best.Score < minimumConfidence) return -1;
+        if (!best.ExactIdentity && best.Score < minimumConfidence) return -1;
         // Exact title + artist is safe even when duplicate releases tie. For a
-        // fuzzy identity, require a clear lead to avoid displaying another song.
+        // fuzzy identity, require a strong score and a clear lead to avoid
+        // displaying another song. Exact identity also survives misleading
+        // episode/feed album metadata and small duration differences.
         if (!best.ExactIdentity && scored.Length > 1 && best.Score - scored[1].Score < 0.05) return -1;
         return best.Index;
     }
